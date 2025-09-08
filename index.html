@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Sandar Ratu - Dokumen</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+  <h2>Upload Dokumen</h2>
+  <form id="docForm">
+    <div>
+      <label>1. SPB</label>
+      <input type="file" data-label="SPB">
+    </div>
+    <div>
+      <label>2. Crew List</label>
+      <input type="file" data-label="Crew List">
+    </div>
+    <div>
+      <label>3. Surat Perbekalan</label>
+      <input type="file" data-label="Surat Perbekalan">
+    </div>
+  </form>
+
+  <button onclick="downloadAll()">Download PDF</button>
+  <br><br>
+  <iframe id="preview" width="600" height="400"></iframe>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+    const { PDFDocument } = PDFLib;
+
+    // === IndexedDB setup ===
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("DokumenDB", 1);
+        request.onupgradeneeded = function(e) {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains("files")) {
+            db.createObjectStore("files", { keyPath: "id" });
+          }
+        };
+        request.onsuccess = e => resolve(e.target.result);
+        request.onerror = e => reject("DB error: " + e.target.errorCode);
+      });
+    }
+
+    async function saveFile(id, file) {
+      const db = await openDB();
+      const tx = db.transaction("files", "readwrite");
+      const store = tx.objectStore("files");
+      store.put({ id, name: file.name, type: file.type, file });
+      return tx.complete;
+    }
+
+    async function getFile(id) {
+      const db = await openDB();
+      const tx = db.transaction("files", "readonly");
+      const store = tx.objectStore("files");
+      return new Promise((resolve, reject) => {
+        const request = store.get(id);
+        request.onsuccess = e => resolve(e.target.result ? e.target.result.file : null);
+        request.onerror = () => reject("Gagal ambil file");
+      });
+    }
+
+    // === Simpan otomatis setiap upload ===
+    document.getElementById("docForm").addEventListener("change", async e => {
+      const input = e.target;
+      if (input.type === "file" && input.files[0]) {
+        await saveFile(input.dataset.label, input.files[0]);
+        console.log("Tersimpan di IndexedDB:", input.dataset.label);
+      }
+    });
+
+    // === Download PDF gabungan ===
+    async function downloadAll() {
+      const labels = ["SPB", "Crew List", "Surat Perbekalan"];
+      const mergedPdf = await PDFDocument.create();
+
+      // 1. Cover
+      const coverPdf = new jsPDF();
+      coverPdf.setFontSize(20).text("SANDAR-RATU", 105, 40, {align: "center"});
+      coverPdf.setFontSize(12).text("Nama Kapal: MT. Ratu", 20, 70);
+      coverPdf.setFontSize(12).text("Dicetak: " + new Date().toLocaleDateString(), 20, 80);
+      const coverBytes = coverPdf.output("arraybuffer");
+      const coverDoc = await PDFDocument.load(coverBytes);
+      const coverPages = await mergedPdf.copyPages(coverDoc, coverDoc.getPageIndices());
+      coverPages.forEach(p => mergedPdf.addPage(p));
+
+      // 2. Daftar Lampiran
+      const lampiranPdf = new jsPDF();
+      lampiranPdf.setFontSize(16).setFont(undefined, 'bold');
+      lampiranPdf.text("DOKUMEN TERLAMPIR:", 20, 20);
+
+      let y = 35;
+      for (let i = 0; i < labels.length; i++) {
+        const label = labels[i];
+        lampiranPdf.setFontSize(13).setFont(undefined, 'bold');
+        lampiranPdf.text(`${i+1}. ${label}`, 20, y);
+        y += 7;
+
+        const file = await getFile(label);
+        if(file){
+          const sizeKB = (file.size / 1024).toFixed(2);
+          lampiranPdf.setFontSize(11).setFont(undefined, 'normal');
+          lampiranPdf.text(`${file.name} | ${sizeKB} KB`, 25, y);
+        } else {
+          lampiranPdf.setFontSize(11).setFont(undefined, 'italic');
+          lampiranPdf.text("Tidak ada dokumen terlampir", 25, y);
+        }
+        y += 15;
+      }
+
+      const lampiranBytes = lampiranPdf.output("arraybuffer");
+      const lampiranDoc = await PDFDocument.load(lampiranBytes);
+      const lampiranPages = await mergedPdf.copyPages(lampiranDoc, lampiranDoc.getPageIndices());
+      lampiranPages.forEach(p => mergedPdf.addPage(p));
+
+      // 3. Isi Dokumen per File
+      for(const label of labels){
+        const judulPdf = new jsPDF();
+        judulPdf.setFontSize(16).text(label, 105, 50, {align: "center"});
+        const judulBytes = judulPdf.output("arraybuffer");
+        const judulDoc = await PDFDocument.load(judulBytes);
+        const judulPages = await mergedPdf.copyPages(judulDoc, judulDoc.getPageIndices());
+        judulPages.forEach(p => mergedPdf.addPage(p));
+
+        const file = await getFile(label);
+        if(file){
+          if(file.type.includes("pdf")){
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await PDFDocument.load(arrayBuffer);
+            const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+            copiedPages.forEach(p => mergedPdf.addPage(p));
+          }
+        } else {
+          const kosongPdf = new jsPDF();
+          kosongPdf.setFontSize(12).text("Tidak ada dokumen", 105, 100, {align:"center"});
+          const kosongBytes = kosongPdf.output("arraybuffer");
+          const kosongDoc = await PDFDocument.load(kosongBytes);
+          const kosongPages = await mergedPdf.copyPages(kosongDoc, kosongDoc.getPageIndices());
+          kosongPages.forEach(p => mergedPdf.addPage(p));
+        }
+      }
+
+      // Simpan hasil
+      const mergedBytes = await mergedPdf.save();
+      const blob = new Blob([mergedBytes], { type: "application/pdf" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "SANDAR_RATU_Dokumen.pdf";
+      link.click();
+
+      // Preview di iframe
+      document.getElementById("preview").src = URL.createObjectURL(blob);
+    }
+  </script>
+</body>
+</html>
