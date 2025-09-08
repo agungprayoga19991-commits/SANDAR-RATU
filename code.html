@@ -2,356 +2,290 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>SANDARATU - Sistem Informasi</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Google Identity Services -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <title>SANDARATU - Sistem Administrasi Kapal</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; background: #f4f8fb; color: #333; }
-    header { background: linear-gradient(90deg, #003366, #0055a5); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-    header h1 { margin: 0; font-size: 28px; }
-    header p { margin: 5px 0 0; font-size: 14px; opacity: 0.8; }
-    .container { max-width: 900px; margin: 30px auto; padding: 20px; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); margin-bottom: 30px; }
-    .card h3 { margin-top: 0; color: #0055a5; }
-    input, select { width: 100%; padding: 10px; margin: 8px 0 16px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
-    button { padding: 10px 15px; background: #0055a5; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin-top: 10px; }
-    button:hover { background: #003f7f; }
-    .logout { background: crimson; margin-top: 20px; }
-    .doc-card { background: white; border-radius: 12px; padding: 15px; margin: 15px 0; box-shadow: 0 3px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-    .doc-info { flex: 1; }
-    .doc-info b { font-size: 16px; color: #0055a5; }
-    .qrcode { margin-left: 20px; border: 1px solid #eee; padding: 5px; border-radius: 8px; background: #fafafa; }
-    .hidden { display: none; }
-    #reader, #readerNelayan { width: 100%; }
-
-    /* Tab Login */
-    .tab-container { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 15px; }
-    .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: bold; color: #555; }
-    .tab.active { border-bottom: 3px solid #0055a5; color: #0055a5; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6fb;
+      margin: 0; padding: 0;
+      display: flex; justify-content: center; align-items: flex-start;
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      width: 800px; max-width: 95%;
+      margin: 30px auto; padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; color: #2c3e50; }
+    .tabs { display: flex; justify-content: center; margin-bottom: 20px; }
+    .tab {
+      flex: 1; padding: 12px;
+      text-align: center; cursor: pointer;
+      background: #eee; border-radius: 8px 8px 0 0;
+      font-weight: bold;
+    }
+    .tab.active {
+      background: linear-gradient(90deg,#4e73df,#7b4ee8);
+      color: white;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .form-group { margin-bottom: 12px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    input, textarea {
+      width: 100%; padding: 8px;
+      border: 1px solid #ccc; border-radius: 6px;
+    }
+    button {
+      padding: 10px 16px; border: none;
+      border-radius: 8px; cursor: pointer;
+      background: #4e73df; color: white; font-weight: bold;
+    }
+    button:hover { background: #3a5ec7; }
+    .document-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+    .document-item a {
+      margin-top: 5px; display: inline-block;
+      color: #007bff; text-decoration: none;
+    }
+    #preview {
+      margin-top: 15px; padding: 10px;
+      border: 1px solid #ddd; border-radius: 8px;
+      background: #f9f9f9;
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
-  <header>
-    <img src="logo.png" alt="Logo Kemenhub" style="height:80px; display:block; margin:0 auto 10px;">
-    <h1>📑 SANDAR-RATU</h1>
-    <p>Sistem Administrasi & Dokumen Kesyahbandaran PPN Pelabuhan Ratu</p>
-  </header>
-
-  <div class="container">
-    <!-- Login -->
-    <div class="card" id="loginBox">
-      <h3>🔑 Login</h3>
-
-      <!-- Tabs -->
-      <div class="tab-container">
-        <div class="tab active" id="tabPetugas">Petugas</div>
-        <div class="tab" id="tabNelayan">Nelayan</div>
-      </div>
-
-      <!-- Form Petugas -->
-      <form id="loginFormPetugas">
-        <label>Username Petugas:</label>
-        <input type="text" id="usernamePetugas" required>
-        <label>Password:</label>
-        <input type="password" id="passwordPetugas" required>
-        <button type="submit">Login Petugas</button>
-      </form>
-
-      <!-- Google Login Petugas -->
-      <div id="googleLoginPetugas"></div>
-
-      <!-- Form Nelayan -->
-      <form id="loginFormNelayan" class="hidden">
-        <label>Nama Nelayan:</label>
-        <input type="text" id="usernameNelayan" required>
-        <button type="submit">Login Nelayan</button>
-      </form>
-
-      <!-- Google Login Nelayan -->
-      <div id="googleLoginNelayan" class="hidden"></div>
+<div class="container">
+  <h2>🚢 SANDARATU - Sistem Administrasi Kapal</h2>
+  
+  <div class="tabs">
+    <div class="tab active" onclick="openTab('generate')">Generate QR Code</div>
+    <div class="tab" onclick="openTab('scan')">Scan QR Code</div>
+    <div class="tab" onclick="openTab('library')">Library Dokumen</div>
+  </div>
+  
+  <!-- Tab Generate -->
+  <div id="generate" class="tab-content active">
+    <div class="form-group">
+      <label for="shipName">Nama Kapal:</label>
+      <input type="text" id="shipName" placeholder="Masukkan nama kapal">
+    </div>
+    <div class="form-group">
+      <label for="captainName">Nama Nahkoda:</label>
+      <input type="text" id="captainName" placeholder="Masukkan nama nahkoda">
+    </div>
+    <div class="form-group">
+      <label for="departureTime">Tanggal:</label>
+      <input type="datetime-local" id="departureTime">
+    </div>
+    <div class="form-group">
+      <label for="cargoType">GT:</label>
+      <input type="text" id="cargoType" placeholder="GT">
     </div>
 
-    <!-- Petugas Section -->
-    <div id="petugasSection" class="hidden">
-      <div class="card">
-        <h3>➕ Input Data Dokumen</h3>
-        <form id="uploadForm">
-          <label>Jenis Dokumen:</label>
-          <select id="docType" required>
-            <option value="Keberangkatan">Keberangkatan</option>
-            <option value="Kepulangan">Kepulangan</option>
-          </select>
-          <label>Nama Nelayan:</label>
-          <input type="text" id="nelayanName" required>
-          <label>Nama Kapal:</label>
-          <input type="text" id="shipName" required>
-          <label>Tujuan:</label>
-          <input type="text" id="destination" required>
-          <label>Tanggal:</label>
-          <input type="date" id="date" required>
-          <label>Upload Dokumen (PDF):</label>
-          <input type="file" id="fileInput" accept="application/pdf" required>
-          <button type="submit">📤 Simpan & Generate QR</button>
-        </form>
-      </div>
-
-      <div class="card">
-        <h3>📂 Daftar Dokumen</h3>
-        <div id="docList"></div>
-      </div>
-
-      <div class="card">
-        <h3>📷 Scan Barcode</h3>
-        <div id="reader"></div>
-        <p id="scanResult"></p>
-      </div>
-
-      <button class="logout" onclick="logout()">🚪 Logout</button>
-    </div>
-
-    <!-- Nelayan Section -->
-    <div id="nelayanSection" class="hidden">
-      <div class="card">
-        <h3>📂 Barcode Dokumen Saya</h3>
-        <div id="nelayanDocs"></div>
-      </div>
-      <div class="card">
-        <h3>📷 Scan Barcode Saya</h3>
-        <div id="readerNelayan"></div>
-        <p id="scanResultNelayan"></p>
-      </div>
-      <button class="logout" onclick="logout()">🚪 Logout</button>
+    <!-- Semua file diberi id unik -->
+    <div class="form-group"><label>SPB:</label><input type="file" id="spbFile" accept=".pdf"></div>
+    <div class="form-group"><label>Crew List:</label><input type="file" id="crewFile" accept=".pdf"></div>
+    <div class="form-group"><label>SLO:</label><input type="file" id="sloFile" accept=".pdf"></div>
+    <div class="form-group"><label>STBLKK:</label><input type="file" id="stblkkFile" accept=".pdf"></div>
+    <div class="form-group"><label>Pernyataan Nahkoda:</label><input type="file" id="pernyataanFile" accept=".pdf"></div>
+    <div class="form-group"><label>Perbekalan:</label><input type="file" id="perbekalanFile" accept=".pdf"></div>
+    <div class="form-group"><label>Kwitansi Tambat Labuh:</label><input type="file" id="kwitansiFile" accept=".pdf"></div>
+    <div class="form-group"><label>Permohonan Penerbitan SPB:</label><input type="file" id="permohonanFile" accept=".pdf"></div>
+    <div class="form-group"><label>Daftar ABK dari Nahkoda:</label><input type="file" id="abkFile" accept=".pdf"></div>
+    <div class="form-group"><label>Faktur BBM:</label><input type="file" id="bbmFile" accept=".pdf"></div>
+    
+    <button onclick="generateQRCode()">🚢 Generate QR Code</button>
+    
+    <div id="barcodeContainer" style="display:none; margin-top:20px; text-align:center;">
+      <div id="qrcode"></div>
+      <p><b>ID Dokumen:</b> <span id="documentId"></span></p>
+      <button onclick="downloadQRCode()">⬇️ Download QR Code</button>
     </div>
   </div>
 
-  <script>
-    const { jsPDF } = window.jspdf;
-    const loginBox = document.getElementById("loginBox");
-    const petugasSection = document.getElementById("petugasSection");
-    const nelayanSection = document.getElementById("nelayanSection");
-    const docList = document.getElementById("docList");
-    const nelayanDocs = document.getElementById("nelayanDocs");
-    const uploadForm = document.getElementById("uploadForm");
-    const scanResult = document.getElementById("scanResult");
-    const scanResultNelayan = document.getElementById("scanResultNelayan");
+  <!-- Tab Scan -->
+  <div id="scan" class="tab-content">
+    <h3>📷 Scan QR Code</h3>
+    <div id="reader" style="width:100%; max-width:400px; margin:auto;"></div>
+    <div id="preview"></div>
+  </div>
+  
+  <!-- Tab Library -->
+  <div id="library" class="tab-content">
+    <h3>📚 Library Dokumen</h3>
+    <div id="documentList"></div>
+  </div>
+</div>
 
-    let role = "";
-    let currentUser = "";
-    let documents = JSON.parse(localStorage.getItem("sandDocs")) || [];
+<script>
+  // === Auto tanggal ===
+  function getCurrentDateTime() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0,16);
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("departureTime").value = getCurrentDateTime();
+  });
+  // ====================
 
-    function saveDocs() {
-      localStorage.setItem("sandDocs", JSON.stringify(documents));
-    }
+  let documents = JSON.parse(localStorage.getItem("sandaratu_docs") || "{}");
 
-    // Tabs switch
-    document.getElementById("tabPetugas").onclick = () => {
-      document.getElementById("tabPetugas").classList.add("active");
-      document.getElementById("tabNelayan").classList.remove("active");
-      document.getElementById("loginFormPetugas").classList.remove("hidden");
-      document.getElementById("loginFormNelayan").classList.add("hidden");
-      document.getElementById("googleLoginPetugas").classList.remove("hidden");
-      document.getElementById("googleLoginNelayan").classList.add("hidden");
-      role = "petugas";
-    };
-    document.getElementById("tabNelayan").onclick = () => {
-      document.getElementById("tabNelayan").classList.add("active");
-      document.getElementById("tabPetugas").classList.remove("active");
-      document.getElementById("loginFormNelayan").classList.remove("hidden");
-      document.getElementById("loginFormPetugas").classList.add("hidden");
-      document.getElementById("googleLoginNelayan").classList.remove("hidden");
-      document.getElementById("googleLoginPetugas").classList.add("hidden");
-      role = "nelayan";
-    };
+  function openTab(tab) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    document.querySelector(`[onclick="openTab('${tab}')"]`).classList.add("active");
+    document.getElementById(tab).classList.add("active");
+    if (tab === "library") updateDocumentLibrary();
+    if (tab === "scan") startScanner();
+  }
 
-    // Login Petugas (manual)
-    document.getElementById("loginFormPetugas").addEventListener("submit", function(e) {
-      e.preventDefault();
-      role = "petugas";
-      currentUser = document.getElementById("usernamePetugas").value;
-      masukPetugas();
-    });
-
-    // Login Nelayan (manual)
-    document.getElementById("loginFormNelayan").addEventListener("submit", function(e) {
-      e.preventDefault();
-      role = "nelayan";
-      currentUser = document.getElementById("usernameNelayan").value;
-      masukNelayan();
-    });
-
-    function masukPetugas() {
-      loginBox.classList.add("hidden");
-      petugasSection.classList.remove("hidden");
-      renderDocs();
-      startScanner();
-    }
-    function masukNelayan() {
-      loginBox.classList.add("hidden");
-      nelayanSection.classList.remove("hidden");
-      renderNelayanDocs();
-      startScannerNelayan();
-    }
-    function logout() {
-      role = "";
-      currentUser = "";
-      loginBox.classList.remove("hidden");
-      petugasSection.classList.add("hidden");
-      nelayanSection.classList.add("hidden");
-    }
-
-    // Google Login callback
-    function handleCredentialResponse(response) {
-      const data = parseJwt(response.credential);
-      currentUser = data.name || data.email;
-
-      if (role === "petugas") {
-        masukPetugas();
-      } else if (role === "nelayan") {
-        masukNelayan();
-      } else {
-        alert("Pilih tab login (Petugas atau Nelayan) terlebih dahulu!");
-      }
-    }
-    function parseJwt(token) {
-      let base64Url = token.split('.')[1];
-      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
-    }
-
-    window.onload = function () {
-      google.accounts.id.initialize({
-        client_id: "180722419885-tgptv8houl6ockqsjk0gqjus8cj4a6ue.apps.googleusercontent.com",
-        callback: handleCredentialResponse
-      });
-
-      google.accounts.id.renderButton(
-        document.getElementById("googleLoginPetugas"),
-        { theme: "outline", size: "large", text: "signin_with", shape: "rectangular" }
-      );
-      google.accounts.id.renderButton(
-        document.getElementById("googleLoginNelayan"),
-        { theme: "outline", size: "large", text: "signin_with", shape: "rectangular" }
-      );
-
-      // default buka tab Petugas
-      document.getElementById("tabPetugas").click();
-    };
-
-    // Upload Dokumen Petugas
-    uploadForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const docType = document.getElementById("docType").value;
-      const nelayanName = document.getElementById("nelayanName").value;
-      const shipName = document.getElementById("shipName").value;
-      const destination = document.getElementById("destination").value;
-      const date = document.getElementById("date").value;
-      const file = document.getElementById("fileInput").files[0];
-      if (!file) return alert("Pilih file PDF terlebih dahulu!");
-      const fileURL = URL.createObjectURL(file);
-      const docId = "DOC-" + Date.now();
-
-      const docData = { docId, docType, nelayanName, shipName, destination, date, fileName: file.name, fileURL };
-      documents.push(docData);
-      saveDocs();
-
-      renderDocs();
-      uploadForm.reset();
-    });
-
-    // Render Dokumen Petugas
-    function renderDocs() {
-      docList.innerHTML = "";
-      documents.forEach(doc => {
-        const card = document.createElement("div");
-        card.className = "doc-card";
-        card.innerHTML = `
-          <div class="doc-info">
-            <b>${doc.docType}</b><br>
-            Nelayan: ${doc.nelayanName}<br>
-            Kapal: ${doc.shipName}<br>
-            Tujuan: ${doc.destination}<br>
-            Tanggal: ${doc.date}<br>
-            File: <a href="${doc.fileURL}" target="_blank">${doc.fileName}</a><br>
-            ID: ${doc.docId}
-          </div>
-          <div class="qrcode" id="qrcode-${doc.docId}"></div>
-        `;
-        docList.appendChild(card);
-        new QRCode(document.getElementById("qrcode-" + doc.docId), { text: doc.docId, width: 100, height: 100 });
-      });
-    }
-
-    // Render Dokumen Nelayan (tampilkan juga link PDF yang diupload petugas)
-function renderNelayanDocs() {
-  nelayanDocs.innerHTML = "";
-  const myDocs = documents.filter(
-    doc => doc.nelayanName.toLowerCase() === currentUser.toLowerCase()
-  );
-
-  if (myDocs.length === 0) {
-    nelayanDocs.innerHTML = "<p>Belum ada dokumen.</p>";
-  } else {
-    myDocs.forEach(doc => {
-      const div = document.createElement("div");
-      div.className = "doc-card";
-      div.id = "docCard-" + doc.docId;
-
-      div.innerHTML = `
-        <div class="doc-info">
-          <b>${doc.docType}</b><br>
-          Kapal: ${doc.shipName}<br>
-          Tujuan: ${doc.destination}<br>
-          Tanggal: ${doc.date}<br>
-          File: <a href="${doc.fileURL}" target="_blank">${doc.fileName}</a><br>
-          ID: ${doc.docId}<br>
-        </div>
-        <div class="qrcode" id="nelayanQR-${doc.docId}"></div>
-      `;
-
-      nelayanDocs.appendChild(div);
-
-      // Generate QR berisi docId
-      new QRCode(document.getElementById("nelayanQR-" + doc.docId), {
-        text: doc.docId,
-        width: 120,
-        height: 120
-      });
+  // Baca file jadi base64
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
   }
-}
 
+  async function generateQRCode() {
+    const shipName = document.getElementById('shipName').value;
+    const captainName = document.getElementById('captainName').value;
+    const departureTime = document.getElementById('departureTime').value;
+    const cargoType = document.getElementById('cargoType').value;
 
-    // Scanner Petugas
-    function startScanner() {
-      const html5QrCode = new Html5Qrcode("reader");
-      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
-        qrCodeMessage => {
-          scanResult.innerText = "✅ Hasil Scan: " + qrCodeMessage;
-          const found = documents.find(doc => doc.docId === qrCodeMessage);
-          if (found) {
-            scanResult.innerText += `\n📄 Dokumen: ${found.nelayanName}, Kapal ${found.shipName}, Tujuan ${found.destination}`;
-          }
-        }).catch(err => { scanResult.innerText = "Gagal akses kamera: " + err; });
+    if (!shipName || !captainName) {
+      alert("Nama Kapal dan Nahkoda wajib diisi!");
+      return;
     }
 
-    // Scanner Nelayan
-    function startScannerNelayan() {
-      const html5QrCode = new Html5Qrcode("readerNelayan");
-      html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
-        qrCodeMessage => {
-          scanResultNelayan.innerText = "✅ Hasil Scan: " + qrCodeMessage;
-          const found = documents.find(doc => doc.docId === qrCodeMessage);
-          if (found) {
-            scanResultNelayan.innerText += `\n📄 Kapal ${found.shipName}, Tujuan ${found.destination}, Tanggal ${found.date}`;
-          }
-        }).catch(err => { scanResultNelayan.innerText = "Gagal akses kamera: " + err; });
+    const docId = 'SANDARATU' + Date.now();
+
+    // Ambil semua file upload
+    const fileInputs = [
+      "spbFile","crewFile","sloFile","stblkkFile","pernyataanFile",
+      "perbekalanFile","kwitansiFile","permohonanFile","abkFile","bbmFile"
+    ];
+
+    let fileData = {};
+    for (let id of fileInputs) {
+      const input = document.getElementById(id);
+      if (input.files.length > 0) {
+        fileData[id] = await readFileAsDataURL(input.files[0]);
+      }
     }
-  </script>
+
+    saveDocument(docId, shipName, captainName, departureTime, cargoType, fileData);
+  }
+
+  function saveDocument(id, shipName, captainName, departureTime, cargoType, files) {
+    const docData = {
+      id, shipName, captainName,
+      departureTime, cargoType,
+      files,
+      createdAt: new Date().toLocaleString()
+    };
+
+    documents[id] = docData;
+    localStorage.setItem('sandaratu_docs', JSON.stringify(documents));
+
+    document.getElementById("qrcode").innerHTML = "";
+    new QRCode(document.getElementById("qrcode"), {
+      text: JSON.stringify({ id: id }),
+      width: 200, height: 200
+    });
+
+    document.getElementById("documentId").textContent = id;
+    document.getElementById("barcodeContainer").style.display = "block";
+  }
+
+  function updateDocumentLibrary() {
+    const list = document.getElementById('documentList');
+    list.innerHTML = "";
+    Object.values(documents).forEach(doc => {
+      let filesHTML = "";
+      if (doc.files) {
+        Object.entries(doc.files).forEach(([key, fileData]) => {
+          filesHTML += `<a href="${fileData}" download="${doc.id}_${key}.pdf">📥 ${key}</a><br>`;
+        });
+      }
+
+      list.innerHTML += `
+        <div class="document-item">
+          <b>${doc.shipName}</b> (Nahkoda: ${doc.captainName})<br>
+          Berangkat: ${doc.departureTime} | GT: ${doc.cargoType}<br>
+          ${filesHTML}
+          <small>ID: ${doc.id} | Dibuat: ${doc.createdAt}</small>
+        </div>`;
+    });
+  }
+
+  function downloadQRCode() {
+    const canvas = document.querySelector("#qrcode canvas");
+    if (canvas) {
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = "qrcode.png";
+      link.click();
+    }
+  }
+
+  // QR Scanner
+  let html5QrCode;
+  function startScanner() {
+    if (!html5QrCode) {
+      html5QrCode = new Html5Qrcode("reader");
+    }
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      (decodedText) => {
+        try {
+          const data = JSON.parse(decodedText);
+          if (data.id && documents[data.id]) {
+            const doc = documents[data.id];
+            let previewHTML = `
+              <b>${doc.shipName}</b> (Nahkoda: ${doc.captainName})<br>
+              Berangkat: ${doc.departureTime} | GT: ${doc.cargoType}<br>
+              <small>ID: ${doc.id} | Dibuat: ${doc.createdAt}</small><br><br>
+            `;
+
+            // Unduh otomatis semua file
+            if (doc.files) {
+              Object.entries(doc.files).forEach(([key, fileData]) => {
+                const link = document.createElement("a");
+                link.href = fileData;
+                link.download = `${doc.id}_${key}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                previewHTML += `📄 ${key}<br>`;
+              });
+            }
+
+            document.getElementById("preview").innerHTML = previewHTML;
+          } else {
+            document.getElementById("preview").innerHTML = "❌ Dokumen tidak ditemukan!";
+          }
+        } catch {
+          document.getElementById("preview").innerHTML = "❌ QR tidak valid!";
+        }
+        html5QrCode.stop();
+      },
+      (err) => {}
+    ).catch(err => console.error("Scan error:", err));
+  }
+</script>
 </body>
 </html>
