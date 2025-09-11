@@ -8,7 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://apis.google.com/js/api.js" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;display:flex;justify-content:center;align-items:center;}
@@ -295,45 +295,12 @@ let isSignInReady = false;
 let authInstance = null;
 let currentUser = null;
 let tokenClient = null;
-let gapiLoaded = false;
-let googleLoaded = false;
 
 // Initialize when page loads
 window.onload = function() {
   showLoadingMessage(true);
-  checkAndInitialize();
+  initializeGoogle();
 };
-
-function checkAndInitialize() {
-  // Check if both Google APIs are loaded
-  let attempts = 0;
-  const maxAttempts = 50; // 10 seconds
-  
-  const checkInterval = setInterval(() => {
-    attempts++;
-    
-    if (typeof google !== 'undefined' && typeof gapi !== 'undefined') {
-      clearInterval(checkInterval);
-      initializeGoogle();
-    } else if (attempts >= maxAttempts) {
-      clearInterval(checkInterval);
-      // Try to initialize with fallback
-      initializeWithFallback();
-    }
-  }, 200);
-}
-
-function initializeWithFallback() {
-  console.log('Attempting fallback initialization...');
-  
-  if (typeof google !== 'undefined') {
-    console.log('Google Sign-In API available, initializing...');
-    initializeGoogleSignIn();
-  } else {
-    console.error('Google APIs not loaded');
-    showErrorMessage('Google APIs tidak dapat dimuat. Silakan refresh halaman.');
-  }
-}
 
 function showLoadingMessage(show) {
   const loadingMsg = document.getElementById('loadingMessage');
@@ -348,7 +315,7 @@ function showErrorMessage(message) {
     errorMsg.textContent = message;
     errorMsg.style.display = 'block';
   }
-  updateLoginButton('Error - Refresh Halaman', false);
+  updateLoginButton('Error - Coba Lagi', false);
 }
 
 function updateLoginButton(text, enabled) {
@@ -357,9 +324,6 @@ function updateLoginButton(text, enabled) {
   if (btn && btnText) {
     btnText.textContent = text;
     btn.disabled = !enabled;
-    if (enabled) {
-      btn.style.cursor = 'pointer';
-    }
   }
 }
 
@@ -370,22 +334,10 @@ function initializeGoogle() {
   // Check if Google APIs are available
   if (typeof google === 'undefined') {
     console.error('Google APIs not loaded');
-    showErrorMessage('Google Sign-In tidak tersedia');
+    showErrorMessage('Google APIs tidak dapat dimuat');
     return;
   }
   
-  initializeGoogleSignIn();
-  
-  // Initialize Google Drive API if available
-  if (typeof gapi !== 'undefined') {
-    initDriveAPI();
-  } else {
-    console.warn('GAPI not available, Drive upload will not work');
-    finishInitialization();
-  }
-}
-
-function initializeGoogleSignIn() {
   try {
     // Initialize Google Sign-In
     google.accounts.id.initialize({
@@ -403,31 +355,36 @@ function initializeGoogleSignIn() {
     });
     
     isSignInReady = true;
-    console.log('Google Sign-In initialized successfully');
-    finishInitialization();
+    console.log('Google Sign-In initialized');
+    
+    // Initialize Google Drive API
+    if (typeof gapi !== 'undefined') {
+      gapi.load('client:auth2', initDriveAPI);
+    } else {
+      console.warn('GAPI not available, Drive upload will not work');
+      finishInitialization();
+    }
   } catch (error) {
-    console.error('Error initializing Google Sign-In:', error);
-    showErrorMessage('Gagal menginisialisasi Google Sign-In');
+    console.error('Error initializing Google APIs:', error);
+    showErrorMessage('Gagal menginisialisasi Google APIs');
   }
 }
 
 function initDriveAPI() {
-  gapi.load('client:auth2', () => {
-    gapi.client.init({
-      apiKey: API_KEY,
-      clientId: CLIENT_ID,
-      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-      scope: SCOPES
-    }).then(() => {
-      authInstance = gapi.auth2.getAuthInstance();
-      isGoogleDriveReady = true;
-      console.log('Google Drive API initialized');
-      finishInitialization();
-    }).catch(error => {
-      console.error('Error initializing Drive API:', error);
-      // Continue without Drive API
-      finishInitialization();
-    });
+  gapi.client.init({
+    apiKey: API_KEY,
+    clientId: CLIENT_ID,
+    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+    scope: SCOPES
+  }).then(() => {
+    authInstance = gapi.auth2.getAuthInstance();
+    isGoogleDriveReady = true;
+    console.log('Google Drive API initialized');
+    finishInitialization();
+  }).catch(error => {
+    console.error('Error initializing Drive API:', error);
+    // Continue without Drive API
+    finishInitialization();
   });
 }
 
@@ -436,7 +393,6 @@ function finishInitialization() {
   if (isSignInReady) {
     updateLoginButton('Log in with Google', true);
     setupLoginButton();
-    console.log('Initialization complete - Login button should be enabled');
   } else {
     showErrorMessage('Google Sign-In tidak tersedia');
   }
@@ -445,30 +401,34 @@ function finishInitialization() {
 function setupLoginButton() {
   const loginBtn = document.getElementById('googleLoginBtn');
   if (loginBtn) {
-    loginBtn.removeEventListener('click', handleLoginClick); // Remove existing listener
     loginBtn.addEventListener('click', handleLoginClick);
-    console.log('Login button event listener attached');
   }
 }
 
-function handleLoginClick(event) {
-  event.preventDefault();
-  
+function handleLoginClick() {
   if (!isSignInReady) {
     showErrorMessage('Google Sign-In belum siap');
     return;
   }
   
-  console.log('Login button clicked - attempting sign in');
+  console.log('Login button clicked');
   updateLoginButton('Logging in...', false);
   
-  // Use OAuth2 flow directly for better compatibility
-  if (tokenClient) {
-    tokenClient.requestAccessToken();
-  } else {
-    showErrorMessage('Token client tidak tersedia');
-    updateLoginButton('Log in with Google', true);
-  }
+  // Try Google One Tap first
+  google.accounts.id.prompt((notification) => {
+    console.log('One Tap notification:', notification);
+    
+    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      // Fallback to OAuth2 flow
+      console.log('Using OAuth2 flow');
+      if (tokenClient) {
+        tokenClient.requestAccessToken();
+      } else {
+        showErrorMessage('Token client tidak tersedia');
+        updateLoginButton('Log in with Google', true);
+      }
+    }
+  });
 }
 
 // Handle Google Sign-In ID token response
@@ -502,7 +462,7 @@ function handleOAuthResponse(tokenResponse) {
   
   if (tokenResponse.error) {
     console.error('OAuth error:', tokenResponse.error);
-    showErrorMessage('Gagal mendapatkan akses: ' + tokenResponse.error);
+    showErrorMessage('Gagal mendapatkan akses');
     updateLoginButton('Log in with Google', true);
     return;
   }
@@ -1341,7 +1301,3 @@ setInterval(() => {
     updateGoogleDriveStatus();
   }
 }, 10000);
-</script>
-
-</body>
-</html>
