@@ -557,7 +557,7 @@ function updateGoogleDriveStatus(errorMsg = null) {
   });
 }
 
-// Upload to Google Drive (simplified for demo)
+// Upload to Google Drive (real implementation)
 async function uploadToGoogleDrive(btn) {
   if (demoMode) {
     showStatus('Mode demo - upload disimulasikan', 'info');
@@ -570,11 +570,187 @@ async function uploadToGoogleDrive(btn) {
     return;
   }
   
-  // Real Google Drive upload logic would go here
-  showStatus('Upload ke Google Drive...', 'info');
+  const form = btn.closest("form");
+  const formType = form.getAttribute('data-form-type');
+  const progressBar = form.querySelector('.progress-bar');
+  const progressFill = form.querySelector('.progress-fill');
+  const statusDiv = form.querySelector('.upload-status');
+  const errorDiv = form.querySelector('.upload-error');
   
-  // For now, just simulate
-  simulateUpload(btn);
+  // Hide previous messages
+  statusDiv.style.display = 'none';
+  errorDiv.style.display = 'none';
+  
+  // Get form data
+  const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
+  const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
+  const time = form.querySelector('input[type="time"]').value || "00:00";
+  
+  if (!shipName.trim()) {
+    errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Nama kapal harus diisi!';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Get folder ID
+  const folderId = FOLDER_MAP[formType];
+  if (!folderId) {
+    errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Folder tidak ditemukan untuk jenis form ini!';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Get files to upload
+  const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
+  const filesToUpload = fileInputs.filter(input => input.files[0]).map(input => ({
+    file: input.files[0],
+    label: input.parentElement.textContent.split(':')[0].trim(),
+    input: input
+  }));
+  
+  if (filesToUpload.length === 0) {
+    errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Pilih minimal satu file untuk diupload!';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Show progress bar
+  progressBar.style.display = 'block';
+  btn.disabled = true;
+  
+  try {
+    let uploadedCount = 0;
+    const totalFiles = filesToUpload.length;
+    const results = [];
+    
+    statusDiv.innerHTML = `<i class="fas fa-upload"></i> Mengupload ${totalFiles} file ke Google Drive...`;
+    statusDiv.style.display = 'block';
+    
+    for (const fileData of filesToUpload) {
+      const { file, label } = fileData;
+      
+      // Create filename with timestamp
+      const timestamp = date.replace(/-/g, '') + '_' + time.replace(':', '');
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `[${formType}]_${shipName.replace(/\s+/g, '_')}_${label.replace(/\s+/g, '_')}_${timestamp}.${fileExtension}`;
+      
+      try {
+        showStatus(`Uploading ${label}...`, 'info', 0);
+        
+        const result = await uploadFileToGoogleDrive(file, folderId, fileName);
+        
+        if (result.id) {
+          uploadedCount++;
+          results.push({
+            name: fileName,
+            label: label,
+            id: result.id,
+            url: `https://drive.google.com/file/d/${result.id}/view`
+          });
+          
+          showStatus(`${label} uploaded successfully`, 'success', 1000);
+        } else {
+          throw new Error('Upload failed: No file ID returned');
+        }
+      } catch (error) {
+        console.error(`Error uploading ${fileName}:`, error);
+        results.push({
+          name: fileName,
+          label: label,
+          error: error.message
+        });
+        
+        showStatus(`Failed to upload ${label}`, 'error', 2000);
+      }
+      
+      // Update progress
+      const progress = Math.round(((uploadedCount + results.filter(r => r.error).length) / totalFiles) * 100);
+      progressFill.style.width = progress + '%';
+      progressFill.textContent = progress + '%';
+    }
+    
+    // Show final results
+    const successCount = results.filter(r => !r.error).length;
+    const errorCount = results.filter(r => r.error).length;
+    
+    if (successCount > 0) {
+      let resultHtml = `<i class="fas fa-check-circle"></i> Berhasil mengupload ${successCount} file ke Google Drive!<br><br>`;
+      
+      results.filter(r => !r.error).forEach(result => {
+        resultHtml += `• <strong>${result.label}</strong>: <a href="${result.url}" target="_blank" rel="noopener">${result.name}</a><br>`;
+      });
+      
+      if (errorCount > 0) {
+        resultHtml += `<br><strong style="color:#f44336;">Gagal upload ${errorCount} file:</strong><br>`;
+        results.filter(r => r.error).forEach(result => {
+          resultHtml += `• <strong>${result.label}</strong>: ${result.error}<br>`;
+        });
+      }
+      
+      statusDiv.innerHTML = resultHtml;
+      statusDiv.style.background = '#e8f5e8';
+      statusDiv.style.borderColor = '#4caf50';
+      statusDiv.style.color = '#2e7d32';
+      statusDiv.style.display = 'block';
+      
+      showStatus(`Upload completed: ${successCount}/${totalFiles} files`, 'success');
+    } else {
+      errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Gagal mengupload semua file!<br>${results.map(r => `• ${r.label}: ${r.error}`).join('<br>')}`;
+      errorDiv.style.display = 'block';
+      
+      showStatus('Upload failed for all files', 'error');
+    }
+    
+  } catch (error) {
+    console.error('Upload process failed:', error);
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Terjadi kesalahan: ${error.message}`;
+    errorDiv.style.display = 'block';
+    
+    showStatus('Upload process failed', 'error');
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => {
+      progressBar.style.display = 'none';
+      progressFill.style.width = '0%';
+      progressFill.textContent = '0%';
+    }, 3000);
+  }
+}
+
+// Real Google Drive upload function
+async function uploadFileToGoogleDrive(file, folderId, fileName) {
+  try {
+    const metadata = {
+      name: fileName,
+      parents: [folderId]
+    };
+
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+    form.append('file', file);
+
+    const accessToken = googleAuth.currentUser.get().getAuthResponse().access_token;
+
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + accessToken
+      },
+      body: form
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
+    return result;
+    
+  } catch (error) {
+    console.error(`Upload error for ${fileName}:`, error);
+    throw error;
+  }
 }
 
 // Simulate upload for demo
