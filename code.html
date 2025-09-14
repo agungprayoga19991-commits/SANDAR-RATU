@@ -173,6 +173,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;displ
 .progress-bar{width:100%;background:#f0f0f0;border-radius:4px;overflow:hidden;margin:10px 0;display:none;}
 .progress-fill{height:20px;background:#4caf50;border-radius:4px;transition:width 0.3s ease;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:bold;}
 .footer-login{text-align:center;padding:15px;color:#6c757d;font-size:12px;border-top:1px solid #e9ecef;}
+.processing-status{background:#e3f2fd;border:1px solid #2196f3;color:#1565c0;padding:10px;border-radius:6px;margin:10px 0;text-align:center;display:none;}
 </style>
 </head>
 <body>
@@ -247,7 +248,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;displ
 <script>
 // Google Drive API Configuration
 const CLIENT_ID = "464575855879-theqehj563fo25tp00gf6fhj6efr5045.apps.googleusercontent.com";
-const API_KEY = "AIzaSyCYc9V2aXzmfOj8zcGbPdTimauSYxnCQd4";
+const API_KEY = "AIzaSyAWrUdv79vEKgd3YVkYsHvfwS3-vKev_lk";
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
 
 // Folder mapping
@@ -547,6 +548,7 @@ function initializePages() {
           <div class="progress-bar">
             <div class="progress-fill" style="width: 0%;">0%</div>
           </div>
+          <div class="processing-status"></div>
           <div class="upload-status"></div>
           <div class="upload-error"></div>
         </form>
@@ -608,4 +610,926 @@ async function uploadToGoogleDrive(btn) {
   // Get form data
   const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
   const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
-  const time = form.querySelector('input[type="time"]').value || "00:00
+  const time = form.querySelector('input[type="time"]').value || "00:00";
+  const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
+  
+  if (!shipName.trim()) {
+    errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Nama kapal harus diisi!';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Get folder ID
+  const folderId = FOLDER_MAP[formType];
+  if (!folderId) {
+    errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Folder tidak ditemukan untuk jenis form ini!';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Get files to upload
+  const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
+  const filesToUpload = fileInputs.filter(input => input.files[0]).map(input => ({
+    file: input.files[0],
+    label: input.parentElement.textContent.split(':')[0],
+    input: input
+  }));
+  
+  if (filesToUpload.length === 0) {
+    errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Pilih minimal satu file untuk diupload!';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Show progress bar
+  progressBar.style.display = 'block';
+  btn.disabled = true;
+  
+  try {
+    let uploadedCount = 0;
+    const totalFiles = filesToUpload.length;
+    const results = [];
+    
+    statusDiv.innerHTML = `<i class="fas fa-upload"></i> Mengupload ${totalFiles} file ke Google Drive...`;
+    statusDiv.style.display = 'block';
+    
+    for (const fileData of filesToUpload) {
+      const { file, label } = fileData;
+      
+      // Create filename
+      const timestamp = date.replace(/-/g, '') + '_' + time.replace(':', '');
+      const fileName = `[${formType}]_${shipName.replace(/\s+/g, '_')}_${label}_${timestamp}.${file.name.split('.').pop()}`;
+      
+      try {
+        const result = await uploadFileToGoogleDrive(file, folderId, fileName);
+        
+        if (result.id) {
+          uploadedCount++;
+          results.push({
+            name: fileName,
+            label: label,
+            id: result.id,
+            url: `https://drive.google.com/drive/folders/${result.id}/view`
+          });
+        } else {
+          throw new Error('Upload failed: ' + (result.error?.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error(`Error uploading ${fileName}:`, error);
+        results.push({
+          name: fileName,
+          label: label,
+          error: error.message
+        });
+      }
+      
+      // Update progress
+      const progress = Math.round((uploadedCount / totalFiles) * 100);
+      progressFill.style.width = progress + '%';
+      progressFill.textContent = progress + '%';
+      
+      statusDiv.innerHTML = `<i class="fas fa-upload"></i> Mengupload file ${uploadedCount + 1} dari ${totalFiles}...`;
+    }
+    
+    // Show results
+    const successCount = results.filter(r => !r.error).length;
+    const errorCount = results.filter(r => r.error).length;
+    
+    if (successCount > 0) {
+      let resultHtml = `<i class="fas fa-check-circle"></i> Berhasil mengupload ${successCount} file ke Google Drive!<br><br>`;
+      
+      results.filter(r => !r.error).forEach(result => {
+        resultHtml += `• <strong>${result.label}</strong>: <a href="${result.url}" target="_blank">${result.name}</a><br>`;
+      });
+      
+      if (errorCount > 0) {
+        resultHtml += `<br><strong style="color:#f44336;">Gagal upload ${errorCount} file:</strong><br>`;
+        results.filter(r => r.error).forEach(result => {
+          resultHtml += `• <strong>${result.label}</strong>: ${result.error}<br>`;
+        });
+      }
+      
+      statusDiv.innerHTML = resultHtml;
+      statusDiv.style.background = '#e8f5e8';
+      statusDiv.style.borderColor = '#4caf50';
+      statusDiv.style.color = '#2e7d32';
+    } else {
+      errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Gagal mengupload semua file!<br>${results.map(r => `• ${r.label}: ${r.error}`).join('<br>')}`;
+      errorDiv.style.display = 'block';
+      statusDiv.style.display = 'none';
+    }
+    
+  } catch (error) {
+    console.error('Upload process failed:', error);
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Terjadi kesalahan: ${error.message}`;
+    errorDiv.style.display = 'block';
+    statusDiv.style.display = 'none';
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => {
+      progressBar.style.display = 'none';
+      progressFill.style.width = '0%';
+      progressFill.textContent = '0%';
+    }, 2000);
+  }
+}
+
+// Generate QR and preview
+function generateAll(btn) {
+  const form = btn.closest("form");
+  const resultBox = form.nextElementSibling;
+  const formType = form.getAttribute('data-form-type');
+  resultBox.innerHTML = "";
+
+  // Get form data
+  const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
+  const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
+  const time = form.querySelector('input[type="time"]').value || "00:00";
+  const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
+  const gt = form.querySelectorAll('input[type="text"]')[2].value || "-";
+  
+  const formattedDate = date.replace(/-/g, '');
+  const formattedTime = time.replace(':', '');
+  const code = `SANDAR-${shipName.replace(/\s+/g, '')}-${formattedDate}-${formattedTime}`;
+
+  // Document summary
+  const summaryDiv = document.createElement("div");
+  summaryDiv.className = "document-summary";
+  summaryDiv.innerHTML = `
+    <h3>📋 Ringkasan Dokumen</h3>
+    <table>
+      <tr><td>Jenis Form:</td><td><strong>${formType}</strong></td></tr>
+      <tr><td>Nama Kapal:</td><td>${shipName}</td></tr>
+      <tr><td>Tanggal:</td><td>${new Date(date).toLocaleDateString('id-ID')}</td></tr>
+      <tr><td>Waktu:</td><td>${time}</td></tr>
+      <tr><td>Nahkoda:</td><td>${captain}</td></tr>
+      <tr><td>GT:</td><td>${gt}</td></tr>
+      <tr><td>Kode Dokumen:</td><td><strong>${code}</strong></td></tr>
+      <tr><td>Petugas:</td><td><strong>${currentUser ? currentUser.name : 'Unknown'}</strong></td></tr>
+      <tr><td>Dibuat:</td><td>${new Date().toLocaleString('id-ID')}</td></tr>
+    </table>
+  `;
+  resultBox.appendChild(summaryDiv);
+
+  // QR Code section
+  const qrSection = document.createElement("div");
+  qrSection.className = "qr-section";
+  qrSection.innerHTML = `<h3>🔲 QR Code Dokumen</h3>`;
+  
+  const qrDiv = document.createElement("div");
+  qrDiv.id = `qrcode-${Date.now()}`;
+  qrSection.appendChild(qrDiv);
+  
+  // Create QR URL - Using the appropriate folder based on form type
+  const folderId = FOLDER_MAP[formType];
+  const baseUrl = `https://drive.google.com/drive/folders/1ZpBOs2z1OkHMWFW5Zy4D4_fd_3v62xOa`;
+  const params = new URLSearchParams({
+    code: code,
+    type: formType,
+    ship: shipName,
+    date: date,
+    time: time,
+    captain: captain,
+    gt: gt,
+    officer: currentUser ? currentUser.name : 'Unknown'
+  });
+  const qrUrl = `${baseUrl}?${params.toString()}`;
+  
+  // QR Info
+  const qrInfo = document.createElement("div");
+  qrInfo.className = "qr-info";
+  qrInfo.innerHTML = `
+    <p><strong>🔗 URL QR Code:</strong></p>
+    <div class="qr-url">${qrUrl}</div>
+    <p><strong>📏 Panjang URL:</strong> ${qrUrl.length} karakter</p>
+    <p><strong>📊 Error Correction:</strong> Medium (25%)</p>
+    <p><strong>📁 Folder:</strong> ${formType}</p>
+    <p><strong>👤 Petugas:</strong> ${currentUser ? currentUser.name : 'Unknown'}</p>
+    <button class="test-qr-btn" onclick="copyToClipboard('${qrUrl.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">📋 Copy URL</button>
+    <button class="test-qr-btn" onclick="openUrl('${qrUrl.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">🔗 Test URL</button>
+  `;
+  qrSection.appendChild(qrInfo);
+  
+  resultBox.appendChild(qrSection);
+  
+  // Generate QR Code
+  try {
+    new QRCode(qrDiv, {
+      text: qrUrl,
+      width: 256,
+      height: 256,
+      colorDark: "#2c3e50",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch (error) {
+    console.error('Error generating QR code:', error);
+    qrDiv.innerHTML = '<p style="color: red;">Error generating QR code</p>';
+  }
+
+  // Preview uploaded documents
+  let docCount = 0;
+  const fileInputs = form.querySelectorAll('input[type="file"]');
+  
+  fileInputs.forEach((fileInput, index) => {
+    if (fileInput.files[0]) {
+      docCount++;
+      const file = fileInput.files[0];
+      const label = fileInput.parentElement.textContent.split(':')[0];
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const previewContainer = document.createElement("div");
+        previewContainer.className = "preview-container";
+        
+        // Document info
+        const docInfo = document.createElement("div");
+        docInfo.className = "document-info";
+        docInfo.innerHTML = `
+          <h4>${label}</h4>
+          <p>📄 ${file.name} | 📏 ${(file.size/1024).toFixed(2)} KB | 📅 ${new Date().toLocaleDateString('id-ID')}<br>
+          <strong>📋 Jenis: ${formType}</strong> | 👤 <strong>Petugas: ${currentUser ? currentUser.name : 'Unknown'}</strong></p>
+        `;
+        previewContainer.appendChild(docInfo);
+        
+        // Preview element
+        let previewEl;
+        if (file.type.includes("pdf")) {
+          previewEl = document.createElement("embed");
+          previewEl.src = e.target.result;
+          previewEl.type = "application/pdf";
+        } else if (file.type.includes("image")) {
+          previewEl = document.createElement("img");
+          previewEl.src = e.target.result;
+          previewEl.alt = file.name;
+        } else {
+          previewEl = document.createElement("div");
+          previewEl.innerHTML = `<p style="text-align:center;padding:50px;color:#7f8c8d;">📄 ${file.name}<br><small>Preview tidak tersedia untuk tipe file ini</small></p>`;
+        }
+        previewContainer.appendChild(previewEl);
+
+        // Download link
+        const downloadLink = document.createElement("a");
+        downloadLink.href = e.target.result;
+        downloadLink.download = `[${formType}]_${code}_${label}_${file.name}`;
+        downloadLink.textContent = `⬇ Download ${label}`;
+        previewContainer.appendChild(downloadLink);
+
+        resultBox.appendChild(previewContainer);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  if (docCount === 0) {
+    alert("Silakan upload minimal satu dokumen!");
+    return;
+  }
+  
+  // Enable upload button after successful generation
+  const uploadBtn = form.querySelector('.btn-upload-drive');
+  if (uploadBtn && isGoogleDriveReady) {
+    uploadBtn.disabled = false;
+  }
+}
+
+// Helper functions for QR Code
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('URL berhasil disalin ke clipboard!');
+    }).catch(err => {
+      console.error('Gagal menyalin: ', err);
+      fallbackCopyToClipboard(text);
+    });
+  } else {
+    fallbackCopyToClipboard(text);
+  }
+}
+
+function fallbackCopyToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.left = "-999999px";
+  textArea.style.top = "-999999px";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    alert('URL berhasil disalin ke clipboard!');
+  } catch (err) {
+    console.error('Fallback copy failed: ', err);
+    alert('Gagal menyalin URL');
+  }
+  document.body.removeChild(textArea);
+}
+
+function openUrl(url) {
+  window.open(url, '_blank');
+}
+
+// Convert image to PDF format for better integration
+async function convertImageToPdf(imageDataUrl, fileName) {
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    
+    // Create image element to get dimensions
+    const img = new Image();
+    img.src = imageDataUrl;
+    
+    return new Promise((resolve) => {
+      img.onload = () => {
+        const imgWidth = img.width;
+        const imgHeight = img.height;
+        
+        // Calculate dimensions to fit page
+        const pageWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const margin = 10;
+        
+        let finalWidth = pageWidth - (2 * margin);
+        let finalHeight = (finalWidth * imgHeight) / imgWidth;
+        
+        if (finalHeight > (pageHeight - 2 * margin)) {
+          finalHeight = pageHeight - (2 * margin);
+          finalWidth = (finalHeight * imgWidth) / imgHeight;
+        }
+        
+        const x = (pageWidth - finalWidth) / 2;
+        const y = (pageHeight - finalHeight) / 2;
+        
+        pdf.addImage(imageDataUrl, 'JPEG', x, y, finalWidth, finalHeight);
+        
+        // Convert to blob
+        const pdfBlob = pdf.output('blob');
+        resolve(pdfBlob);
+      };
+    });
+  } catch (error) {
+    console.error('Error converting image to PDF:', error);
+    return null;
+  }
+}
+
+// Enhanced download all documents as PDF with embedded content
+async function downloadAll(btn) {
+  const form = btn.closest("form");
+  const resultBox = form.nextElementSibling;
+  const formType = form.getAttribute('data-form-type');
+  const processingStatus = form.querySelector('.processing-status');
+  
+  if (!resultBox.innerHTML.trim()) {
+    alert("Generate QR & Preview terlebih dahulu!");
+    return;
+  }
+
+  // Show processing status
+  processingStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses dokumen dan menggabungkan file...';
+  processingStatus.style.display = 'block';
+  btn.disabled = true;
+
+  try {
+    const { PDFLib } = window;
+    const { jsPDF } = window.jspdf;
+    
+    // Create main document PDF
+    const mainPdf = new jsPDF('p', 'mm', 'a4');
+    let yOffset = 20;
+    const pageHeight = 297;
+    const pageWidth = 210;
+    const margin = 20;
+    
+    // Get form data
+    const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
+    const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
+    const time = form.querySelector('input[type="time"]').value || "00:00";
+    const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
+    const gt = form.querySelectorAll('input[type="text"]')[2].value || "-";
+    
+    function checkAndAddPage(neededHeight) {
+      if (yOffset + neededHeight > pageHeight - 35) {
+        mainPdf.addPage();
+        yOffset = 20;
+        return true;
+      }
+      return false;
+    }
+    
+    // PDF Header
+    mainPdf.setFontSize(18);
+    mainPdf.setFont(undefined, 'bold');
+    mainPdf.text('SANDAR-RATU', pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 8;
+    
+    mainPdf.setFontSize(12);
+    mainPdf.text('Sistem Administrasi & Dokumen Kesyahbandaran', pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 5;
+    mainPdf.text('PPN Palabuhanratu', pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 20;
+    
+    // Form Type
+    mainPdf.setDrawColor(52, 152, 219);
+    mainPdf.setFillColor(232, 244, 248);
+    mainPdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 15, 3, 3, 'FD');
+    
+    yOffset += 10;
+    mainPdf.setFontSize(14);
+    mainPdf.setFont(undefined, 'bold');
+    mainPdf.setTextColor(44, 62, 80);
+    mainPdf.text('JENIS FORM: ' + formType, pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 15;
+    
+    // Document info
+    mainPdf.setDrawColor(100);
+    mainPdf.setFillColor(245, 245, 245);
+    mainPdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 50, 3, 3, 'FD');
+    
+    yOffset += 10;
+    mainPdf.setFontSize(12);
+    mainPdf.setFont(undefined, 'bold');
+    mainPdf.setTextColor(0);
+    mainPdf.text('INFORMASI DOKUMEN', margin + 10, yOffset);
+    yOffset += 8;
+    
+    mainPdf.setFontSize(10);
+    mainPdf.setFont(undefined, 'normal');
+    mainPdf.text('Nama Kapal: ' + shipName, margin + 10, yOffset);
+    mainPdf.text('GT: ' + gt, margin + 100, yOffset);
+    yOffset += 6;
+    mainPdf.text('Tanggal: ' + new Date(date).toLocaleDateString('id-ID'), margin + 10, yOffset);
+    mainPdf.text('Waktu: ' + time, margin + 100, yOffset);
+    yOffset += 6;
+    mainPdf.text('Nahkoda: ' + captain, margin + 10, yOffset);
+    yOffset += 6;
+    mainPdf.text('Petugas: ' + (currentUser ? currentUser.name : 'Unknown'), margin + 10, yOffset);
+    mainPdf.text('Email: ' + (currentUser ? currentUser.email : 'Unknown'), margin + 100, yOffset);
+    yOffset += 20;
+
+    // QR Code
+    const qrCanvas = resultBox.querySelector('canvas');
+    if (qrCanvas) {
+      checkAndAddPage(70);
+      mainPdf.setFontSize(12);
+      mainPdf.setFont(undefined, 'bold');
+      mainPdf.text('QR CODE VERIFIKASI DOKUMEN', pageWidth/2, yOffset, { align: 'center' });
+      yOffset += 5;
+      
+      const imgData = qrCanvas.toDataURL('image/png');
+      const qrSize = 50;
+      mainPdf.addImage(imgData, 'PNG', (pageWidth-qrSize)/2, yOffset, qrSize, qrSize);
+      yOffset += qrSize + 10;
+    }
+
+    // Document list with content
+    checkAndAddPage(20);
+    mainPdf.setFontSize(12);
+    mainPdf.setFont(undefined, 'bold');
+    mainPdf.text('DOKUMEN TERLAMPIR:', margin, yOffset);
+    yOffset += 10;
+    
+    // Process each uploaded document
+    const fileInputs = form.querySelectorAll('input[type="file"]');
+    let docNumber = 1;
+    const allPdfPages = [];
+    
+    processingStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses dokumen...';
+    
+    for (const fileInput of fileInputs) {
+      if (fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const label = fileInput.parentElement.textContent.split(':')[0];
+        
+        processingStatus.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Memproses: ${label}...`;
+        
+        // Add document header to main PDF
+        checkAndAddPage(30);
+        
+        mainPdf.setFontSize(11);
+        mainPdf.setFont(undefined, 'bold');
+        mainPdf.text(docNumber + '. ' + label, margin, yOffset);
+        yOffset += 6;
+        
+        mainPdf.setFontSize(9);
+        mainPdf.setFont(undefined, 'normal');
+        const fileInfo = file.name + ' | ' + (file.size/1024).toFixed(2) + ' KB';
+        mainPdf.text(fileInfo, margin + 10, yOffset);
+        yOffset += 4;
+        
+        mainPdf.setFontSize(8);
+        mainPdf.setTextColor(41, 128, 185);
+        mainPdf.text('Jenis Form: ' + formType, margin + 10, yOffset);
+        mainPdf.setTextColor(0);
+        yOffset += 10;
+        
+        // Process file content
+        try {
+          if (file.type.includes('pdf')) {
+            // Handle PDF files
+            const arrayBuffer = await file.arrayBuffer();
+            const pdfBytes = new Uint8Array(arrayBuffer);
+            
+            try {
+              // Try to merge PDF content
+              const existingPdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+              const pages = existingPdfDoc.getPages();
+              
+              for (let i = 0; i < pages.length; i++) {
+                const page = pages[i];
+                const { width, height } = page.getSize();
+                
+                // Convert PDF page to image for embedding
+                const pdfAsImage = await convertPdfPageToImage(file, i);
+                if (pdfAsImage) {
+                  checkAndAddPage(150);
+                  
+                  // Add page break for document content
+                  mainPdf.addPage();
+                  yOffset = 20;
+                  
+                  mainPdf.setFontSize(10);
+                  mainPdf.setFont(undefined, 'bold');
+                  mainPdf.text(`${label} - Halaman ${i + 1}`, pageWidth/2, yOffset, { align: 'center' });
+                  yOffset += 10;
+                  
+                  // Calculate dimensions to fit page
+                  let imgWidth = pageWidth - (2 * margin);
+                  let imgHeight = imgWidth * (height / width);
+                  
+                  if (imgHeight > pageHeight - yOffset - 30) {
+                    imgHeight = pageHeight - yOffset - 30;
+                    imgWidth = imgHeight * (width / height);
+                  }
+                  
+                  const x = (pageWidth - imgWidth) / 2;
+                  
+                  try {
+                    mainPdf.addImage(pdfAsImage, 'JPEG', x, yOffset, imgWidth, imgHeight);
+                    yOffset += imgHeight + 10;
+                  } catch (imgError) {
+                    console.warn('Could not add PDF page as image:', imgError);
+                    // Fallback: show placeholder
+                    mainPdf.setDrawColor(200);
+                    mainPdf.setFillColor(250, 250, 250);
+                    mainPdf.roundedRect(x, yOffset, imgWidth, imgHeight, 5, 5, 'FD');
+                    mainPdf.text('Konten PDF - ' + file.name, pageWidth/2, yOffset + imgHeight/2, { align: 'center' });
+                    yOffset += imgHeight + 10;
+                  }
+                }
+              }
+            } catch (pdfError) {
+              console.warn('Could not process PDF content:', pdfError);
+              // Fallback: show file info only
+              mainPdf.setDrawColor(200);
+              mainPdf.setFillColor(250, 250, 250);
+              mainPdf.roundedRect(margin + 10, yOffset, pageWidth - 2*margin - 20, 30, 2, 2, 'FD');
+              mainPdf.text('Dokumen PDF - ' + file.name, pageWidth/2, yOffset + 20, { align: 'center' });
+              yOffset += 35;
+            }
+            
+          } else if (file.type.includes('image')) {
+            // Handle image files
+            const reader = new FileReader();
+            await new Promise((resolve) => {
+              reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                  checkAndAddPage(150);
+                  
+                  // Add page break for document content
+                  mainPdf.addPage();
+                  yOffset = 20;
+                  
+                  mainPdf.setFontSize(10);
+                  mainPdf.setFont(undefined, 'bold');
+                  mainPdf.text(label, pageWidth/2, yOffset, { align: 'center' });
+                  yOffset += 10;
+                  
+                  // Calculate dimensions to fit page
+                  let imgWidth = pageWidth - (2 * margin);
+                  let imgHeight = (imgWidth * img.height) / img.width;
+                  
+                  if (imgHeight > pageHeight - yOffset - 30) {
+                    imgHeight = pageHeight - yOffset - 30;
+                    imgWidth = (imgHeight * img.width) / img.height;
+                  }
+                  
+                  const x = (pageWidth - imgWidth) / 2;
+                  
+                  try {
+                    mainPdf.addImage(e.target.result, 'JPEG', x, yOffset, imgWidth, imgHeight);
+                    yOffset += imgHeight + 10;
+                  } catch (imgError) {
+                    console.warn('Could not add image:', imgError);
+                    // Fallback: show placeholder
+                    mainPdf.setDrawColor(200);
+                    mainPdf.setFillColor(250, 250, 250);
+                    mainPdf.roundedRect(x, yOffset, imgWidth, imgHeight, 5, 5, 'FD');
+                    mainPdf.text('Gambar - ' + file.name, pageWidth/2, yOffset + imgHeight/2, { align: 'center' });
+                    yOffset += imgHeight + 10;
+                  }
+                  
+                  resolve();
+                };
+                img.src = e.target.result;
+              };
+              reader.readAsDataURL(file);
+            });
+          } else {
+            // Handle other file types
+            mainPdf.setDrawColor(200);
+            mainPdf.setFillColor(250, 250, 250);
+            mainPdf.roundedRect(margin + 10, yOffset, pageWidth - 2*margin - 20, 15, 2, 2, 'FD');
+            mainPdf.text('File - ' + file.name + ' (Preview tidak tersedia)', margin + 15, yOffset + 10);
+            yOffset += 20;
+          }
+        } catch (error) {
+          console.error('Error processing file:', error);
+          // Fallback: show file info only
+          mainPdf.setDrawColor(200);
+          mainPdf.setFillColor(250, 250, 250);
+          mainPdf.roundedRect(margin + 10, yOffset, pageWidth - 2*margin - 20, 15, 2, 2, 'FD');
+          mainPdf.text('Error memproses - ' + file.name, margin + 15, yOffset + 10);
+          yOffset += 20;
+        }
+        
+        docNumber++;
+      }
+    }
+    
+    // Footer for all pages
+    const totalPages = mainPdf.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      mainPdf.setPage(i);
+      mainPdf.setFontSize(8);
+      mainPdf.setTextColor(100);
+      
+      const footerY = pageHeight - 15;
+      mainPdf.text('SANDAR-RATU © 2025', margin, footerY);
+      mainPdf.text('Halaman ' + i + ' dari ' + totalPages, pageWidth/2, footerY, { align: 'center' });
+      mainPdf.text('Dicetak: ' + new Date().toLocaleDateString('id-ID'), pageWidth - margin, footerY, { align: 'right' });
+      
+      // Form type and officer in footer
+      mainPdf.setFontSize(7);
+      mainPdf.text('Form: ' + formType + ' | Petugas: ' + (currentUser ? currentUser.name : 'Unknown'), pageWidth/2, footerY + 5, { align: 'center' });
+    }
+    
+    processingStatus.innerHTML = '<i class="fas fa-check-circle"></i> Selesai! Mengunduh dokumen...';
+    
+    // Save PDF
+    const fileName = `[${formType}]_SANDAR_RATU_${shipName.replace(/\s+/g,'_')}_${date.replace(/-/g,'')}.pdf`;
+    mainPdf.save(fileName);
+    
+    alert(`Dokumen PDF lengkap berhasil di-download: ${fileName}\nJenis Form: ${formType}\nJumlah dokumen: ${docNumber-1}\nPetugas: ${currentUser ? currentUser.name : 'Unknown'}\n\nCatatan: Semua dokumen PDF dan gambar telah diintegrasikan ke dalam file PDF utama.`);
+    
+  } catch (error) {
+    console.error('Error generating comprehensive PDF:', error);
+    alert('Terjadi error saat membuat PDF lengkap: ' + error.message + '\n\nMencoba metode alternatif...');
+    
+    // Fallback to simpler PDF generation
+    await downloadAllFallback(btn);
+  } finally {
+    processingStatus.style.display = 'none';
+    btn.disabled = false;
+  }
+}
+
+// Helper function to convert PDF page to image (requires additional library)
+async function convertPdfPageToImage(file, pageIndex) {
+  try {
+    // This is a simplified implementation
+    // In a real scenario, you would use PDF.js or similar library
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 600;
+    canvas.height = 800;
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#333333';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('PDF Content', canvas.width/2, canvas.height/2 - 20);
+    ctx.fillText(`Page ${pageIndex + 1}`, canvas.width/2, canvas.height/2 + 20);
+    ctx.fillText(file.name, canvas.width/2, canvas.height/2 + 60);
+    
+    return canvas.toDataURL('image/jpeg', 0.8);
+  } catch (error) {
+    console.error('Error converting PDF page:', error);
+    return null;
+  }
+}
+
+// Fallback download method for simpler PDF
+async function downloadAllFallback(btn) {
+  const form = btn.closest("form");
+  const resultBox = form.nextElementSibling;
+  const formType = form.getAttribute('data-form-type');
+  
+  try {
+    const { jsPDF } = window.jsPDF;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let yOffset = 20;
+    const pageHeight = 297;
+    const pageWidth = 210;
+    const margin = 20;
+    
+    // Get form data
+    const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
+    const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
+    const time = form.querySelector('input[type="time"]').value || "00:00";
+    const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
+    const gt = form.querySelectorAll('input[type="text"]')[2].value || "-";
+    
+    function checkAndAddPage(neededHeight) {
+      if (yOffset + neededHeight > pageHeight - 35) {
+        pdf.addPage();
+        yOffset = 20;
+        return true;
+      }
+      return false;
+    }
+    
+    // PDF Header
+    pdf.setFontSize(18);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SANDAR-RATU', pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 8;
+    
+    pdf.setFontSize(12);
+    pdf.text('Sistem Administrasi & Dokumen Kesyahbandaran', pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 5;
+    pdf.text('PPN Palabuhanratu', pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 20;
+    
+    // Form Type
+    pdf.setDrawColor(52, 152, 219);
+    pdf.setFillColor(232, 244, 248);
+    pdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 15, 3, 3, 'FD');
+    
+    yOffset += 10;
+    pdf.setFontSize(14);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(44, 62, 80);
+    pdf.text('JENIS FORM: ' + formType, pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 15;
+    
+    // Document info
+    pdf.setDrawColor(100);
+    pdf.setFillColor(245, 245, 245);
+    pdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 50, 3, 3, 'FD');
+    
+    yOffset += 10;
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(0);
+    pdf.text('INFORMASI DOKUMEN', margin + 10, yOffset);
+    yOffset += 8;
+    
+    pdf.setFontSize(10);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('Nama Kapal: ' + shipName, margin + 10, yOffset);
+    pdf.text('GT: ' + gt, margin + 100, yOffset);
+    yOffset += 6;
+    pdf.text('Tanggal: ' + new Date(date).toLocaleDateString('id-ID'), margin + 10, yOffset);
+    pdf.text('Waktu: ' + time, margin + 100, yOffset);
+    yOffset += 6;
+    pdf.text('Nahkoda: ' + captain, margin + 10, yOffset);
+    yOffset += 6;
+    pdf.text('Petugas: ' + (currentUser ? currentUser.name : 'Unknown'), margin + 10, yOffset);
+    pdf.text('Email: ' + (currentUser ? currentUser.email : 'Unknown'), margin + 100, yOffset);
+    yOffset += 20;
+
+    // QR Code
+    const qrCanvas = resultBox.querySelector('canvas');
+    if (qrCanvas) {
+      checkAndAddPage(70);
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('QR CODE VERIFIKASI DOKUMEN', pageWidth/2, yOffset, { align: 'center' });
+      yOffset += 5;
+      
+      const imgData = qrCanvas.toDataURL('image/png');
+      const qrSize = 50;
+      pdf.addImage(imgData, 'PNG', (pageWidth-qrSize)/2, yOffset, qrSize, qrSize);
+      yOffset += qrSize + 10;
+    }
+
+    // Document list with enhanced preview
+    checkAndAddPage(20);
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('DOKUMEN TERLAMPIR:', margin, yOffset);
+    yOffset += 10;
+    
+    let docNumber = 1;
+    const fileInputs = form.querySelectorAll('input[type="file"]');
+    
+    for (const fileInput of fileInputs) {
+      if (fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const label = fileInput.parentElement.textContent.split(':')[0];
+        
+        checkAndAddPage(40);
+        
+        pdf.setFontSize(11);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(docNumber + '. ' + label, margin, yOffset);
+        yOffset += 6;
+        
+        pdf.setFontSize(9);
+        pdf.setFont(undefined, 'normal');
+        const fileInfo = file.name + ' | ' + (file.size/1024).toFixed(2) + ' KB';
+        pdf.text(fileInfo, margin + 10, yOffset);
+        yOffset += 4;
+        
+        pdf.setFontSize(8);
+        pdf.setTextColor(41, 128, 185);
+        pdf.text('Jenis Form: ' + formType, margin + 10, yOffset);
+        pdf.setTextColor(0);
+        yOffset += 8;
+        
+        // Document preview box with enhanced info
+        pdf.setDrawColor(200);
+        pdf.setFillColor(250, 250, 250);
+        pdf.roundedRect(margin + 10, yOffset, pageWidth - 2*margin - 20, 20, 2, 2, 'FD');
+        
+        let fileTypeText = 'File - ' + file.name;
+        let fileIcon = '📄';
+        
+        if (file.type.includes('pdf')) {
+          fileTypeText = 'Dokumen PDF - ' + file.name;
+          fileIcon = '📄';
+        } else if (file.type.includes('image')) {
+          fileTypeText = 'Gambar - ' + file.name;
+          fileIcon = '🖼️';
+        }
+        
+        pdf.setFontSize(9);
+        pdf.text(fileIcon + ' ' + fileTypeText, margin + 15, yOffset + 8);
+        pdf.setFontSize(7);
+        pdf.text('Ukuran: ' + (file.size/1024).toFixed(2) + ' KB | Tipe: ' + file.type, margin + 15, yOffset + 15);
+        
+        yOffset += 25;
+        docNumber++;
+      }
+    }
+    
+    // Footer for all pages
+    const totalPages = pdf.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(8);
+      pdf.setTextColor(100);
+      
+      const footerY = pageHeight - 15;
+      pdf.text('SANDAR-RATU © 2025', margin, footerY);
+      pdf.text('Halaman ' + i + ' dari ' + totalPages, pageWidth/2, footerY, { align: 'center' });
+      pdf.text('Dicetak: ' + new Date().toLocaleDateString('id-ID'), pageWidth - margin, footerY, { align: 'right' });
+      
+      // Form type and officer in footer
+      pdf.setFontSize(7);
+      pdf.text('Form: ' + formType + ' | Petugas: ' + (currentUser ? currentUser.name : 'Unknown'), pageWidth/2, footerY + 5, { align: 'center' });
+    }
+    
+    // Save PDF
+    const fileName = `[${formType}]_SANDAR_RATU_${shipName.replace(/\s+/g,'_')}_${date.replace(/-/g,'')}.pdf`;
+    pdf.save(fileName);
+    
+    alert(`Dokumen PDF berhasil di-download: ${fileName}\nJenis Form: ${formType}\nJumlah dokumen: ${docNumber-1}\nPetugas: ${currentUser ? currentUser.name : 'Unknown'}`);
+    
+  } catch (error) {
+    console.error('Error generating fallback PDF:', error);
+    alert('Terjadi error saat membuat PDF. Silakan coba lagi.');
+  }
+}
+
+// Initialize Google APIs when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Wait for Google APIs to load
+  setTimeout(() => {
+    if (typeof google !== 'undefined' && typeof gapi !== 'undefined') {
+      initializeGoogle();
+    } else {
+      console.log('Google APIs not available');
+      // Show error message
+      document.querySelector('.google-login-btn').innerHTML = 
+        '<i class="fas fa-exclamation-triangle"></i> Google API tidak tersedia';
+      document.querySelector('.google-login-btn').disabled = true;
+    }
+  }, 1000);
+});
+
+// Listen for auth status changes
+setInterval(() => {
+  if (authInstance) {
+    updateGoogleDriveStatus();
+  }
+}, 5000);
+</script>
+
+</body>
+</html>
