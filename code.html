@@ -1,1505 +1,1066 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SANDAR-RATU - Sistem Administrasi & Dokumen Kesyahbandaran</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://apis.google.com/js/api.js"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;display:flex;justify-content:center;align-items:center;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANDAR-RATU - Sistem Administrasi & Dokumen Kesyahbandaran</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* Login Styles */
-.login-container{
-  background:#fff;
-  border-radius:20px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.1);
-  max-width:400px;
-  width:100%;
-  overflow:hidden;
-}
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.logo-section{
-  text-align:center;
-  padding:40px 30px 20px;
-  background:linear-gradient(135deg,#3498db, #1a73e8);
-}
+        /* Login Styles */
+        .login-container {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            overflow: hidden;
+        }
 
-.logo{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-size:24px;
-  font-weight:700;
-  color:#fff;
-  text-decoration:none;
-}
+        .logo-section {
+            text-align: center;
+            padding: 40px 30px 20px;
+            background: linear-gradient(135deg, #3498db, #1a73e8);
+        }
 
-.logo-icon{
-  width:32px;
-  height:32px;
-  background:#fff;
-  border-radius:6px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#3498db;
-}
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+        }
 
-.warning-section{
-  background:#feffd6;
-  border:1px solid #fff4ce;
-  margin:20px;
-  border-radius:12px;
-  padding:20px;
-  text-align:center;
-}
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3498db;
+        }
 
-.warning-title{
-  background:#ffffff;
-  border:1px solid #ffeaa7;
-  color:#000000;
-  padding:8px 16px;
-  border-radius:8px;
-  font-weight:600;
-  margin-bottom:15px;
-  display:inline-block;
-}
+        .warning-section {
+            background: #feffd6;
+            border: 1px solid #fff4ce;
+            margin: 20px;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
 
-.warning-text{
-  color:#000000;
-  font-size:14px;
-  line-height:1.5;
-  margin-bottom:15px;
-}
+        .warning-title {
+            background: #ffffff;
+            border: 1px solid #ffeaa7;
+            color: #000000;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
 
-.login-method-section{
-  padding:20px;
-  text-align:center;
-}
+        .warning-text {
+            color: #000000;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
 
-.method-title{
-  color:#6c757d;
-  font-size:13px;
-  margin-bottom:15px;
-  font-style:italic;
-}
+        .login-method-section {
+            padding: 20px;
+            text-align: center;
+        }
 
-.google-login-btn{
-  width:100%;
-  padding:12px 20px;
-  border:2px solid #e0e0e0;
-  background:#fff;
-  border-radius:8px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  font-size:14px;
-  font-weight:500;
-  color:#5f6368;
-  cursor:pointer;
-  transition:all 0.2s ease;
-}
+        .method-title {
+            color: #6c757d;
+            font-size: 13px;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
 
-.google-login-btn:hover{
-  border-color:#1a73e8;
-  box-shadow:0 1px 3px rgba(0,0,0,0.1);
-}
+        .google-login-btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #5f6368;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
 
-.google-login-btn:disabled{
-  background:#f5f5f5;
-  cursor:not-allowed;
-  opacity:0.6;
-}
+        .google-login-btn:hover {
+            border-color: #1a73e8;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
 
-.google-icon{
-  width:18px;
-  height:18px;
-}
+        .google-login-btn:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
-/* Dashboard Styles */
-.dashboard{display:none;flex-direction:column;height:100vh;width:100%;}
-.header{background:#2c3e50;color:white;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
-.header .logo-icon{background:#3498db;width:36px;height:36px;border-radius:8px;display:flex;justify-content:center;align-items:center;margin-right:10px;}
-.header .user-info{display:flex;align-items:center;gap:10px;}
-.header .user-avatar{width:32px;height:32px;border-radius:50%;border:2px solid #3498db;}
-.main-container{display:flex;flex:1;}
-.sidebar{width:240px;background:#3498db;color:white;padding-top:20px;}
-.sidebar div{padding:8px 20px;font-weight:600;opacity:0.8;font-size:13px;}
-.sidebar a{display:flex;align-items:center;padding:12px 20px;color:white;text-decoration:none;transition:0.3s;cursor:pointer;}
-.sidebar a:hover{background:rgba(255,255,255,0.1);}
-.sidebar a.active{background:rgba(0,0,0,0.25);font-weight:bold;}
-.content{flex:1;padding:25px;overflow-y:auto;background:#f5f5f5;}
-.content h2{margin-bottom:20px;color:#2c3e50;}
-.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
-.form-row{display:flex;gap:15px;margin-bottom:15px;}
-.form-row .form-control{flex:1;}
-.form-control{width:100%;padding:12px;margin-bottom:15px;border:1px solid #ddd;border-radius:8px;}
-.btn-generate{width:100%;padding:12px;background:#2ecc71;border:none;color:white;border-radius:8px;font-weight:600;cursor:pointer;margin-bottom:10px;}
-.btn-generate:hover{background:#27ae60;}
-.btn-generate:disabled{background:#95a5a6;cursor:not-allowed;}
-.btn-upload-drive{width:100%;padding:12px;background:#1a73e8;border:none;color:white;border-radius:8px;font-weight:600;cursor:pointer;margin-bottom:10px;}
-.btn-upload-drive:hover:not(:disabled){background:#1557b0;}
-.btn-upload-drive:disabled{background:#ccc;cursor:not-allowed;}
-.btn-logout{background:#e74c3c;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;}
-.result-container{margin-top:15px;}
-.preview-container{margin-top:8px;padding:15px;background:#fafafa;border:1px solid #ddd;border-radius:6px;display:flex;flex-direction:column;gap:10px;}
-.preview-container .document-info{background:#fff;padding:10px;border-radius:5px;border-left:4px solid #3498db;}
-.preview-container .document-info h4{color:#2c3e50;margin-bottom:5px;}
-.preview-container .document-info p{color:#7f8c8d;font-size:12px;}
-.preview-container embed,.preview-container img{width:100%;max-height:300px;border-radius:6px;object-fit:contain;border:1px solid #ddd;}
-.preview-container a{align-self:flex-start;text-decoration:none;color:#2980b9;font-weight:bold;padding:5px 10px;background:#ecf0f1;border-radius:4px;}
-.qr-section{background:#fff;padding:15px;border-radius:8px;text-align:center;border:2px solid #3498db;margin-bottom:15px;}
-.qr-section h3{color:#2c3e50;margin-bottom:10px;}
-.qr-info{background:#e8f6ff;padding:10px;border-radius:6px;margin-top:10px;border:1px solid #3498db;}
-.qr-info p{margin:3px 0;font-size:12px;color:#2c3e50;}
-.qr-info .qr-url{background:#fff;padding:8px;margin:5px 0;border-radius:4px;word-break:break-all;font-family:monospace;font-size:13px;border:1px solid #bdc3c7;max-height:60px;overflow-y:auto;}
-.document-summary{background:#fff;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #27ae60;}
-.document-summary h3{color:#2c3e50;margin-bottom:10px;}
-.document-summary table{width:100%;border-collapse:collapse;}
-.document-summary table td{padding:5px;border-bottom:1px solid #ecf0f1;}
-.document-summary table td:first-child{font-weight:bold;width:30%;}
-.form-type-indicator{background:#e8f4f8;border:2px solid #3498db;padding:10px;border-radius:8px;margin-bottom:15px;text-align:center;}
-.form-type-indicator h3{color:#2c3e50;margin:0;}
-.test-qr-btn{background:#e74c3c;color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;margin:5px;font-size:12px;}
-.test-qr-btn:hover{background:#c0392b;}
-.content-page{display:none;}
-.content-page.active{display:block;}
-.document-label{display:block;margin-bottom:10px;font-weight:600;color:#2c3e50;}
-.document-label input{margin-top:5px;}
-.upload-status{background:#e8f5e8;border:1px solid #4caf50;color:#2e7d32;padding:10px;border-radius:6px;margin:10px 0;display:none;}
-.upload-error{background:#ffebee;border:1px solid #f44336;color:#c62828;padding:10px;border-radius:6px;margin:10px 0;display:none;}
-.google-drive-status{background:#e3f2fd;border:1px solid #2196f3;color:#1565c0;padding:10px;border-radius:6px;margin:10px 0;text-align:center;}
-.progress-bar{width:100%;background:#f0f0f0;border-radius:4px;overflow:hidden;margin:10px 0;display:none;}
-.progress-fill{height:20px;background:#4caf50;border-radius:4px;transition:width 0.3s ease;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:bold;}
-.footer-login{text-align:center;padding:15px;color:#6c757d;font-size:12px;border-top:1px solid #e9ecef;}
-.processing-status{background:#e3f2fd;border:1px solid #2196f3;color:#1565c0;padding:10px;border-radius:6px;margin:10px 0;text-align:center;display:none;}
+        .google-icon {
+            width: 18px;
+            height: 18px;
+        }
 
-/* Error handling styles */
-.error-message {
-  background: #ffebee;
-  border: 1px solid #f44336;
-  color: #c62828;
-  padding: 15px;
-  border-radius: 8px;
-  margin: 10px 0;
-}
+        /* Dashboard Styles */
+        .dashboard {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+        }
 
-.success-message {
-  background: #e8f5e8;
-  border: 1px solid #4caf50;
-  color: #2e7d32;
-  padding: 15px;
-  border-radius: 8px;
-  margin: 10px 0;
-}
+        .header {
+            background: #2c3e50;
+            color: white;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
 
-/* Loading spinner */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+        .header .logo-icon {
+            background: #3498db;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+        }
 
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-</style>
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #3498db;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #3498db;
+            color: white;
+            padding-top: 20px;
+        }
+
+        .sidebar div {
+            padding: 8px 20px;
+            font-weight: 600;
+            opacity: 0.8;
+            font-size: 13px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar a.active {
+            background: rgba(0, 0, 0, 0.25);
+            font-weight: bold;
+        }
+
+        .content {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+
+        .content h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-control {
+            flex: 1;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 12px;
+            background: #2ecc71;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .btn-generate:hover {
+            background: #27ae60;
+        }
+
+        .btn-generate:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .btn-upload-drive {
+            width: 100%;
+            padding: 12px;
+            background: #1a73e8;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .btn-upload-drive:hover:not(:disabled) {
+            background: #1557b0;
+        }
+
+        .btn-upload-drive:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-logout {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .result-container {
+            margin-top: 15px;
+        }
+
+        .preview-container {
+            margin-top: 8px;
+            padding: 15px;
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .preview-container .document-info {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .preview-container .document-info h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .preview-container .document-info p {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .preview-container embed,
+        .preview-container img {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 6px;
+            object-fit: contain;
+            border: 1px solid #ddd;
+        }
+
+        .preview-container a {
+            align-self: flex-start;
+            text-decoration: none;
+            color: #2980b9;
+            font-weight: bold;
+            padding: 5px 10px;
+            background: #ecf0f1;
+            border-radius: 4px;
+        }
+
+        .qr-section {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #3498db;
+            margin-bottom: 15px;
+        }
+
+        .qr-section h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .qr-info {
+            background: #e8f6ff;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid #3498db;
+        }
+
+        .qr-info p {
+            margin: 3px 0;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+
+        .qr-info .qr-url {
+            background: #fff;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 13px;
+            border: 1px solid #bdc3c7;
+            max-height: 60px;
+            overflow-y: auto;
+        }
+
+        .document-summary {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .document-summary h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .document-summary table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .document-summary table td {
+            padding: 5px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .document-summary table td:first-child {
+            font-weight: bold;
+            width: 30%;
+        }
+
+        .form-type-indicator {
+            background: #e8f4f8;
+            border: 2px solid #3498db;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .form-type-indicator h3 {
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .test-qr-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 12px;
+        }
+
+        .test-qr-btn:hover {
+            background: #c0392b;
+        }
+
+        .content-page {
+            display: none;
+        }
+
+        .content-page.active {
+            display: block;
+        }
+
+        .document-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .document-label input {
+            margin-top: 5px;
+        }
+
+        .upload-status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .upload-error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .google-drive-status {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            color: #1565c0;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 20px;
+            background: #4caf50;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .footer-login {
+            text-align: center;
+            padding: 15px;
+            color: #6c757d;
+            font-size: 12px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .processing-status {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            color: #1565c0;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            text-align: center;
+            display: none;
+        }
+
+        /* Error handling styles */
+        .error-message {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .success-message {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        /* Loading spinner */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginPage" class="login-container">
-  <div class="logo-section">
-    <a href="#" class="logo">
-      <div class="logo-icon">
-        <i class="fas fa-anchor"></i>
-      </div>
-      SANDAR-RATU
-    </a>
-  </div>
-  
-  <div class="warning-section">
-    <div class="warning-title">Peringatan</div>
-    <div class="warning-text">
-      Halaman ini memerlukan autentikasi.<br>
-      Silahkan klik tombol login di bawah untuk melanjutkan.<br>
-      Terima kasih.
+    <div class="logo-section">
+        <a href="#" class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-anchor"></i>
+            </div>
+            SANDAR-RATU
+        </a>
     </div>
-  </div>
-  
-  <div class="login-method-section">
-    <div class="method-title">- select login method -</div>
-    <button id="googleLoginBtn" class="google-login-btn">
-      <svg class="google-icon" viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-      </svg>
-      Log in with Google
-    </button>
-  </div>
-  
-  <div class="footer-login">Hak Cipta © 2025 Sandar-Ratu</div>
+
+    <div class="warning-section">
+        <div class="warning-title">Peringatan</div>
+        <div class="warning-text">
+            Halaman ini memerlukan autentikasi.<br>
+            Silahkan klik tombol login di bawah untuk melanjutkan.<br>
+            Terima kasih.
+        </div>
+    </div>
+
+    <div class="login-method-section">
+        <div class="method-title">- pilih metode login -</div>
+        <button id="googleLoginBtn" class="google-login-btn">
+            <svg class="google-icon" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Log in with Google
+        </button>
+    </div>
+
+    <div class="footer-login">Hak Cipta © 2025 Sandar-Ratu</div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="dashboard">
-  <div class="header">
-    <div style="display:flex;align-items:center;">
-      <div class="logo-icon"><i class="fas fa-anchor"></i></div>
-      <strong>SANDAR-RATU</strong>
+    <div class="header">
+        <div style="display:flex;align-items:center;">
+            <div class="logo-icon"><i class="fas fa-anchor"></i></div>
+            <strong>SANDAR-RATU</strong>
+        </div>
+        <div style="display:flex;align-items:center;gap:15px;">
+            <div class="user-info">
+                <img id="userAvatar" class="user-avatar" src="" alt="User">
+                <span id="userName">User</span>
+            </div>
+            <button class="btn-logout" onclick="logout()">Keluar</button>
+        </div>
     </div>
-    <div style="display:flex;align-items:center;gap:15px;">
-      <div class="user-info">
-        <img id="userAvatar" class="user-avatar" src="" alt="User">
-        <span id="userName">User</span>
-      </div>
-      <button class="btn-logout" onclick="logout()">Keluar</button>
-    </div>
-  </div>
-  <div class="main-container">
-    <div class="sidebar">
-      <div>👨‍✈️ Petugas</div>
-      <a onclick="showPage('departurePetugas', this)"><i class="fas fa-anchor"></i>&nbsp; Keberangkatan</a>
-      <a onclick="showPage('arrivalPetugas', this)"><i class="fas fa-ship"></i>&nbsp; Kedatangan</a>
-      <div>🚢 Nelayan</div>
-      <a onclick="showPage('departureNelayan', this)"><i class="fas fa-fish"></i>&nbsp; Keberangkatan</a>
-      <a onclick="showPage('arrivalNelayan', this)"><i class="fas fa-water"></i>&nbsp; Kedatangan</a>
-    </div>
+    <div class="main-container">
+        <div class="sidebar">
+            <div>👨‍✈️ Petugas</div>
+            <a onclick="showPage('departurePetugas', this)"><i class="fas fa-anchor"></i>&nbsp; Keberangkatan</a>
+            <a onclick="showPage('arrivalPetugas', this)"><i class="fas fa-ship"></i>&nbsp; Kedatangan</a>
+            <div>🚢 Nelayan</div>
+            <a onclick="showPage('departureNelayan', this)"><i class="fas fa-fish"></i>&nbsp; Keberangkatan</a>
+            <a onclick="showPage('arrivalNelayan', this)"><i class="fas fa-water"></i>&nbsp; Kedatangan</a>
+        </div>
 
-    <div class="content" id="mainContent">
-      <!-- Content pages will be generated by JavaScript -->
+        <div class="content" id="mainContent">
+            </div>
     </div>
-  </div>
 </div>
 
 <script>
-// Google Drive API Configuration
-const CLIENT_ID = "464575855879-theqehj563fo25tp00gf6fhj6efr5045.apps.googleusercontent.com";
-const API_KEY = "AIzaSyAWrUdv79vEKgd3YVkYsHvfwS3-vKev_lk";
-const SCOPES = "https://www.googleapis.com/auth/drive.file";
+    const CLIENT_ID = "464575855879-theqehj563fo25tp00gf6fhj6efr5045.apps.googleusercontent.com";
+    const API_KEY = "AIzaSyAWrUdv79vEKgd3YVkYsHvfwS3-vKev_lk";
+    const SCOPES = "https://www.googleapis.com/auth/drive.file";
 
-// Folder mapping
-const FOLDER_MAP = {
-  "Petugas-Keberangkatan": "1Ws2ctYHbdUD7Wza2ld4KxO0j7fiFcg3o",
-  "Petugas-Kedatangan": "1BIDQw9AMiY5_Mxt1OBKC1Lce3xzjtfTz",
-  "Nelayan-Keberangkatan": "1bnyimhbu884iAdNX75u_MxtPN2azgAFy",
-  "Nelayan-Kedatangan": "1Yt_-nTkJrZNO7Y2ZlBJIqebnMu0ncE-M"
-};
-
-let isGoogleDriveReady = false;
-let authInstance = null;
-let currentUser = null;
-let isInitialized = false;
-
-// Utility functions
-function showMessage(element, message, type = 'info') {
-  const className = type === 'error' ? 'error-message' : 
-                   type === 'success' ? 'success-message' : 'processing-status';
-  
-  element.className = className;
-  element.innerHTML = message;
-  element.style.display = 'block';
-}
-
-function hideMessage(element) {
-  element.style.display = 'none';
-}
-
-function validateForm(form) {
-  const shipName = form.querySelector('input[type="text"]')?.value?.trim();
-  const date = form.querySelector('input[type="date"]')?.value;
-  const time = form.querySelector('input[type="time"]')?.value;
-  
-  if (!shipName) {
-    throw new Error('Nama kapal harus diisi');
-  }
-  
-  if (!date) {
-    throw new Error('Tanggal harus diisi');
-  }
-  
-  if (!time) {
-    throw new Error('Waktu harus diisi');
-  }
-  
-  return true;
-}
-
-// Initialize Google APIs with better error handling
-function initializeGoogle() {
-  try {
-    // Initialize Google Sign-In
-    if (typeof google !== 'undefined' && google.accounts) {
-      google.accounts.id.initialize({
-        client_id: CLIENT_ID,
-        callback: handleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true
-      });
-      console.log('Google Sign-In initialized successfully');
-    }
-
-    // Initialize Google Drive API
-    if (typeof gapi !== 'undefined') {
-      gapi.load('client:auth2', () => {
-        gapi.client.init({
-          apiKey: API_KEY,
-          clientId: CLIENT_ID,
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-          scope: SCOPES
-        }).then(() => {
-          authInstance = gapi.auth2.getAuthInstance();
-          isGoogleDriveReady = true;
-          updateGoogleDriveStatus();
-          console.log('Google Drive API initialized successfully');
-          
-          // Listen for auth changes
-          authInstance.isSignedIn.listen(updateGoogleDriveStatus);
-        }).catch(error => {
-          console.error('Error initializing Google Drive API:', error);
-          updateGoogleDriveStatus('Error: ' + error.message);
-        });
-      });
-    }
-    
-    isInitialized = true;
-  } catch (error) {
-    console.error('Error initializing Google APIs:', error);
-    const loginBtn = document.getElementById('googleLoginBtn');
-    if (loginBtn) {
-      loginBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Google API tidak tersedia';
-      loginBtn.disabled = true;
-    }
-  }
-}
-
-// Handle Google Sign-In response with better error handling
-function handleCredentialResponse(response) {
-  try {
-    if (!response.credential) {
-      throw new Error('No credential received from Google');
-    }
-    
-    // Decode JWT token
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    
-    currentUser = {
-      id: payload.sub,
-      name: payload.name || 'Unknown User',
-      email: payload.email || 'Unknown Email',
-      picture: payload.picture || ''
+    const FOLDER_MAP = {
+        "Petugas-Keberangkatan": "1Ws2ctYHbdUD7Wza2ld4KxO0j7fiFcg3o",
+        "Petugas-Kedatangan": "1BIDQw9AMiY5_Mxt1OBKC1Lce3xzjtfTz",
+        "Nelayan-Keberangkatan": "1bnyimhbu884iAdNX75u_MxtPN2azgAFy",
+        "Nelayan-Kedatangan": "1Yt_-nTkJrZNO7Y2ZlBJIqebnMu0ncE-M"
     };
-    
-    console.log('User signed in:', currentUser.name);
-    showDashboard();
-  } catch (error) {
-    console.error('Error handling credential response:', error);
-    alert('Gagal memproses login: ' + error.message);
-  }
-}
 
-// Google Login Button Click Handler with better error handling
-document.getElementById('googleLoginBtn')?.addEventListener('click', function() {
-  if (!isInitialized) {
-    alert('Sistem belum siap. Silakan tunggu beberapa saat dan coba lagi.');
-    return;
-  }
-  
-  try {
-    if (typeof google !== 'undefined' && google.accounts) {
-      google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fallback to OAuth2 flow
-          if (typeof google.accounts.oauth2 !== 'undefined') {
-            const client = google.accounts.oauth2.initTokenClient({
-              client_id: CLIENT_ID,
-              scope: SCOPES,
-              callback: (tokenResponse) => {
-                if (tokenResponse.error) {
-                  console.error('OAuth error:', tokenResponse.error);
-                  alert('Gagal login: ' + tokenResponse.error);
-                  return;
-                }
-                
-                // Get user info after getting token
-                fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                  headers: {
-                    'Authorization': 'Bearer ' + tokenResponse.access_token
-                  }
-                })
-                .then(response => response.json())
-                .then(userInfo => {
-                  currentUser = {
-                    id: userInfo.id,
-                    name: userInfo.name || 'Unknown User',
-                    email: userInfo.email || 'Unknown Email',
-                    picture: userInfo.picture || ''
-                  };
-                  console.log('User signed in via OAuth:', currentUser.name);
-                  showDashboard();
-                })
-                .catch(error => {
-                  console.error('Error getting user info:', error);
-                  alert('Gagal mendapatkan informasi pengguna: ' + error.message);
-                });
-              }
-            });
-            
-            client.requestAccessToken();
-          } else {
-            alert('OAuth2 tidak tersedia. Silakan refresh halaman dan coba lagi.');
-          }
-        }
-      });
-    } else {
-      alert('Google Sign-In tidak tersedia. Silakan refresh halaman dan coba lagi.');
-    }
-  } catch (error) {
-    console.error('Login error:', error);
-    alert('Terjadi kesalahan saat login: ' + error.message);
-  }
-});
+    let isGoogleApiReady = false;
+    let authInstance = null;
+    let currentUser = null;
 
-// Show dashboard after successful login
-function showDashboard() {
-  if (!currentUser) {
-    alert('Login gagal, silakan coba lagi');
-    return;
-  }
-  
-  try {
-    // Update UI with user info
-    const userNameEl = document.getElementById('userName');
-    const userAvatarEl = document.getElementById('userAvatar');
-    
-    if (userNameEl) userNameEl.textContent = currentUser.name;
-    if (userAvatarEl) {
-      userAvatarEl.src = currentUser.picture || '';
-      userAvatarEl.onerror = function() {
-        this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMzNDk4ZGIiLz4KPHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4PSI2IiB5PSI2Ij4KPHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIGZpbGw9IndoaXRlIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0xMiAyQzEzLjEgMiAxNCAxMyAxNCAxNEMxNCA1LjkgMTMuMSA1IDEyIDVTMTAgNS45IDEwIDcgMTAuOSA5IDEyIDlaTTIxIDE4VjI2SDNWMThDMyAxNy4xIDMuOSAxNiA1IDE2SDE5QzIwLjEgMTYgMjEgMTYuOSAyMSAxOFoiLz48L3N2Zz4KPC9zdmc+Cg==';
-      };
-    }
-    
-    // Show dashboard
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("dashboard").style.display = "flex";
-    document.body.style.background = "white";
-    
-    // Initialize pages and show first page
-    initializePages();
-    showPage('departurePetugas', document.querySelector(".sidebar a"));
-    
-    console.log('Dashboard shown successfully');
-  } catch (error) {
-    console.error('Error showing dashboard:', error);
-    alert('Terjadi kesalahan saat membuka dashboard: ' + error.message);
-  }
-}
-
-// Update Google Drive connection status with better error handling
-function updateGoogleDriveStatus(errorMsg = null) {
-  const statusElements = document.querySelectorAll('.google-drive-status');
-  
-  statusElements.forEach(el => {
-    try {
-      if (errorMsg) {
-        showMessage(el, `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`, 'error');
-      } else if (isGoogleDriveReady) {
-        if (authInstance && authInstance.isSignedIn.get()) {
-          showMessage(el, '<i class="fas fa-check-circle"></i> Google Drive terhubung dan siap digunakan', 'success');
-        } else {
-          showMessage(el, '<i class="fas fa-info-circle"></i> Google Drive siap, klik "Upload ke Google Drive" untuk login', 'info');
-        }
-      } else {
-        el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghubungkan ke Google Drive...';
-      }
-      
-      // Update upload buttons
-      enableUploadButtons();
-    } catch (error) {
-      console.error('Error updating Google Drive status:', error);
-    }
-  });
-}
-
-// Sign in to Google Drive with better error handling
-async function signInToGoogleDrive() {
-  if (!isGoogleDriveReady) {
-    throw new Error('Google Drive API belum siap');
-  }
-  
-  try {
-    if (!authInstance.isSignedIn.get()) {
-      await authInstance.signIn();
-    }
-    updateGoogleDriveStatus();
-    return true;
-  } catch (error) {
-    console.error('Sign in failed:', error);
-    throw new Error('Gagal login ke Google Drive: ' + error.message);
-  }
-}
-
-// Upload file to Google Drive with better error handling
-async function uploadFileToGoogleDrive(file, folderId, fileName) {
-  if (!file || !folderId || !fileName) {
-    throw new Error('Parameter upload tidak lengkap');
-  }
-  
-  const metadata = {
-    name: fileName,
-    parents: [folderId]
-  };
-
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
-  form.append('file', file);
-
-  const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-
-  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-    method: 'POST',
-    headers: new Headers({
-      'Authorization': 'Bearer ' + accessToken
-    }),
-    body: form
-  });
-
-  if (!response.ok) {
-    throw new Error(`Upload gagal: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
-}
-
-// Logout function with cleanup
-function logout() {
-  try {
-    // Sign out from Google
-    if (authInstance && authInstance.isSignedIn.get()) {
-      authInstance.signOut();
-    }
-    
-    // Reset user data
-    currentUser = null;
-    
-    // Show login page
-    document.getElementById("dashboard").style.display = "none";
-    document.getElementById("loginPage").style.display = "block";
-    document.body.style.background = "#f8f9fa";
-    
-    // Clear content
-    document.getElementById("mainContent").innerHTML = "";
-    
-    console.log('User logged out successfully');
-  } catch (error) {
-    console.error('Error during logout:', error);
-    // Force logout even if there's an error
-    currentUser = null;
-    document.getElementById("dashboard").style.display = "none";
-    document.getElementById("loginPage").style.display = "block";
-    document.body.style.background = "#f8f9fa";
-  }
-}
-
-// Show page function with error handling
-function showPage(pageId, el) {
-  try {
-    // Hide all pages
-    document.querySelectorAll(".content-page").forEach(p => p.style.display = "none");
-    
-    // Show selected page
-    const targetPage = document.getElementById(pageId);
-    if (targetPage) {
-      targetPage.style.display = "block";
-    } else {
-      console.warn('Page not found:', pageId);
-    }
-    
-    // Update active menu
-    document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
-    if (el) {
-      el.classList.add("active");
-    }
-  } catch (error) {
-    console.error('Error showing page:', error);
-  }
-}
-
-// Menu configuration
-const menu = [
-  {id:'departurePetugas', title:'⚓ Petugas - Keberangkatan', type: 'departure', category: 'Petugas'},
-  {id:'arrivalPetugas', title:'⚓ Petugas - Kedatangan', type: 'arrival', category: 'Petugas'},
-  {id:'departureNelayan', title:'🚢 Nelayan - Keberangkatan', type: 'departure', category: 'Nelayan'},
-  {id:'arrivalNelayan', title:'🚢 Nelayan - Kedatangan', type: 'arrival', category: 'Nelayan'}
-];
-
-// Document lists
-const departurePetugasDocuments = [
-  'SPB', 'Crew List', 'Perbekalan', 'SLO', 'Pernyataan Nahkoda',
-  'Kwitansi Tambat Labuh', 'Permohonan Penerbitan SPB', 'Daftar ABK', 'STBLKK', 'Faktur BBM'
-];
-
-const departureNelayanDocuments = [
-  'SPB', 'Crew List', 'Perbekalan', 'SLO', 'Pernyataan Nahkoda'
-];
-
-const arrivalDocuments = [
-  'STBLKK', 'Rekom Bongkar', 'SPB Asal'
-];
-
-// Initialize pages with better error handling
-function initializePages() {
-  try {
-    const contentDiv = document.getElementById("mainContent");
-    if (!contentDiv) {
-      throw new Error('Main content div not found');
-    }
-    
-    contentDiv.innerHTML = "";
-    
-    menu.forEach(m => {
-      const div = document.createElement('div');
-      div.id = m.id;
-      div.className = 'content-page';
-      
-      let documents;
-      if (m.type === 'arrival') {
-        documents = arrivalDocuments;
-      } else if (m.id === 'departurePetugas') {
-        documents = departurePetugasDocuments;
-      } else if (m.id === 'departureNelayan') {
-        documents = departureNelayanDocuments;
-      } else {
-        documents = departurePetugasDocuments;
-      }
-      
-      const documentInputs = documents.map(doc => 
-        `<label class="document-label">${doc}: 
-          <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
-        </label>`
-      ).join('');
-
-      div.innerHTML = `
-        <h2>${m.title}</h2>
-        <div class="card">
-          <div class="form-type-indicator">
-            <h3>📋 Form ${m.category} - ${m.type === 'departure' ? 'Keberangkatan' : 'Kedatangan'}</h3>
-          </div>
-          
-          <div class="google-drive-status">
-            <i class="fas fa-spinner fa-spin"></i> Menghubungkan ke Google Drive...
-          </div>
-          
-          <form data-form-type="${m.category}-${m.type === 'departure' ? 'Keberangkatan' : 'Kedatangan'}">
-            <input type="text" class="form-control" placeholder="Nama Kapal" required>
-            <div class="form-row">
-              <input type="date" class="form-control" required>
-              <input type="time" class="form-control" required>
-            </div>
-            <input type="text" class="form-control" placeholder="Nama Nahkoda" required>
-            <input type="text" class="form-control" placeholder="GT">
-            <h4 style="margin:15px 0 10px;color:#2c3e50;">📎 Upload Dokumen</h4>
-            ${documentInputs}
-            <button type="button" class="btn-generate" onclick="generateAll(this)">Generate QR & Preview</button>
-            <button type="button" class="btn-upload-drive" onclick="uploadToGoogleDrive(this)" disabled>
-              <i class="fab fa-google-drive"></i> Upload ke Google Drive
-            </button>
-            <button type="button" class="btn-generate" onclick="downloadAll(this)">⬇ Download Semua Dokumen + QR PDF</button>
-            
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 0%;">0%</div>
-            </div>
-            <div class="processing-status"></div>
-            <div class="upload-status"></div>
-            <div class="upload-error"></div>
-          </form>
-          <div class="result-container"></div>
-        </div>
-      `;
-      
-      contentDiv.appendChild(div);
-    });
-    
-    // Set default date and time
-    const today = new Date().toISOString().split("T")[0];
-    const now = new Date().toTimeString().slice(0, 5);
-    
-    document.querySelectorAll('input[type="date"]').forEach(input => {
-      input.value = today;
-    });
-    
-    document.querySelectorAll('input[type="time"]').forEach(input => {
-      input.value = now;
-    });
-    
-    // Update Google Drive status after pages are created
-    setTimeout(() => {
-      updateGoogleDriveStatus();
-    }, 100);
-    
-    console.log('Pages initialized successfully');
-  } catch (error) {
-    console.error('Error initializing pages:', error);
-    alert('Terjadi kesalahan saat menginisialisasi halaman: ' + error.message);
-  }
-}
-
-// Enable upload buttons when Google Drive is ready
-function enableUploadButtons() {
-  const uploadButtons = document.querySelectorAll('.btn-upload-drive');
-  uploadButtons.forEach(btn => {
-    if (isGoogleDriveReady && authInstance && authInstance.isSignedIn.get()) {
-      btn.disabled = false;
-    } else {
-      btn.disabled = true;
-    }
-  });
-}
-
-// Upload to Google Drive function with comprehensive error handling
-async function uploadToGoogleDrive(btn) {
-  const form = btn.closest("form");
-  const formType = form.getAttribute('data-form-type');
-  const progressBar = form.querySelector('.progress-bar');
-  const progressFill = form.querySelector('.progress-fill');
-  const statusDiv = form.querySelector('.upload-status');
-  const errorDiv = form.querySelector('.upload-error');
-  
-  // Hide previous messages
-  hideMessage(statusDiv);
-  hideMessage(errorDiv);
-  
-  try {
-    // Validate form
-    validateForm(form);
-    
-    // Check if user is signed in
-    if (!authInstance || !authInstance.isSignedIn.get()) {
-      const signedIn = await signInToGoogleDrive();
-      if (!signedIn) return;
-    }
-    
-    // Get form data
-    const shipName = form.querySelector('input[type="text"]').value.trim();
-    const date = form.querySelector('input[type="date"]').value;
-    const time = form.querySelector('input[type="time"]').value;
-    const captain = form.querySelectorAll('input[type="text"]')[1].value.trim() || "Nahkoda";
-    
-    // Get folder ID
-    const folderId = FOLDER_MAP[formType];
-    if (!folderId) {
-      throw new Error('Folder tidak ditemukan untuk jenis form ini');
-    }
-    
-    // Get files to upload
-    const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
-    const filesToUpload = fileInputs.filter(input => input.files[0]).map(input => ({
-      file: input.files[0],
-      label: input.parentElement.textContent.split(':')[0].trim(),
-      input: input
-    }));
-    
-    if (filesToUpload.length === 0) {
-      throw new Error('Pilih minimal satu file untuk diupload');
-    }
-    
-    // Show progress bar
-    progressBar.style.display = 'block';
-    btn.disabled = true;
-    
-    let uploadedCount = 0;
-    const totalFiles = filesToUpload.length;
-    const results = [];
-    
-    showMessage(statusDiv, `<i class="fas fa-upload"></i> Mengupload ${totalFiles} file ke Google Drive...`, 'info');
-    
-    for (const fileData of filesToUpload) {
-      const { file, label } = fileData;
-      
-      // Create filename
-      const timestamp = date.replace(/-/g, '') + '_' + time.replace(':', '');
-      const extension = file.name.split('.').pop();
-      const fileName = `[${formType}]_${shipName.replace(/\s+/g, '_')}_${label.replace(/\s+/g, '_')}_${timestamp}.${extension}`;
-      
-      try {
-        const result = await uploadFileToGoogleDrive(file, folderId, fileName);
-        
-        if (result.id) {
-          uploadedCount++;
-          results.push({
-            name: fileName,
-            label: label,
-            id: result.id,
-            url: `https://drive.google.com/file/d/${result.id}/view`
-          });
-        } else {
-          throw new Error('Upload failed: ' + (result.error?.message || 'Unknown error'));
-        }
-      } catch (error) {
-        console.error(`Error uploading ${fileName}:`, error);
-        results.push({
-          name: fileName,
-          label: label,
-          error: error.message
-        });
-      }
-      
-      // Update progress
-      const progress = Math.round(((uploadedCount + (results.filter(r => r.error).length)) / totalFiles) * 100);
-      progressFill.style.width = progress + '%';
-      progressFill.textContent = progress + '%';
-      
-      showMessage(statusDiv, `<i class="fas fa-upload"></i> Mengupload file ${uploadedCount + results.filter(r => r.error).length + 1} dari ${totalFiles}...`, 'info');
-    }
-    
-    // Show results
-    const successCount = results.filter(r => !r.error).length;
-    const errorCount = results.filter(r => r.error).length;
-    
-    if (successCount > 0) {
-      let resultHtml = `<i class="fas fa-check-circle"></i> Berhasil mengupload ${successCount} file ke Google Drive!<br><br>`;
-      
-      results.filter(r => !r.error).forEach(result => {
-        resultHtml += `• <strong>${result.label}</strong>: <a href="${result.url}" target="_blank" rel="noopener noreferrer">${result.name}</a><br>`;
-      });
-      
-      if (errorCount > 0) {
-        resultHtml += `<br><strong style="color:#f44336;">Gagal upload ${errorCount} file:</strong><br>`;
-        results.filter(r => r.error).forEach(result => {
-          resultHtml += `• <strong>${result.label}</strong>: ${result.error}<br>`;
-        });
-      }
-      
-      showMessage(statusDiv, resultHtml, 'success');
-    } else {
-      const errorMsg = `<i class="fas fa-exclamation-triangle"></i> Gagal mengupload semua file!<br>${results.map(r => `• ${r.label}: ${r.error}`).join('<br>')}`;
-      showMessage(errorDiv, errorMsg, 'error');
-    }
-    
-  } catch (error) {
-    console.error('Upload process failed:', error);
-    showMessage(errorDiv, `<i class="fas fa-exclamation-triangle"></i> Terjadi kesalahan: ${error.message}`, 'error');
-  } finally {
-    btn.disabled = false;
-    setTimeout(() => {
-      if (progressBar) {
-        progressBar.style.display = 'none';
-        progressFill.style.width = '0%';
-        progressFill.textContent = '0%';
-      }
-    }, 2000);
-  }
-}
-
-// Generate QR and preview with comprehensive error handling
-function generateAll(btn) {
-  const form = btn.closest("form");
-  const resultBox = form.nextElementSibling;
-  const formType = form.getAttribute('data-form-type');
-  
-  try {
-    // Validate form first
-    validateForm(form);
-    
-    resultBox.innerHTML = "";
-
-    // Get form data
-    const shipName = form.querySelector('input[type="text"]').value.trim();
-    const date = form.querySelector('input[type="date"]').value;
-    const time = form.querySelector('input[type="time"]').value;
-    const captain = form.querySelectorAll('input[type="text"]')[1].value.trim() || "Nahkoda";
-    const gt = form.querySelectorAll('input[type="text"]')[2].value.trim() || "-";
-    
-    const formattedDate = date.replace(/-/g, '');
-    const formattedTime = time.replace(':', '');
-    const code = `SANDAR-${shipName.replace(/\s+/g, '')}-${formattedDate}-${formattedTime}`;
-
-    // Document summary
-    const summaryDiv = document.createElement("div");
-    summaryDiv.className = "document-summary";
-    summaryDiv.innerHTML = `
-      <h3>📋 Ringkasan Dokumen</h3>
-      <table>
-        <tr><td>Jenis Form:</td><td><strong>${formType}</strong></td></tr>
-        <tr><td>Nama Kapal:</td><td>${shipName}</td></tr>
-        <tr><td>Tanggal:</td><td>${new Date(date).toLocaleDateString('id-ID')}</td></tr>
-        <tr><td>Waktu:</td><td>${time}</td></tr>
-        <tr><td>Nahkoda:</td><td>${captain}</td></tr>
-        <tr><td>GT:</td><td>${gt}</td></tr>
-        <tr><td>Kode Dokumen:</td><td><strong>${code}</strong></td></tr>
-        <tr><td>Petugas:</td><td><strong>${currentUser ? currentUser.name : 'Unknown'}</strong></td></tr>
-        <tr><td>Dibuat:</td><td>${new Date().toLocaleString('id-ID')}</td></tr>
-      </table>
-    `;
-    resultBox.appendChild(summaryDiv);
-
-    // QR Code section
-    const qrSection = document.createElement("div");
-    qrSection.className = "qr-section";
-    qrSection.innerHTML = `<h3>🔲 QR Code Dokumen</h3>`;
-    
-    const qrDiv = document.createElement("div");
-    qrDiv.id = `qrcode-${Date.now()}`;
-    qrSection.appendChild(qrDiv);
-    
-    // Create QR URL
-    const folderId = FOLDER_MAP[formType];
-    const baseUrl = `https://drive.google.com/drive/folders/${folderId}`;
-    const params = new URLSearchParams({
-      code: code,
-      type: formType,
-      ship: shipName,
-      date: date,
-      time: time,
-      captain: captain,
-      gt: gt,
-      officer: currentUser ? currentUser.name : 'Unknown'
-    });
-    const qrUrl = `${baseUrl}?${params.toString()}`;
-    
-    // QR Info
-    const qrInfo = document.createElement("div");
-    qrInfo.className = "qr-info";
-    qrInfo.innerHTML = `
-      <p><strong>🔗 URL QR Code:</strong></p>
-      <div class="qr-url">${qrUrl}</div>
-      <p><strong>📏 Panjang URL:</strong> ${qrUrl.length} karakter</p>
-      <p><strong>📊 Error Correction:</strong> Medium (25%)</p>
-      <p><strong>📁 Folder:</strong> ${formType}</p>
-      <p><strong>👤 Petugas:</strong> ${currentUser ? currentUser.name : 'Unknown'}</p>
-      <button class="test-qr-btn" onclick="copyToClipboard('${qrUrl.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">📋 Copy URL</button>
-      <button class="test-qr-btn" onclick="openUrl('${qrUrl.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">🔗 Test URL</button>
-    `;
-    qrSection.appendChild(qrInfo);
-    
-    resultBox.appendChild(qrSection);
-    
-    // Generate QR Code
-    try {
-      if (typeof QRCode !== 'undefined') {
-        new QRCode(qrDiv, {
-          text: qrUrl,
-          width: 256,
-          height: 256,
-          colorDark: "#2c3e50",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.M
-        });
-      } else {
-        throw new Error('QRCode library not loaded');
-      }
-    } catch (error) {
-      console.error('Error generating QR code:', error);
-      qrDiv.innerHTML = '<p style="color: red; padding: 20px;">Error generating QR code: ' + error.message + '</p>';
+    function showMessage(element, message, type = 'info') {
+        const className = type === 'error' ? 'error-message' :
+            type === 'success' ? 'success-message' : 'processing-status';
+        element.className = className;
+        element.innerHTML = message;
+        element.style.display = 'block';
     }
 
-    // Preview uploaded documents
-    let docCount = 0;
-    const fileInputs = form.querySelectorAll('input[type="file"]');
-    
-    fileInputs.forEach((fileInput, index) => {
-      if (fileInput.files[0]) {
-        docCount++;
-        const file = fileInput.files[0];
-        const label = fileInput.parentElement.textContent.split(':')[0].trim();
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const previewContainer = document.createElement("div");
-          previewContainer.className = "preview-container";
-          
-          // Document info
-          const docInfo = document.createElement("div");
-          docInfo.className = "document-info";
-          docInfo.innerHTML = `
-            <h4>${label}</h4>
-            <p>📄 ${file.name} | 📏 ${(file.size/1024).toFixed(2)} KB | 📅 ${new Date().toLocaleDateString('id-ID')}<br>
-            <strong>📋 Jenis: ${formType}</strong> | 👤 <strong>Petugas: ${currentUser ? currentUser.name : 'Unknown'}</strong></p>
-          `;
-          previewContainer.appendChild(docInfo);
-          
-          // Preview element
-          let previewEl;
-          if (file.type.includes("pdf")) {
-            previewEl = document.createElement("embed");
-            previewEl.src = e.target.result;
-            previewEl.type = "application/pdf";
-          } else if (file.type.includes("image")) {
-            previewEl = document.createElement("img");
-            previewEl.src = e.target.result;
-            previewEl.alt = file.name;
-          } else {
-            previewEl = document.createElement("div");
-            previewEl.innerHTML = `<p style="text-align:center;padding:50px;color:#7f8c8d;">📄 ${file.name}<br><small>Preview tidak tersedia untuk tipe file ini</small></p>`;
-          }
-          previewContainer.appendChild(previewEl);
-
-          // Download link
-          const downloadLink = document.createElement("a");
-          downloadLink.href = e.target.result;
-          downloadLink.download = `[${formType}]_${code}_${label}_${file.name}`;
-          downloadLink.textContent = `⬇ Download ${label}`;
-          previewContainer.appendChild(downloadLink);
-
-          resultBox.appendChild(previewContainer);
-        };
-        
-        reader.onerror = function(error) {
-          console.error('Error reading file:', error);
-          const errorContainer = document.createElement("div");
-          errorContainer.className = "preview-container";
-          errorContainer.innerHTML = `<div class="error-message">Error membaca file: ${file.name}</div>`;
-          resultBox.appendChild(errorContainer);
-        };
-        
-        reader.readAsDataURL(file);
-      }
-    });
-    
-    if (docCount === 0) {
-      throw new Error("Silakan upload minimal satu dokumen!");
-    }
-    
-    // Enable upload button after successful generation
-    const uploadBtn = form.querySelector('.btn-upload-drive');
-    if (uploadBtn && isGoogleDriveReady) {
-      uploadBtn.disabled = false;
-    }
-    
-    console.log('QR and preview generated successfully');
-  } catch (error) {
-    console.error('Error generating QR and preview:', error);
-    alert(error.message);
-  }
-}
-
-// Download all documents as PDF with improved error handling
-async function downloadAll(btn) {
-  const form = btn.closest("form");
-  const resultBox = form.nextElementSibling;
-  const formType = form.getAttribute('data-form-type');
-  const processingStatus = form.querySelector('.processing-status');
-  
-  if (!resultBox.innerHTML.trim()) {
-    alert("Generate QR & Preview terlebih dahulu!");
-    return;
-  }
-
-  btn.disabled = true;
-  showMessage(processingStatus, '<i class="fas fa-spinner fa-spin"></i> Memproses dokumen...', 'info');
-
-  try {
-    // Validate form
-    validateForm(form);
-    
-    const { PDFDocument, StandardFonts, rgb } = PDFLib;
-
-    // Create new PDF document
-    const mainPdfDoc = await PDFDocument.create();
-    const timesRomanFont = await mainPdfDoc.embedFont(StandardFonts.Helvetica);
-
-    // Summary page
-    let page = mainPdfDoc.addPage([595, 842]); // A4
-    let { width, height } = page.getSize();
-    let y = height - 50;
-
-    page.drawText('SANDAR-RATU', { x: 200, y, size: 20, font: timesRomanFont, color: rgb(0, 0, 0) });
-    y -= 40;
-
-    const shipName = form.querySelector('input[type="text"]').value.trim() || "KAPAL";
-    const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
-    const time = form.querySelector('input[type="time"]').value || "00:00";
-    const captain = form.querySelectorAll('input[type="text"]')[1].value.trim() || "Nahkoda";
-    const gt = form.querySelectorAll('input[type="text"]')[2].value.trim() || "-";
-
-    page.drawText(`Jenis Form : ${formType}`, { x: 50, y, size: 12, font: timesRomanFont }); y -= 20;
-    page.drawText(`Nama Kapal : ${shipName}`, { x: 50, y, size: 12, font: timesRomanFont }); y -= 20;
-    page.drawText(`Tanggal    : ${date}`, { x: 50, y, size: 12, font: timesRomanFont }); y -= 20;
-    page.drawText(`Waktu      : ${time}`, { x: 50, y, size: 12, font: timesRomanFont }); y -= 20;
-    page.drawText(`Nahkoda    : ${captain}`, { x: 50, y, size: 12, font: timesRomanFont }); y -= 20;
-    page.drawText(`GT         : ${gt}`, { x: 50, y, size: 12, font: timesRomanFont }); y -= 20;
-    page.drawText(`Petugas    : ${currentUser ? currentUser.name : 'Unknown'}`, { x: 50, y, size: 12, font: timesRomanFont }); y -= 40;
-
-    // Add QR code to summary
-    const qrCanvas = resultBox.querySelector("canvas");
-    if (qrCanvas) {
-      try {
-        const qrImg = qrCanvas.toDataURL("image/png");
-        const qrBytes = await fetch(qrImg).then(res => res.arrayBuffer());
-        const qrImage = await mainPdfDoc.embedPng(qrBytes);
-        const qrDims = qrImage.scale(0.5);
-        page.drawImage(qrImage, { x: (width - qrDims.width) / 2, y: y - qrDims.height, width: qrDims.width, height: qrDims.height });
-      } catch (qrError) {
-        console.warn('Could not embed QR code:', qrError);
-      }
+    function hideMessage(element) {
+        element.style.display = 'none';
     }
 
-    // Process each file upload
-    const fileInputs = form.querySelectorAll('input[type="file"]');
-    for (const fileInput of fileInputs) {
-      if (fileInput.files[0]) {
-        const file = fileInput.files[0];
-        const label = fileInput.parentElement.textContent.split(':')[0].trim();
+    function validateForm(form) {
+        const shipName = form.querySelector('input[type="text"]')?.value?.trim();
+        const date = form.querySelector('input[type="date"]')?.value;
+        const time = form.querySelector('input[type="time"]')?.value;
+        if (!shipName) throw new Error('Nama kapal harus diisi');
+        if (!date) throw new Error('Tanggal harus diisi');
+        if (!time) throw new Error('Waktu harus diisi');
+        return true;
+    }
 
-        showMessage(processingStatus, `<i class="fas fa-spinner fa-spin"></i> Memproses: ${label}...`, 'info');
-
+    function initializeGoogle() {
+        console.log('Initializing Google APIs...');
         try {
-          if (file.type.includes("pdf")) {
-            // Merge PDF files
-            const existingPdfBytes = await file.arrayBuffer();
-            const existingPdfDoc = await PDFDocument.load(existingPdfBytes);
-            const copiedPages = await mainPdfDoc.copyPages(existingPdfDoc, existingPdfDoc.getPageIndices());
-            copiedPages.forEach((p) => mainPdfDoc.addPage(p));
+            google.accounts.id.initialize({
+                client_id: CLIENT_ID,
+                callback: handleCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true
+            });
 
-          } else if (file.type.includes("image")) {
-            // Add images to PDF
-            const imgBytes = await file.arrayBuffer();
-            const ext = file.name.split(".").pop().toLowerCase();
-            let img;
-            if (ext === "png") {
-              img = await mainPdfDoc.embedPng(imgBytes);
-            } else {
-              img = await mainPdfDoc.embedJpg(imgBytes);
+            gapi.load('client:auth2', () => {
+                gapi.client.init({
+                    apiKey: API_KEY,
+                    clientId: CLIENT_ID,
+                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+                    scope: SCOPES
+                }).then(() => {
+                    isGoogleApiReady = true;
+                    authInstance = gapi.auth2.getAuthInstance();
+                    updateGoogleDriveStatus();
+                    authInstance.isSignedIn.listen(updateGoogleDriveStatus);
+                    console.log('Google API Client is ready.');
+                }).catch(err => {
+                    console.error('Failed to initialize GAPI client:', err);
+                    updateGoogleDriveStatus('Error: Failed to connect to Google Drive.');
+                });
+            });
+
+        } catch (error) {
+            console.error('Google initialization error:', error);
+            const loginBtn = document.getElementById('googleLoginBtn');
+            if (loginBtn) {
+                loginBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Google API not available';
+                loginBtn.disabled = true;
             }
-            const imgPage = mainPdfDoc.addPage([595, 842]);
-            const { width: pw, height: ph } = imgPage.getSize();
-            const dims = img.scale(0.5);
-            imgPage.drawText(label, { x: 50, y: ph - 40, size: 14, font: timesRomanFont });
-            imgPage.drawImage(img, {
-              x: (pw - dims.width) / 2,
-              y: (ph - dims.height) / 2,
-              width: dims.width,
-              height: dims.height,
-            });
-          } else {
-            // Handle other file types
-            const infoPage = mainPdfDoc.addPage([595, 842]);
-            infoPage.drawText(`File ${label}: ${file.name} (tidak bisa ditampilkan)`, {
-              x: 50, y: 700, size: 12, font: timesRomanFont, color: rgb(1, 0, 0)
-            });
-          }
-        } catch (fileError) {
-          console.error(`Error processing file ${file.name}:`, fileError);
-          // Add error page
-          const errorPage = mainPdfDoc.addPage([595, 842]);
-          errorPage.drawText(`Error memproses file ${label}: ${file.name}`, {
-            x: 50, y: 700, size: 12, font: timesRomanFont, color: rgb(1, 0, 0)
-          });
         }
-      }
     }
 
-    // Save result
-    const pdfBytes = await mainPdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `[${formType}]_SANDAR_RATU_${shipName.replace(/\s+/g,'_')}_${date.replace(/-/g,'')}.pdf`;
-    link.click();
+    function handleCredentialResponse(response) {
+        if (!response.credential) {
+            console.error('No credential received.');
+            return;
+        }
+        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+        currentUser = {
+            id: payload.sub,
+            name: payload.name || 'User',
+            email: payload.email || 'no-email',
+            picture: payload.picture || ''
+        };
+        console.log('Login successful for:', currentUser.name);
+        showDashboard();
+    }
 
-    showMessage(processingStatus, '<i class="fas fa-check-circle"></i> PDF berhasil digabung & diunduh!', 'success');
-  } catch (error) {
-    console.error("Error saat gabung PDF:", error);
-    showMessage(processingStatus, `<i class="fas fa-exclamation-triangle"></i> Terjadi error saat membuat PDF: ${error.message}`, 'error');
-  } finally {
-    btn.disabled = false;
-    setTimeout(() => { 
-      if (processingStatus) {
-        hideMessage(processingStatus);
-      }
-    }, 3000);
-  }
-}
-
-// Helper functions for QR Code
-function copyToClipboard(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => {
-      alert('URL berhasil disalin ke clipboard!');
-    }).catch(err => {
-      console.error('Gagal menyalin: ', err);
-      fallbackCopyToClipboard(text);
+    document.getElementById('googleLoginBtn').addEventListener('click', () => {
+        if (isGoogleApiReady) {
+            google.accounts.id.prompt();
+        } else {
+            alert('Google API is not ready. Please try again in a moment.');
+        }
     });
-  } else {
-    fallbackCopyToClipboard(text);
-  }
-}
 
-function fallbackCopyToClipboard(text) {
-  const textArea = document.createElement("textarea");
-  textArea.value = text;
-  textArea.style.position = "fixed";
-  textArea.style.left = "-999999px";
-  textArea.style.top = "-999999px";
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-  try {
-    document.execCommand('copy');
-    alert('URL berhasil disalin ke clipboard!');
-  } catch (err) {
-    console.error('Fallback copy failed: ', err);
-    alert('Gagal menyalin URL. Silakan salin manual.');
-  }
-  document.body.removeChild(textArea);
-}
-
-function openUrl(url) {
-  try {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  } catch (error) {
-    console.error('Error opening URL:', error);
-    alert('Gagal membuka URL. Silakan buka manual: ' + url);
-  }
-}
-
-// Initialize Google APIs when page loads with comprehensive error handling
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM Content Loaded');
-  
-  // Set up loading timeout
-  const maxInitTime = 10000; // 10 seconds
-  const initTimeout = setTimeout(() => {
-    if (!isInitialized) {
-      console.warn('Google APIs initialization timeout');
-      const loginBtn = document.getElementById('googleLoginBtn');
-      if (loginBtn) {
-        loginBtn.innerHTML = '<i class="fas fa-clock"></i> Timeout - Refresh halaman';
-        loginBtn.disabled = true;
-      }
+    function showDashboard() {
+        if (!currentUser) return;
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("dashboard").style.display = "flex";
+        document.body.style.background = "white";
+        document.getElementById('userName').textContent = currentUser.name;
+        document.getElementById('userAvatar').src = currentUser.picture;
+        initializePages();
+        showPage('departurePetugas', document.querySelector(".sidebar a"));
     }
-  }, maxInitTime);
 
-  // Wait for Google APIs to load with retry mechanism
-  let retryCount = 0;
-  const maxRetries = 5;
-  
-  function tryInitialize() {
-    if (typeof google !== 'undefined' && typeof gapi !== 'undefined') {
-      clearTimeout(initTimeout);
-      console.log('Google APIs available, initializing...');
-      initializeGoogle();
-    } else if (retryCount < maxRetries) {
-      retryCount++;
-      console.log(`Google APIs not ready, retry ${retryCount}/${maxRetries}...`);
-      setTimeout(tryInitialize, 1000);
-    } else {
-      clearTimeout(initTimeout);
-      console.error('Google APIs not available after retries');
-      const loginBtn = document.getElementById('googleLoginBtn');
-      if (loginBtn) {
-        loginBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Google API tidak tersedia - Refresh halaman';
-        loginBtn.disabled = true;
-        loginBtn.style.background = '#e74c3c';
-      }
+    function updateGoogleDriveStatus(errorMsg = null) {
+        const statusElements = document.querySelectorAll('.google-drive-status');
+        statusElements.forEach(el => {
+            if (errorMsg) {
+                el.className = 'upload-error';
+                el.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`;
+            } else if (isGoogleApiReady) {
+                if (authInstance && authInstance.isSignedIn.get()) {
+                    el.className = 'upload-status';
+                    el.innerHTML = '<i class="fas fa-check-circle"></i> Google Drive connected and ready';
+                    enableUploadButtons();
+                } else {
+                    el.className = 'google-drive-status';
+                    el.innerHTML = '<i class="fas fa-info-circle"></i> Google Drive is ready, click "Upload to Google Drive" to authorize';
+                    disableUploadButtons();
+                }
+            } else {
+                el.className = 'google-drive-status';
+                el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting to Google Drive...';
+                disableUploadButtons();
+            }
+        });
     }
-  }
-  
-  // Start initialization attempts
-  setTimeout(tryInitialize, 500);
-});
 
-// Listen for auth status changes with error handling
-setInterval(() => {
-  try {
-    if (authInstance && typeof authInstance.isSignedIn !== 'undefined') {
-      updateGoogleDriveStatus();
+    function enableUploadButtons() {
+        document.querySelectorAll('.btn-upload-drive').forEach(btn => btn.disabled = false);
     }
-  } catch (error) {
-    console.warn('Error checking auth status:', error);
-  }
-}, 5000);
 
-// Global error handler for unhandled errors
-window.addEventListener('error', function(event) {
-  console.error('Global error:', event.error);
-  
-  // Show user-friendly error message for critical errors
-  if (event.error && event.error.message) {
-    const errorMsg = event.error.message;
-    
-    // Don't show alerts for minor errors
-    const minorErrors = ['Script error', 'Non-Error promise rejection', 'ResizeObserver loop limit exceeded'];
-    const isMinorError = minorErrors.some(minor => errorMsg.includes(minor));
-    
-    if (!isMinorError && errorMsg.includes('google') || errorMsg.includes('gapi')) {
-      console.warn('Google API related error detected');
-      updateGoogleDriveStatus('Google API Error: ' + errorMsg);
+    function disableUploadButtons() {
+        document.querySelectorAll('.btn-upload-drive').forEach(btn => btn.disabled = true);
     }
-  }
-});
 
-// Handle promise rejections
-window.addEventListener('unhandledrejection', function(event) {
-  console.error('Unhandled promise rejection:', event.reason);
-  
-  // Handle Google API promise rejections
-  if (event.reason && typeof event.reason === 'object') {
-    if (event.reason.error && (event.reason.error.includes('google') || event.reason.error.includes('auth'))) {
-      console.warn('Google Auth promise rejection detected');
-      updateGoogleDriveStatus('Auth Error: ' + event.reason.error);
+    async function uploadToDrive(file, folderName) {
+        if (!authInstance.isSignedIn.get()) {
+            await authInstance.signIn();
+        }
+        const folderId = FOLDER_MAP[folderName];
+        if (!folderId) {
+            throw new Error(`Folder with name '${folderName}' not found.`);
+        }
+
+        const metadata = {
+            name: file.name,
+            parents: [folderId]
+        };
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], {
+            type: 'application/json'
+        }));
+        form.append('file', file);
+
+        const accessToken = authInstance.currentUser.get().getAuthResponse().access_token;
+        const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + accessToken
+            }),
+            body: form
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(`Upload failed: ${response.status} - ${error.error.message}`);
+        }
+        return await response.json();
     }
-  }
-});
 
-// Additional utility functions for better user experience
-function showLoading(element, message = 'Loading...') {
-  if (element) {
-    element.innerHTML = `<div class="loading-spinner"></div> ${message}`;
-    element.disabled = true;
-  }
-}
-
-function hideLoading(element, originalText = '') {
-  if (element) {
-    element.innerHTML = originalText;
-    element.disabled = false;
-  }
-}
-
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-// Optimized file validation
-function validateFile(file, maxSizeMB = 10) {
-  if (!file) {
-    throw new Error('File tidak ditemukan');
-  }
-  
-  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-  if (!allowedTypes.includes(file.type)) {
-    throw new Error(`Tipe file tidak didukung: ${file.type}. Gunakan PDF, JPG, atau PNG.`);
-  }
-  
-  const maxSize = maxSizeMB * 1024 * 1024; // Convert to bytes
-  if (file.size > maxSize) {
-    throw new Error(`Ukuran file terlalu besar: ${(file.size / 1024 / 1024).toFixed(2)}MB. Maksimal ${maxSizeMB}MB.`);
-  }
-  
-  return true;
-}
-
-// Enhanced form validation with file checks
-function validateFormWithFiles(form) {
-  validateForm(form);
-  
-  const fileInputs = form.querySelectorAll('input[type="file"]');
-  let hasFiles = false;
-  
-  fileInputs.forEach(input => {
-    if (input.files[0]) {
-      hasFiles = true;
-      try {
-        validateFile(input.files[0]);
-      } catch (error) {
-        const label = input.parentElement.textContent.split(':')[0].trim();
-        throw new Error(`${label}: ${error.message}`);
-      }
+    function logout() {
+        if (authInstance) {
+            authInstance.signOut();
+        }
+        currentUser = null;
+        document.getElementById("loginPage").style.display = "flex";
+        document.getElementById("dashboard").style.display = "none";
+        document.body.style.background = "#f8f9fa";
+        console.log('Logout successful.');
     }
-  });
-  
-  if (!hasFiles) {
-    throw new Error('Pilih minimal satu dokumen untuk diupload');
-  }
-  
-  return true;
-}
 
-// Memory cleanup function
-function cleanup() {
-  // Clear any intervals or timeouts
-  const highestTimeoutId = setTimeout(() => {}, 0);
-  for (let i = 0; i < highestTimeoutId; i++) {
-    clearTimeout(i);
-  }
-  
-  const highestIntervalId = setInterval(() => {}, 9999);
-  for (let i = 0; i < highestIntervalId; i++) {
-    clearInterval(i);
-  }
-  
-  console.log('Memory cleanup completed');
-}
+    function initializePages() {
+        const mainContent = document.getElementById('mainContent');
+        mainContent.innerHTML = `
+            <div id="departurePetugas" class="content-page">
+                <div class="form-type-indicator">
+                    [cite_start]<h3>Formulir Persetujuan Berlayar [cite: 1]</h3>
+                </div>
+                <div class="card">
+                    <h2>Cetak Persetujuan Berlayar</h2>
+                    <form id="formDeparturePetugas">
+                        <div class="form-row">
+                            <div class="form-control">
+                                <label for="namaKapal1">Nama Kapal Perikanan</label>
+                                <input type="text" id="namaKapal1" required>
+                            </div>
+                            <div class="form-control">
+                                <label for="nakhoda1">Nakhoda</label>
+                                <input type="text" id="nakhoda1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-control">
+                                <label for="tglBertolak1">Tanggal Bertolak</label>
+                                <input type="date" id="tglBertolak1" required>
+                            </div>
+                            <div class="form-control">
+                                <label for="jamBertolak1">Jam Bertolak</label>
+                                <input type="time" id="jamBertolak1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-control">
+                                <label for="tujuan1">Tujuan</label>
+                                <input type="text" id="tujuan1" required>
+                            </div>
+                        </div>
+                        <div class="google-drive-status">Connecting to Google Drive...</div>
+                        <button type="submit" class="btn-generate">Create & Print Document</button>
+                        <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
+                    </form>
+                    <div id="statusDeparturePetugas" class="result-container"></div>
+                </div>
+            </div>
+            <div id="arrivalPetugas" class="content-page">
+                <div class="form-type-indicator">
+                    <h3>Formulir Kedatangan Petugas</h3>
+                </div>
+                <div class="card">
+                    <h2>Cetak Laporan Kedatangan</h2>
+                    <form id="formArrivalPetugas">
+                        <div class="form-row">
+                            <div class="form-control">
+                                <label for="namaKapal2">Nama Kapal Perikanan</label>
+                                <input type="text" id="namaKapal2" required>
+                            </div>
+                            <div class="form-control">
+                                <label for="nakhoda2">Nakhoda</label>
+                                <input type="text" id="nakhoda2" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-control">
+                                <label for="tglTiba2">Tanggal Tiba</label>
+                                <input type="date" id="tglTiba2" required>
+                            </div>
+                            <div class="form-control">
+                                <label for="jamTiba2">Jam Tiba</label>
+                                <input type="time" id="jamTiba2" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-control">
+                                <label for="asal2">Asal Keberangkatan</label>
+                                <input type="text" id="asal2" required>
+                            </div>
+                        </div>
+                        <div class="google-drive-status">Connecting to Google Drive...</div>
+                        <button type="submit" class="btn-generate">Create & Print Document</button>
+                        <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
+                    </form>
+                    <div id="statusArrivalPetugas" class="result-container"></div>
+                </div>
+            </div>
+            <div id="departureNelayan" class="content-page">
+                <div class="form-type-indicator">
+                    <h3>Formulir Keberangkatan Nelayan</h3>
+                </div>
+                <div class="card">
+                    <h2>Cetak Surat Pernyataan</h2>
+                    <p>Formulir ini dapat digunakan oleh nelayan untuk membuat surat pernyataan keberangkatan.</p>
+                </div>
+            </div>
+            <div id="arrivalNelayan" class="content-page">
+                <div class="form-type-indicator">
+                    <h3>Formulir Kedatangan Nelayan</h3>
+                </div>
+                <div class="card">
+                    <h2>Cetak Surat Pernyataan</h2>
+                    <p>Formulir ini dapat digunakan oleh nelayan untuk membuat surat pernyataan kedatangan.</p>
+                </div>
+            </div>
+        `;
 
-// Call cleanup on page unload
-window.addEventListener('beforeunload', cleanup);
+        document.getElementById('formDeparturePetugas').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const statusEl = document.getElementById('statusDeparturePetugas');
+            try {
+                validateForm(form);
+                showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Processing document...', 'info');
 
-// Enhanced error recovery for Google APIs
-function recoverFromGoogleAPIError() {
-  console.log('Attempting to recover from Google API error...');
-  
-  // Reset state
-  isGoogleDriveReady = false;
-  authInstance = null;
-  isInitialized = false;
-  
-  // Try to reinitialize
-  setTimeout(() => {
-    if (typeof google !== 'undefined' && typeof gapi !== 'undefined') {
-      console.log('Attempting to reinitialize Google APIs...');
-      initializeGoogle();
-    } else {
-      console.warn('Google APIs still not available for recovery');
-      updateGoogleDriveStatus('API tidak tersedia - silakan refresh halaman');
+                const docData = {
+                    namaKapal: form.querySelector('#namaKapal1').value,
+                    nakhoda: form.querySelector('#nakhoda1').value,
+                    tglBertolak: form.querySelector('#tglBertolak1').value,
+                    jamBertolak: form.querySelector('#jamBertolak1').value,
+                    tujuan: form.querySelector('#tujuan1').value
+                };
+
+                const doc = new jspdf.jsPDF();
+                doc.text(`Nama Kapal Perikanan: ${docData.namaKapal}`, 10, 10);
+                doc.text(`Nakhoda: ${docData.nakhoda}`, 10, 20);
+                doc.text(`Tanggal Bertolak: ${docData.tglBertolak}`, 10, 30);
+                doc.text(`Jam Bertolak: ${docData.jamBertolak}`, 10, 40);
+                doc.text(`Tujuan: ${docData.tujuan}`, 10, 50);
+                const pdfBlob = doc.output('blob');
+
+                const fileName = `Persetujuan_Berlayar_${docData.namaKapal}_${docData.tglBertolak}.pdf`;
+                const file = new File([pdfBlob], fileName, {
+                    type: 'application/pdf'
+                });
+
+                const downloadUrl = URL.createObjectURL(file);
+                statusEl.innerHTML = `
+                    <div class="success-message">
+                        Document successfully created.
+                        <a href="${downloadUrl}" download="${fileName}" style="margin-left: 10px;">Download Document</a>
+                    </div>
+                `;
+
+                const uploadBtn = form.querySelector('.btn-upload-drive');
+                uploadBtn.onclick = async () => {
+                    try {
+                        showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Uploading to Google Drive...', 'info');
+                        await uploadToDrive(file, 'Petugas-Keberangkatan');
+                        showMessage(statusEl, '<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive!', 'success');
+                    } catch (err) {
+                        showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${err.message}`, 'error');
+                    }
+                };
+
+            } catch (error) {
+                showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> An error occurred: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('formArrivalPetugas').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const statusEl = document.getElementById('statusArrivalPetugas');
+            try {
+                validateForm(form);
+                showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Processing document...', 'info');
+
+                const docData = {
+                    namaKapal: form.querySelector('#namaKapal2').value,
+                    nakhoda: form.querySelector('#nakhoda2').value,
+                    tglTiba: form.querySelector('#tglTiba2').value,
+                    jamTiba: form.querySelector('#jamTiba2').value,
+                    asal: form.querySelector('#asal2').value
+                };
+
+                const doc = new jspdf.jsPDF();
+                doc.text(`Nama Kapal Perikanan: ${docData.namaKapal}`, 10, 10);
+                doc.text(`Nakhoda: ${docData.nakhoda}`, 10, 20);
+                doc.text(`Tanggal Tiba: ${docData.tglTiba}`, 10, 30);
+                doc.text(`Jam Tiba: ${docData.jamTiba}`, 10, 40);
+                doc.text(`Asal Keberangkatan: ${docData.asal}`, 10, 50);
+                const pdfBlob = doc.output('blob');
+
+                const fileName = `Laporan_Kedatangan_${docData.namaKapal}_${docData.tglTiba}.pdf`;
+                const file = new File([pdfBlob], fileName, {
+                    type: 'application/pdf'
+                });
+
+                const downloadUrl = URL.createObjectURL(file);
+                statusEl.innerHTML = `
+                    <div class="success-message">
+                        Document successfully created.
+                        <a href="${downloadUrl}" download="${fileName}" style="margin-left: 10px;">Download Document</a>
+                    </div>
+                `;
+
+                const uploadBtn = form.querySelector('.btn-upload-drive');
+                uploadBtn.onclick = async () => {
+                    try {
+                        showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Uploading to Google Drive...', 'info');
+                        await uploadToDrive(file, 'Petugas-Kedatangan');
+                        showMessage(statusEl, '<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive!', 'success');
+                    } catch (err) {
+                        showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${err.message}`, 'error');
+                    }
+                };
+
+            } catch (error) {
+                showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> An error occurred: ${error.message}`, 'error');
+            }
+        });
+
+        updateGoogleDriveStatus();
     }
-  }, 2000);
-}
 
-// Service worker registration for better offline experience (optional)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    // Only register service worker in production
-    if (window.location.protocol === 'https:') {
-      navigator.serviceWorker.register('/sw.js').then(function(registration) {
-        console.log('ServiceWorker registration successful');
-      }, function(err) {
-        console.log('ServiceWorker registration failed: ', err);
-      });
+    function showPage(pageId, element) {
+        document.querySelectorAll('.content-page').forEach(page => page.style.display = 'none');
+        document.getElementById(pageId).style.display = 'block';
+        document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+        element.classList.add('active');
     }
-  });
-}
 
-// Performance monitoring
-if (typeof performance !== 'undefined' && performance.mark) {
-  performance.mark('sandar-ratu-loaded');
-  
-  window.addEventListener('load', function() {
-    performance.mark('sandar-ratu-ready');
-    performance.measure('sandar-ratu-init', 'sandar-ratu-loaded', 'sandar-ratu-ready');
-    
-    const initTime = performance.getEntriesByName('sandar-ratu-init')[0];
-    if (initTime) {
-      console.log(`SANDAR-RATU initialized in ${initTime.duration.toFixed(2)}ms`);
-    }
-  });
-}
-
-console.log('SANDAR-RATU script loaded successfully');
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeGoogle();
+    });
 </script>
 </body>
 </html>
