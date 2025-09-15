@@ -1,1425 +1,256 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SANDAR-RATU - Sistem Administrasi & Dokumen Kesyahbandaran</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f8f9fa;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Login Styles */
-        .login-container {
-            background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .logo-section {
-            text-align: center;
-            padding: 40px 30px 20px;
-            background: linear-gradient(135deg, #3498db, #1a73e8);
-        }
-
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 24px;
-            font-weight: 700;
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: #fff;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3498db;
-        }
-
-        .warning-section {
-            background: #feffd6;
-            border: 1px solid #fff4ce;
-            margin: 20px;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .warning-title {
-            background: #ffffff;
-            border: 1px solid #ffeaa7;
-            color: #000000;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            display: inline-block;
-        }
-
-        .warning-text {
-            color: #000000;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-
-        .login-method-section {
-            padding: 20px;
-            text-align: center;
-        }
-
-        .method-title {
-            color: #6c757d;
-            font-size: 13px;
-            margin-bottom: 15px;
-            font-style: italic;
-        }
-
-        .google-login-btn {
-            width: 100%;
-            padding: 12px 20px;
-            border: 2px solid #e0e0e0;
-            background: #fff;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #5f6368;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .google-login-btn:hover {
-            border-color: #1a73e8;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .google-login-btn:disabled {
-            background: #f5f5f5;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
-        .google-icon {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* Dashboard Styles */
-        .dashboard {
-            display: none;
-            flex-direction: column;
-            height: 100vh;
-            width: 100%;
-        }
-
-        .header {
-            background: #2c3e50;
-            color: white;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-
-        .header .logo-icon {
-            background: #3498db;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 10px;
-        }
-
-        .header .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .header .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid #3498db;
-        }
-
-        .main-container {
-            display: flex;
-            flex: 1;
-        }
-
-        .sidebar {
-            width: 240px;
-            background: #3498db;
-            color: white;
-            padding-top: 20px;
-        }
-
-        .sidebar div {
-            padding: 8px 20px;
-            font-weight: 600;
-            opacity: 0.8;
-            font-size: 13px;
-        }
-
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: white;
-            text-decoration: none;
-            transition: 0.3s;
-            cursor: pointer;
-        }
-
-        .sidebar a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar a.active {
-            background: rgba(0, 0, 0, 0.25);
-            font-weight: bold;
-        }
-
-        .content {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-            background: #f5f5f5;
-        }
-
-        .content h2 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .form-row .form-control {
-            flex: 1;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-
-        .btn-generate {
-            width: 100%;
-            padding: 12px;
-            background: #2ecc71;
-            border: none;
-            color: white;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
-        .btn-generate:hover {
-            background: #27ae60;
-        }
-
-        .btn-generate:disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-        }
-
-        .btn-upload-drive {
-            width: 100%;
-            padding: 12px;
-            background: #1a73e8;
-            border: none;
-            color: white;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
-        .btn-upload-drive:hover:not(:disabled) {
-            background: #1557b0;
-        }
-
-        .btn-upload-drive:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .btn-logout {
-            background: #e74c3c;
-            color: #fff;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .result-container {
-            margin-top: 15px;
-        }
-
-        .preview-container {
-            margin-top: 8px;
-            padding: 15px;
-            background: #fafafa;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .preview-container .document-info {
-            background: #fff;
-            padding: 10px;
-            border-radius: 5px;
-            border-left: 4px solid #3498db;
-        }
-
-        .preview-container .document-info h4 {
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .preview-container .document-info p {
-            color: #7f8c8d;
-            font-size: 12px;
-        }
-
-        .preview-container embed,
-        .preview-container img {
-            width: 100%;
-            max-height: 300px;
-            border-radius: 6px;
-            object-fit: contain;
-            border: 1px solid #ddd;
-        }
-
-        .preview-container a {
-            align-self: flex-start;
-            text-decoration: none;
-            color: #2980b9;
-            font-weight: bold;
-            padding: 5px 10px;
-            background: #ecf0f1;
-            border-radius: 4px;
-        }
-
-        .qr-section {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 2px solid #3498db;
-            margin-bottom: 15px;
-        }
-
-        .qr-section h3 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .qr-info {
-            background: #e8f6ff;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            border: 1px solid #3498db;
-        }
-
-        .qr-info p {
-            margin: 3px 0;
-            font-size: 12px;
-            color: #2c3e50;
-        }
-
-        .qr-info .qr-url {
-            background: #fff;
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 4px;
-            word-break: break-all;
-            font-family: monospace;
-            font-size: 13px;
-            border: 1px solid #bdc3c7;
-            max-height: 60px;
-            overflow-y: auto;
-        }
-
-        .document-summary {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #27ae60;
-        }
-
-        .document-summary h3 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .document-summary table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .document-summary table td {
-            padding: 5px;
-            border-bottom: 1px solid #ecf0f1;
-        }
-
-        .document-summary table td:first-child {
-            font-weight: bold;
-            width: 30%;
-        }
-
-        .form-type-indicator {
-            background: #e8f4f8;
-            border: 2px solid #3498db;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .form-type-indicator h3 {
-            color: #2c3e50;
-            margin: 0;
-        }
-
-        .test-qr-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-            font-size: 12px;
-        }
-
-        .test-qr-btn:hover {
-            background: #c0392b;
-        }
-
-        .content-page {
-            display: none;
-        }
-
-        .content-page.active {
-            display: block;
-        }
-
-        .document-label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .document-label input {
-            margin-top: 5px;
-        }
-
-        .upload-status {
-            background: #e8f5e8;
-            border: 1px solid #4caf50;
-            color: #2e7d32;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 10px 0;
-            display: none;
-        }
-
-        .upload-error {
-            background: #ffebee;
-            border: 1px solid #f44336;
-            color: #c62828;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 10px 0;
-            display: none;
-        }
-
-        .google-drive-status {
-            background: #e3f2fd;
-            border: 1px solid #2196f3;
-            color: #1565c0;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 10px 0;
-            text-align: center;
-        }
-
-        .progress-bar {
-            width: 100%;
-            background: #f0f0f0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 10px 0;
-            display: none;
-        }
-
-        .progress-fill {
-            height: 20px;
-            background: #4caf50;
-            border-radius: 4px;
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .footer-login {
-            text-align: center;
-            padding: 15px;
-            color: #6c757d;
-            font-size: 12px;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .processing-status {
-            background: #e3f2fd;
-            border: 1px solid #2196f3;
-            color: #1565c0;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 10px 0;
-            text-align: center;
-            display: none;
-        }
-
-        /* Error handling styles */
-        .error-message {
-            background: #ffebee;
-            border: 1px solid #f44336;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-
-        .success-message {
-            background: #e8f5e8;
-            border: 1px solid #4caf50;
-            color: #2e7d32;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-
-        /* Loading spinner */
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SANDAR-RATU - Sistem Administrasi & Dokumen Kesyahbandaran</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f9; }
+    header { background: #007bff; color: white; padding: 15px; text-align: center; font-size: 20px; }
+    .container { max-width: 900px; margin: 20px auto; background: white; padding: 20px;
+      border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);}
+    .hidden { display: none; }
+    .button { padding: 10px 20px; background: #007bff; color: white; border: none;
+      border-radius: 5px; cursor: pointer; margin: 5px; }
+    .button:hover { background: #0056b3; }
+    nav { display: flex; justify-content: space-around; margin-bottom: 20px; }
+    nav button { flex: 1; margin: 5px; }
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc;
+      border-radius: 5px; }
+    .actions { margin-top: 15px; }
+    .result-container { margin-top: 20px; padding: 10px; border: 1px solid #ddd;
+      border-radius: 5px; background: #fafafa; }
+    .qr-section { margin: 15px 0; }
+    .preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .preview-container img, .preview-container embed { width: 150px; height: auto;
+      border: 1px solid #ddd; border-radius: 5px; }
+    .document-summary table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .document-summary td { padding: 6px; border: 1px solid #ccc; }
+  </style>
 </head>
 <body>
+<header>SANDAR-RATU - Sistem Administrasi & Dokumen Kesyahbandaran</header>
+<div class="container">
+  <div id="login-section">
+    <h2>Login dengan Google</h2>
+    <button id="login-btn" class="button"><i class="fab fa-google"></i> Login dengan Google</button>
+    <p id="login-status"></p>
+  </div>
 
-<div id="loginPage" class="login-container">
-    <div class="logo-section">
-        <a href="#" class="logo">
-            <div class="logo-icon">
-                <i class="fas fa-anchor"></i>
-            </div>
-            SANDAR-RATU
-        </a>
+  <div id="dashboard" class="hidden">
+    <h2>Dashboard</h2>
+    <p>Selamat datang, <span id="user-name"></span>!</p>
+    <button class="button" onclick="logout()">Logout</button>
+    <p id="drive-status"></p>
+
+    <nav>
+      <button class="button" onclick="showSection('petugas-keberangkatan')">Petugas - Keberangkatan</button>
+      <button class="button" onclick="showSection('petugas-kedatangan')">Petugas - Kedatangan</button>
+      <button class="button" onclick="showSection('nelayan-keberangkatan')">Nelayan - Keberangkatan</button>
+      <button class="button" onclick="showSection('nelayan-kedatangan')">Nelayan - Kedatangan</button>
+    </nav>
+
+    <div id="forms">
+      <!-- Form Example -->
+      <div id="petugas-keberangkatan" class="form-section">
+        <h3>Petugas - Keberangkatan</h3>
+        <form data-form-type="petugas-keberangkatan">
+          <label>Nama Kapal</label>
+          <input type="text" required>
+          <label>Tanggal</label>
+          <input type="date" required>
+          <label>Jam</label>
+          <input type="time" required>
+          <label>Nama Nahkoda</label>
+          <input type="text" required>
+          <label>Upload Dokumen</label>
+          <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png">
+          <div class="actions">
+            <button type="button" class="button" onclick="uploadToGoogleDrive(this)">Upload ke Google Drive</button>
+            <button type="button" class="button" onclick="generateAll(this)">Generate QR & Preview</button>
+            <button type="button" class="button" onclick="downloadAll(this)">Download PDF</button>
+          </div>
+        </form>
+        <div class="result-container"></div>
+      </div>
+
+      <!-- Tambahkan form lain sesuai kebutuhan -->
     </div>
-
-    <div class="warning-section">
-        <div class="warning-title">Peringatan</div>
-        <div class="warning-text">
-            Halaman ini memerlukan autentikasi.<br>
-            Silahkan klik tombol login di bawah untuk melanjutkan.<br>
-            Terima kasih.
-        </div>
-    </div>
-
-    <div class="login-method-section">
-        <div class="method-title">- pilih metode login -</div>
-        <button id="googleLoginBtn" class="google-login-btn">
-            <svg class="google-icon" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Log in with Google
-        </button>
-    </div>
-
-    <div class="footer-login">Hak Cipta © 2025 Sandar-Ratu</div>
+  </div>
 </div>
 
-<div id="dashboard" class="dashboard">
-    <div class="header">
-        <div style="display:flex;align-items:center;">
-            <div class="logo-icon"><i class="fas fa-anchor"></i></div>
-            <strong>SANDAR-RATU</strong>
-        </div>
-        <div style="display:flex;align-items:center;gap:15px;">
-            <div class="user-info">
-                <img id="userAvatar" class="user-avatar" src="" alt="User">
-                <span id="userName">User</span>
-            </div>
-            <button class="btn-logout" onclick="logout()">Keluar</button>
-        </div>
-    </div>
-    <div class="main-container">
-        <div class="sidebar">
-            <div>👨‍✈️ Petugas</div>
-            <a onclick="showPage('departurePetugas', this)"><i class="fas fa-anchor"></i>&nbsp; Keberangkatan</a>
-            <a onclick="showPage('arrivalPetugas', this)"><i class="fas fa-ship"></i>&nbsp; Kedatangan</a>
-            <div>🚢 Nelayan</div>
-            <a onclick="showPage('departureNelayan', this)"><i class="fas fa-fish"></i>&nbsp; Keberangkatan</a>
-            <a onclick="showPage('arrivalNelayan', this)"><i class="fas fa-water"></i>&nbsp; Kedatangan</a>
-        </div>
-
-        <div class="content" id="mainContent">
-            </div>
-    </div>
-</div>
-
-<script src="https://accounts.google.com/gsi/client" async defer onload="initializeGoogleGIS()"></script>
-<script src="https://apis.google.com/js/api.js" onload="initializeGAPI()"></script>
-
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
 <script>
-    const CLIENT_ID = "464575855879-theqehj563fo25tp00gf6fhj6efr5045.apps.googleusercontent.com";
-    const API_KEY = "AIzaSyAWrUdv79vEKgd3YVkYsHvfwS3-vKev_lk";
-    const SCOPES = "https://www.googleapis.com/auth/drive.file";
+  const CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
+  const API_KEY = "YOUR_API_KEY";
+  const SCOPES = "https://www.googleapis.com/auth/drive.file";
 
-    const FOLDER_MAP = {
-        "Petugas-Keberangkatan": "1Ws2ctYHbdUD7Wza2ld4KxO0j7fiFcg3o",
-        "Petugas-Kedatangan": "1BIDQw9AMiY5_Mxt1OBKC1Lce3xzjtfTz",
-        "Nelayan-Keberangkatan": "1bnyimhbu884iAdNX75u_MxtPN2azgAFy",
-        "Nelayan-Kedatangan": "1Yt_-nTkJrZNO7Y2ZlBJIqebnMu0ncE-M"
-    };
+  let tokenClient;
+  let currentUser = null;
+  let currentAccessToken = null;
 
-    let isGAPIReady = false;
-    let isGISReady = false;
-    let authInstance = null;
-    let currentUser = null;
-    let tokenClient = null;
+  const folderMapping = {
+    "petugas-keberangkatan": "FOLDER_ID_1",
+    "petugas-kedatangan": "FOLDER_ID_2",
+    "nelayan-keberangkatan": "FOLDER_ID_3",
+    "nelayan-kedatangan": "FOLDER_ID_4"
+  };
 
-    // Initialize Google Identity Services (for login)
-    function initializeGoogleGIS() {
-        try {
-            google.accounts.id.initialize({
-                client_id: CLIENT_ID,
-                callback: handleCredentialResponse,
-                auto_select: false,
-                cancel_on_tap_outside: true
-            });
-            
-            // Initialize token client for Drive API access
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: (response) => {
-                    if (response.access_token) {
-                        console.log('Got access token for Drive API');
-                        updateGoogleDriveStatus();
-                    }
-                }
-            });
-            
-            isGISReady = true;
-            console.log('Google Identity Services initialized');
-            updateLoginButton();
-        } catch (error) {
-            console.error('GIS initialization error:', error);
-            updateLoginButton(true);
+  function gapiLoaded() { gapi.load("client:picker", initializeGapiClient); }
+  async function initializeGapiClient() {
+    await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"] });
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: (tokenResponse) => {
+        if (tokenResponse && tokenResponse.access_token) {
+          currentAccessToken = tokenResponse.access_token;
+          updateGoogleDriveStatus();
         }
+      }
+    });
+  }
+
+  document.getElementById("login-btn").onclick = () => {
+    google.accounts.id.initialize({
+      client_id: CLIENT_ID,
+      callback: (response) => {
+        const payload = parseJwt(response.credential);
+        currentUser = payload;
+        document.getElementById("user-name").innerText = payload.name;
+        document.getElementById("login-section").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        tokenClient.requestAccessToken({ prompt: "consent" });
+      }
+    });
+    google.accounts.id.prompt();
+  };
+
+  function logout() {
+    if (currentAccessToken) google.accounts.oauth2.revoke(currentAccessToken);
+    currentUser = null; currentAccessToken = null;
+    document.getElementById("dashboard").classList.add("hidden");
+    document.getElementById("login-section").classList.remove("hidden");
+  }
+
+  function updateGoogleDriveStatus() {
+    document.getElementById("drive-status").innerText = currentAccessToken ? "Google Drive: Terhubung ✅" : "Google Drive: Tidak terhubung ❌";
+  }
+
+  function showSection(id) {
+    document.querySelectorAll(".form-section").forEach(sec => sec.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+  }
+
+  async function uploadToGoogleDrive(btn) {
+    const form = btn.closest("form");
+    const formType = form.getAttribute("data-form-type");
+    const folderId = folderMapping[formType];
+    const files = form.querySelector('input[type="file"]').files;
+    if (!files.length) { alert("Pilih file untuk diupload."); return; }
+    if (!currentAccessToken) { tokenClient.requestAccessToken({ prompt: "" }); return; }
+    for (let file of files) {
+      let metadata = { name: file.name, parents: [folderId] };
+      let formData = new FormData();
+      formData.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+      formData.append("file", file);
+      await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
+        method: "POST", headers: { Authorization: "Bearer " + currentAccessToken }, body: formData
+      });
     }
+    alert("Upload selesai!");
+  }
 
-    // Initialize Google API Client (for Drive API)
-    function initializeGAPI() {
-        try {
-            gapi.load('client', async () => {
-                await gapi.client.init({
-                    apiKey: API_KEY,
-                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-                });
-                isGAPIReady = true;
-                console.log('Google API Client initialized');
-                updateGoogleDriveStatus();
-            });
-        } catch (error) {
-            console.error('GAPI initialization error:', error);
-            updateGoogleDriveStatus('Error: Failed to connect to Google Drive API');
-        }
-    }
+  function parseJwt(token) {
+    var base64Url = token.split(".")[1];
+    var base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(decodeURIComponent(atob(base64).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")));
+  }
 
-    function updateLoginButton(hasError = false) {
-        const loginBtn = document.getElementById('googleLoginBtn');
-        if (hasError) {
-            loginBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Google Services Unavailable';
-            loginBtn.disabled = true;
-        } else if (isGISReady) {
-            loginBtn.innerHTML = `
-                <svg class="google-icon" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Log in with Google
-            `;
-            loginBtn.disabled = false;
-        }
-    }
+  // --- Generate QR & Preview ---
+  async function generateAll(btn) {
+    const form = btn.closest("form");
+    const formType = form.getAttribute('data-form-type');
+    const resultContainer = form.parentElement.querySelector(".result-container");
+    resultContainer.innerHTML = "";
 
-    function handleCredentialResponse(response) {
-        if (!response.credential) {
-            console.error('No credential received');
-            return;
-        }
-        
-        try {
-            const payload = JSON.parse(atob(response.credential.split('.')[1]));
-            currentUser = {
-                id: payload.sub,
-                name: payload.name || 'User',
-                email: payload.email || 'no-email',
-                picture: payload.picture || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM5N0E3QjMiLz4KPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4PSI4IiB5PSI4Ij4KPHBhdGggZD0iTTggMTJBNCA0IDAgMSAwIDggNEE0IDQgMCAwIDAgOCAxMloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik04IDBDNS4yMzkgMCAzIDIuMjM5IDMgNUMzIDcuNzYxIDUuMjM5IDEwIDggMTBDMTAuNzYxIDEwIDEzIDcuNzYxIDEzIDVDMTMgMi4yMzkgMTAuNzYxIDAgOCAwWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cjwvc3ZnPgo='
-            };
-            console.log('Login successful for:', currentUser.name);
-            showDashboard();
-        } catch (error) {
-            console.error('Error processing credential:', error);
-        }
-    }
+    const shipName = form.querySelectorAll('input[type="text"]')[0].value || "KAPAL";
+    const date = form.querySelector('input[type="date"]').value;
+    const time = form.querySelector('input[type="time"]').value;
+    const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
 
-    function showMessage(element, message, type = 'info') {
-        const className = type === 'error' ? 'error-message' :
-            type === 'success' ? 'success-message' : 'processing-status';
-        element.className = className;
-        element.innerHTML = message;
-        element.style.display = 'block';
-    }
+    const files = Array.from(form.querySelectorAll('input[type="file"]')).filter(input => input.files.length > 0);
+    if (files.length === 0) { alert("Pilih minimal satu file untuk preview + QR!"); return; }
 
-    function hideMessage(element) {
-        element.style.display = 'none';
-    }
+    let qrDiv = document.createElement("div");
+    qrDiv.className = "qr-section";
+    qrDiv.innerHTML = `<h3>QR Code Dokumen</h3><div id="qrcode"></div>`;
+    resultContainer.appendChild(qrDiv);
 
-    function validateForm(form) {
-        const inputs = form.querySelectorAll('input[required]');
-        for (let input of inputs) {
-            if (!input.value.trim()) {
-                throw new Error(`Field "${input.previousElementSibling.textContent}" must be filled`);
-            }
-        }
-        return true;
-    }
-
-    function showDashboard() {
-        if (!currentUser) return;
-        document.getElementById("loginPage").style.display = "none";
-        document.getElementById("dashboard").style.display = "flex";
-        document.body.style.background = "white";
-        document.getElementById('userName').textContent = currentUser.name;
-        document.getElementById('userAvatar').src = currentUser.picture;
-        initializePages();
-        showPage('departurePetugas', document.querySelector(".sidebar a"));
-    }
-
-    function updateGoogleDriveStatus(errorMsg = null) {
-        const statusElements = document.querySelectorAll('.google-drive-status');
-        statusElements.forEach(el => {
-            if (errorMsg) {
-                el.className = 'upload-error';
-                el.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`;
-            } else if (isGAPIReady && gapi.client.getToken()) {
-                el.className = 'upload-status';
-                el.innerHTML = '<i class="fas fa-check-circle"></i> Google Drive connected and ready';
-                enableUploadButtons();
-            } else if (isGAPIReady) {
-                el.className = 'google-drive-status';
-                el.innerHTML = '<i class="fas fa-info-circle"></i> Click "Upload to Google Drive" to authorize access';
-                disableUploadButtons();
-            } else {
-                el.className = 'google-drive-status';
-                el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting to Google Drive...';
-                disableUploadButtons();
-            }
-        });
-    }
-
-    function enableUploadButtons() {
-        document.querySelectorAll('.btn-upload-drive').forEach(btn => btn.disabled = false);
-    }
-
-    function disableUploadButtons() {
-        document.querySelectorAll('.btn-upload-drive').forEach(btn => btn.disabled = true);
-    }
-
-    async function requestDriveAccess() {
-        return new Promise((resolve, reject) => {
-            if (!tokenClient) {
-                reject(new Error('Google OAuth not initialized'));
-                return;
-            }
-            
-            tokenClient.callback = (response) => {
-                if (response.error) {
-                    reject(new Error(response.error));
-                    return;
-                }
-                
-                // Set the token for gapi client
-                gapi.client.setToken({
-                    access_token: response.access_token
-                });
-                
-                updateGoogleDriveStatus();
-                resolve(response.access_token);
-            };
-            
-            tokenClient.requestAccessToken({prompt: 'consent'});
-        });
-    }
-
-    async function uploadToDrive(file, folderName) {
-        try {
-            // Check if we have access token
-            if (!gapi.client.getToken()) {
-                await requestDriveAccess();
-            }
-            
-            const folderId = FOLDER_MAP[folderName];
-            if (!folderId) {
-                throw new Error(`Folder '${folderName}' not found in configuration`);
-            }
-
-            const metadata = {
-                name: file.name,
-                parents: [folderId]
-            };
-
-            const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify(metadata)], {
-                type: 'application/json'
-            }));
-            form.append('file', file);
-
-            const token = gapi.client.getToken();
-            const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token.access_token}`
-                },
-                body: form
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`Upload failed: ${response.status} - ${error.error?.message || 'Unknown error'}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Drive upload error:', error);
-            throw error;
-        }
-    }
-
-    function generateQRCode(data, elementId) {
-        const qrContainer = document.getElementById(elementId);
-        if (!qrContainer) return;
-        
-        qrContainer.innerHTML = '';
-        
-        try {
-            const qr = new QRCode(qrContainer, {
-                text: JSON.stringify(data),
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-            
-            return true;
-        } catch (error) {
-            console.error('QR Code generation error:', error);
-            qrContainer.innerHTML = '<p style="color: red;">Error generating QR code</p>';
-            return false;
-        }
-    }
-
-    function logout() {
-        // Clear Google tokens
-        if (gapi.client.getToken()) {
-            gapi.client.setToken(null);
-        }
-        
-        currentUser = null;
-        document.getElementById("loginPage").style.display = "flex";
-        document.getElementById("dashboard").style.display = "none";
-        document.body.style.background = "#f8f9fa";
-        console.log('Logout successful');
-    }
-
-    function initializePages() {
-        const mainContent = document.getElementById('mainContent');
-        mainContent.innerHTML = `
-            <div id="departurePetugas" class="content-page">
-                <div class="form-type-indicator">
-                    <h3>Formulir Persetujuan Berlayar</h3>
-                </div>
-                <div class="card">
-                    <h2>Cetak Persetujuan Berlayar</h2>
-                    <form id="formDeparturePetugas">
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="namaKapal1">Nama Kapal Perikanan</label>
-                                <input type="text" id="namaKapal1" required>
-                            </div>
-                            <div class="form-control">
-                                <label for="nakhoda1">Nakhoda</label>
-                                <input type="text" id="nakhoda1" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="tglBertolak1">Tanggal Bertolak</label>
-                                <input type="date" id="tglBertolak1" required>
-                            </div>
-                            <div class="form-control">
-                                <label for="jamBertolak1">Jam Bertolak</label>
-                                <input type="time" id="jamBertolak1" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="tujuan1">Tujuan</label>
-                                <input type="text" id="tujuan1" required>
-                            </div>
-                        </div>
-                        <div class="google-drive-status">Connecting to Google Drive...</div>
-                        <button type="submit" class="btn-generate">Create & Print Document</button>
-                        <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
-                    </form>
-                    <div id="statusDeparturePetugas" class="result-container"></div>
-                </div>
-            </div>
-
-            <div id="arrivalPetugas" class="content-page">
-                <div class="form-type-indicator">
-                    <h3>Formulir Kedatangan Petugas</h3>
-                </div>
-                <div class="card">
-                    <h2>Cetak Laporan Kedatangan</h2>
-                    <form id="formArrivalPetugas">
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="namaKapal2">Nama Kapal Perikanan</label>
-                                <input type="text" id="namaKapal2" required>
-                            </div>
-                            <div class="form-control">
-                                <label for="nakhoda2">Nakhoda</label>
-                                <input type="text" id="nakhoda2" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="tglTiba2">Tanggal Tiba</label>
-                                <input type="date" id="tglTiba2" required>
-                            </div>
-                            <div class="form-control">
-                                <label for="jamTiba2">Jam Tiba</label>
-                                <input type="time" id="jamTiba2" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="asal2">Asal Keberangkatan</label>
-                                <input type="text" id="asal2" required>
-                            </div>
-                        </div>
-                        <div class="google-drive-status">Connecting to Google Drive...</div>
-                        <button type="submit" class="btn-generate">Create & Print Document</button>
-                        <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
-                    </form>
-                    <div id="statusArrivalPetugas" class="result-container"></div>
-                </div>
-            </div>
-
-            <div id="departureNelayan" class="content-page">
-                <div class="form-type-indicator">
-                    <h3>Formulir Keberangkatan Nelayan</h3>
-                </div>
-                <div class="card">
-                    <h2>Cetak Surat Pernyataan Keberangkatan</h2>
-                    <form id="formDepartureNelayan">
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="namaKapal3">Nama Kapal</label>
-                                <input type="text" id="namaKapal3" required>
-                            </div>
-                            <div class="form-control">
-                                <label for="pemilik3">Pemilik Kapal</label>
-                                <input type="text" id="pemilik3" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="tglBerangkat3">Tanggal Berangkat</label>
-                                <input type="date" id="tglBerangkat3" required>
-                            </div>
-                            <div class="form-control">
-                                <label for="jamBerangkat3">Jam Berangkat</label>
-                                <input type="time" id="jamBerangkat3" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="tujuanNelayan3">Tujuan Penangkapan</label>
-                                <input type="text" id="tujuanNelayan3" required>
-                            </div>
-                        </div>
-                        <div class="google-drive-status">Connecting to Google Drive...</div>
-                        <button type="submit" class="btn-generate">Create & Print Document</button>
-                        <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
-                    </form>
-                    <div id="statusDepartureNelayan" class="result-container"></div>
-                </div>
-            </div>
-
-            <div id="arrivalNelayan" class="content-page">
-                <div class="form-type-indicator">
-                    <h3>Formulir Kedatangan Nelayan</h3>
-                </div>
-                <div class="card">
-                    <h2>Cetak Surat Pernyataan Kedatangan</h2>
-                    <form id="formArrivalNelayan">
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="namaKapal4">Nama Kapal</label>
-                                <input type="text" id="namaKapal4" required>
-                            </div>
-                            <div class="form-control">
-                                <label for="pemilik4">Pemilik Kapal</label>
-                                <input type="text" id="pemilik4" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="tglKembali4">Tanggal Kembali</label>
-                                <input type="date" id="tglKembali4" required>
-                            </div>
-                            <div class="form-control">
-                                <label for="jamKembali4">Jam Kembali</label>
-                                <input type="time" id="jamKembali4" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-control">
-                                <label for="hasilTangkapan4">Hasil Tangkapan</label>
-                                <input type="text" id="hasilTangkapan4" placeholder="contoh: 50 kg ikan tongkol" required>
-                            </div>
-                        </div>
-                        <div class="google-drive-status">Connecting to Google Drive...</div>
-                        <button type="submit" class="btn-generate">Create & Print Document</button>
-                        <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
-                    </form>
-                    <div id="statusArrivalNelayan" class="result-container"></div>
-                </div>
-            </div>
-        `;
-
-        // Setup form handlers
-        setupFormHandlers();
-        updateGoogleDriveStatus();
-    }
-
-    function setupFormHandlers() {
-        // Petugas Keberangkatan Form
-        document.getElementById('formDeparturePetugas').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const form = e.target;
-            const statusEl = document.getElementById('statusDeparturePetugas');
-            
-            try {
-                validateForm(form);
-                showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Processing document...', 'info');
-
-                const docData = {
-                    namaKapal: form.querySelector('#namaKapal1').value,
-                    nakhoda: form.querySelector('#nakhoda1').value,
-                    tglBertolak: form.querySelector('#tglBertolak1').value,
-                    jamBertolak: form.querySelector('#jamBertolak1').value,
-                    tujuan: form.querySelector('#tujuan1').value,
-                    timestamp: new Date().toISOString(),
-                    type: 'Persetujuan Berlayar'
-                };
-
-                // Generate PDF
-                const doc = new jspdf.jsPDF();
-                doc.setFontSize(16);
-                doc.text('PERSETUJUAN BERLAYAR', 20, 20);
-                doc.setFontSize(12);
-                doc.text(`Nama Kapal Perikanan: ${docData.namaKapal}`, 20, 40);
-                doc.text(`Nakhoda: ${docData.nakhoda}`, 20, 50);
-                doc.text(`Tanggal Bertolak: ${docData.tglBertolak}`, 20, 60);
-                doc.text(`Jam Bertolak: ${docData.jamBertolak}`, 20, 70);
-                doc.text(`Tujuan: ${docData.tujuan}`, 20, 80);
-                
-                const pdfBlob = doc.output('blob');
-                const fileName = `Persetujuan_Berlayar_${docData.namaKapal.replace(/[^a-zA-Z0-9]/g, '_')}_${docData.tglBertolak}.pdf`;
-                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
-
-                // Generate QR Code
-                const qrContainer = document.createElement('div');
-                qrContainer.innerHTML = `
-                    <div class="qr-section">
-                        <h3>QR Code Dokumen</h3>
-                        <div id="qrcode-petugas-departure"></div>
-                        <div class="qr-info">
-                            <p><strong>Data QR Code:</strong></p>
-                            <div class="qr-url">${JSON.stringify(docData, null, 2)}</div>
-                        </div>
-                    </div>
-                `;
-
-                const downloadUrl = URL.createObjectURL(file);
-                statusEl.innerHTML = `
-                    <div class="success-message">
-                        <i class="fas fa-check-circle"></i> Document successfully created!
-                        <br><a href="${downloadUrl}" download="${fileName}" style="margin-top: 10px; display: inline-block;">Download Document</a>
-                    </div>
-                    ${qrContainer.innerHTML}
-                `;
-
-                // Generate QR code after adding to DOM
-                setTimeout(() => generateQRCode(docData, 'qrcode-petugas-departure'), 100);
-
-                // Setup upload button
-                const uploadBtn = form.querySelector('.btn-upload-drive');
-                uploadBtn.onclick = async () => {
-                    try {
-                        showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Uploading to Google Drive...', 'info');
-                        await uploadToDrive(file, 'Petugas-Keberangkatan');
-                        showMessage(statusEl, '<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive!', 'success');
-                    } catch (err) {
-                        showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${err.message}`, 'error');
-                    }
-                };
-
-            } catch (error) {
-                showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message}`, 'error');
-            }
-        });
-
-        // Petugas Kedatangan Form
-        document.getElementById('formArrivalPetugas').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const form = e.target;
-            const statusEl = document.getElementById('statusArrivalPetugas');
-            
-            try {
-                validateForm(form);
-                showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Processing document...', 'info');
-
-                const docData = {
-                    namaKapal: form.querySelector('#namaKapal2').value,
-                    nakhoda: form.querySelector('#nakhoda2').value,
-                    tglTiba: form.querySelector('#tglTiba2').value,
-                    jamTiba: form.querySelector('#jamTiba2').value,
-                    asal: form.querySelector('#asal2').value,
-                    timestamp: new Date().toISOString(),
-                    type: 'Laporan Kedatangan'
-                };
-
-                const doc = new jspdf.jsPDF();
-                doc.setFontSize(16);
-                doc.text('LAPORAN KEDATANGAN', 20, 20);
-                doc.setFontSize(12);
-                doc.text(`Nama Kapal Perikanan: ${docData.namaKapal}`, 20, 40);
-                doc.text(`Nakhoda: ${docData.nakhoda}`, 20, 50);
-                doc.text(`Tanggal Tiba: ${docData.tglTiba}`, 20, 60);
-                doc.text(`Jam Tiba: ${docData.jamTiba}`, 20, 70);
-                doc.text(`Asal Keberangkatan: ${docData.asal}`, 20, 80);
-                
-                const pdfBlob = doc.output('blob');
-                const fileName = `Laporan_Kedatangan_${docData.namaKapal.replace(/[^a-zA-Z0-9]/g, '_')}_${docData.tglTiba}.pdf`;
-                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
-
-                const qrContainer = document.createElement('div');
-                qrContainer.innerHTML = `
-                    <div class="qr-section">
-                        <h3>QR Code Dokumen</h3>
-                        <div id="qrcode-petugas-arrival"></div>
-                        <div class="qr-info">
-                            <p><strong>Data QR Code:</strong></p>
-                            <div class="qr-url">${JSON.stringify(docData, null, 2)}</div>
-                        </div>
-                    </div>
-                `;
-
-                const downloadUrl = URL.createObjectURL(file);
-                statusEl.innerHTML = `
-                    <div class="success-message">
-                        <i class="fas fa-check-circle"></i> Document successfully created!
-                        <br><a href="${downloadUrl}" download="${fileName}" style="margin-top: 10px; display: inline-block;">Download Document</a>
-                    </div>
-                    ${qrContainer.innerHTML}
-                `;
-
-                setTimeout(() => generateQRCode(docData, 'qrcode-petugas-arrival'), 100);
-
-                const uploadBtn = form.querySelector('.btn-upload-drive');
-                uploadBtn.onclick = async () => {
-                    try {
-                        showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Uploading to Google Drive...', 'info');
-                        await uploadToDrive(file, 'Petugas-Kedatangan');
-                        showMessage(statusEl, '<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive!', 'success');
-                    } catch (err) {
-                        showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${err.message}`, 'error');
-                    }
-                };
-
-            } catch (error) {
-                showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message}`, 'error');
-            }
-        });
-
-        // Nelayan Keberangkatan Form
-        document.getElementById('formDepartureNelayan').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const form = e.target;
-            const statusEl = document.getElementById('statusDepartureNelayan');
-            
-            try {
-                validateForm(form);
-                showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Processing document...', 'info');
-
-                const docData = {
-                    namaKapal: form.querySelector('#namaKapal3').value,
-                    pemilik: form.querySelector('#pemilik3').value,
-                    tglBerangkat: form.querySelector('#tglBerangkat3').value,
-                    jamBerangkat: form.querySelector('#jamBerangkat3').value,
-                    tujuanNelayan: form.querySelector('#tujuanNelayan3').value,
-                    timestamp: new Date().toISOString(),
-                    type: 'Surat Pernyataan Keberangkatan Nelayan'
-                };
-
-                const doc = new jspdf.jsPDF();
-                doc.setFontSize(16);
-                doc.text('SURAT PERNYATAAN KEBERANGKATAN', 20, 20);
-                doc.setFontSize(12);
-                doc.text(`Nama Kapal: ${docData.namaKapal}`, 20, 40);
-                doc.text(`Pemilik Kapal: ${docData.pemilik}`, 20, 50);
-                doc.text(`Tanggal Berangkat: ${docData.tglBerangkat}`, 20, 60);
-                doc.text(`Jam Berangkat: ${docData.jamBerangkat}`, 20, 70);
-                doc.text(`Tujuan Penangkapan: ${docData.tujuanNelayan}`, 20, 80);
-                
-                const pdfBlob = doc.output('blob');
-                const fileName = `Keberangkatan_Nelayan_${docData.namaKapal.replace(/[^a-zA-Z0-9]/g, '_')}_${docData.tglBerangkat}.pdf`;
-                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
-
-                const qrContainer = document.createElement('div');
-                qrContainer.innerHTML = `
-                    <div class="qr-section">
-                        <h3>QR Code Dokumen</h3>
-                        <div id="qrcode-nelayan-departure"></div>
-                        <div class="qr-info">
-                            <p><strong>Data QR Code:</strong></p>
-                            <div class="qr-url">${JSON.stringify(docData, null, 2)}</div>
-                        </div>
-                    </div>
-                `;
-
-                const downloadUrl = URL.createObjectURL(file);
-                statusEl.innerHTML = `
-                    <div class="success-message">
-                        <i class="fas fa-check-circle"></i> Document successfully created!
-                        <br><a href="${downloadUrl}" download="${fileName}" style="margin-top: 10px; display: inline-block;">Download Document</a>
-                    </div>
-                    ${qrContainer.innerHTML}
-                `;
-
-                setTimeout(() => generateQRCode(docData, 'qrcode-nelayan-departure'), 100);
-
-                const uploadBtn = form.querySelector('.btn-upload-drive');
-                uploadBtn.onclick = async () => {
-                    try {
-                        showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Uploading to Google Drive...', 'info');
-                        await uploadToDrive(file, 'Nelayan-Keberangkatan');
-                        showMessage(statusEl, '<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive!', 'success');
-                    } catch (err) {
-                        showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${err.message}`, 'error');
-                    }
-                };
-
-            } catch (error) {
-                showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message}`, 'error');
-            }
-        });
-
-        // Nelayan Kedatangan Form
-        document.getElementById('formArrivalNelayan').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const form = e.target;
-            const statusEl = document.getElementById('statusArrivalNelayan');
-            
-            try {
-                validateForm(form);
-                showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Processing document...', 'info');
-
-                const docData = {
-                    namaKapal: form.querySelector('#namaKapal4').value,
-                    pemilik: form.querySelector('#pemilik4').value,
-                    tglKembali: form.querySelector('#tglKembali4').value,
-                    jamKembali: form.querySelector('#jamKembali4').value,
-                    hasilTangkapan: form.querySelector('#hasilTangkapan4').value,
-                    timestamp: new Date().toISOString(),
-                    type: 'Surat Pernyataan Kedatangan Nelayan'
-                };
-
-                const doc = new jspdf.jsPDF();
-                doc.setFontSize(16);
-                doc.text('SURAT PERNYATAAN KEDATANGAN', 20, 20);
-                doc.setFontSize(12);
-                doc.text(`Nama Kapal: ${docData.namaKapal}`, 20, 40);
-                doc.text(`Pemilik Kapal: ${docData.pemilik}`, 20, 50);
-                doc.text(`Tanggal Kembali: ${docData.tglKembali}`, 20, 60);
-                doc.text(`Jam Kembali: ${docData.jamKembali}`, 20, 70);
-                doc.text(`Hasil Tangkapan: ${docData.hasilTangkapan}`, 20, 80);
-                
-                const pdfBlob = doc.output('blob');
-                const fileName = `Kedatangan_Nelayan_${docData.namaKapal.replace(/[^a-zA-Z0-9]/g, '_')}_${docData.tglKembali}.pdf`;
-                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
-
-                const qrContainer = document.createElement('div');
-                qrContainer.innerHTML = `
-                    <div class="qr-section">
-                        <h3>QR Code Dokumen</h3>
-                        <div id="qrcode-nelayan-arrival"></div>
-                        <div class="qr-info">
-                            <p><strong>Data QR Code:</strong></p>
-                            <div class="qr-url">${JSON.stringify(docData, null, 2)}</div>
-                        </div>
-                    </div>
-                `;
-
-                const downloadUrl = URL.createObjectURL(file);
-                statusEl.innerHTML = `
-                    <div class="success-message">
-                        <i class="fas fa-check-circle"></i> Document successfully created!
-                        <br><a href="${downloadUrl}" download="${fileName}" style="margin-top: 10px; display: inline-block;">Download Document</a>
-                    </div>
-                    ${qrContainer.innerHTML}
-                `;
-
-                setTimeout(() => generateQRCode(docData, 'qrcode-nelayan-arrival'), 100);
-
-                const uploadBtn = form.querySelector('.btn-upload-drive');
-                uploadBtn.onclick = async () => {
-                    try {
-                        showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Uploading to Google Drive...', 'info');
-                        await uploadToDrive(file, 'Nelayan-Kedatangan');
-                        showMessage(statusEl, '<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive!', 'success');
-                    } catch (err) {
-                        showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${err.message}`, 'error');
-                    }
-                };
-
-            } catch (error) {
-                showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message}`, 'error');
-            }
-        });
-    }
-
-    function showPage(pageId, element) {
-        document.querySelectorAll('.content-page').forEach(page => page.style.display = 'none');
-        document.getElementById(pageId).style.display = 'block';
-        document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-        element.classList.add('active');
-    }
-
-    // Event listeners
-    document.getElementById('googleLoginBtn').addEventListener('click', () => {
-        if (isGISReady) {
-            google.accounts.id.prompt();
-        } else {
-            alert('Google services are not ready. Please refresh the page and try again.');
-        }
+    new QRCode(qrDiv.querySelector("#qrcode"), {
+      text: "https://drive.google.com/drive/folders/" + folderMapping[formType],
+      width: 128, height: 128
     });
 
-    // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM Content Loaded');
-        // Google APIs will initialize via onload callbacks
+    let summary = document.createElement("div");
+    summary.className = "document-summary";
+    summary.innerHTML = `
+      <h3>Ringkasan Dokumen</h3>
+      <table>
+        <tr><td>Nama Kapal</td><td>${shipName}</td></tr>
+        <tr><td>Tanggal</td><td>${date} ${time}</td></tr>
+        <tr><td>Nama Nahkoda</td><td>${captain}</td></tr>
+        <tr><td>Jumlah Dokumen</td><td>${files.length}</td></tr>
+      </table>`;
+    resultContainer.appendChild(summary);
+
+    let preview = document.createElement("div");
+    preview.className = "preview-container";
+    preview.innerHTML = "<h4>Preview Dokumen</h4>";
+    files.forEach(f => {
+      const file = f.files[0];
+      const reader = new FileReader();
+      reader.onload = e => {
+        let el;
+        if (file.type.includes("image")) {
+          el = document.createElement("img"); el.src = e.target.result;
+        } else { el = document.createElement("embed"); el.src = e.target.result; el.type = file.type; }
+        preview.appendChild(el);
+      };
+      reader.readAsDataURL(file);
     });
+    resultContainer.appendChild(preview);
+  }
+
+  async function downloadAll(btn) {
+    const form = btn.closest("form");
+    const resultContainer = form.parentElement.querySelector(".result-container");
+    if (!resultContainer.innerHTML.trim()) { alert("Generate QR & Preview dulu sebelum download!"); return; }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16); doc.text("Ringkasan Dokumen Kapal", 10, 20);
+    let y = 40;
+    resultContainer.querySelectorAll(".document-summary table tr").forEach(tr => {
+      const cols = tr.querySelectorAll("td");
+      doc.setFontSize(12); doc.text(`${cols[0].innerText}: ${cols[1].innerText}`, 10, y); y += 8;
+    });
+
+    const qrCanvas = resultContainer.querySelector("canvas");
+    if (qrCanvas) {
+      const qrImg = qrCanvas.toDataURL("image/png");
+      doc.addImage(qrImg, "PNG", 150, 20, 40, 40);
+    }
+    doc.save("Dokumen-Kapal.pdf");
+  }
 </script>
+<script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
 </body>
 </html>
