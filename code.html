@@ -7,7 +7,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://apis.google.com/js/api.js" onload="console.log('GAPI loaded')"></script>
+<script src="https://accounts.google.com/gsi/client" onload="console.log('GIS loaded')"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;display:flex;justify-content:center;align-items:center;}
@@ -257,10 +258,10 @@ const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
 // Folder mapping
 const FOLDER_MAP = {
-  "Petugas-Keberangkatan": "1OtloxktgdBBSFLwh1CUqYsYk25l2fsBH",
-  "Petugas-Kedatangan": "1Z6fEANltfHjUsRnluXs6j6RE31rCczIk",
-  "Nelayan-Keberangkatan": "1jBtsh2mj2oF2oyiJMu_subw_qo-C1FRv",
-  "Nelayan-Kedatangan": "1AYPXMwl47Uj0p8SfxlVz7VmMVUP4l521"
+  "Petugas-Keberangkatan": "1Ws2ctYHbdUD7Wza2ld4KxO0j7fiFcg3o",
+  "Petugas-Kedatangan": "1BIDQw9AMiY5_Mxt1OBKC1Lce3xzjtfTz",
+  "Nelayan-Keberangkatan": "1bnyimhbu884iAdNX75u_MxtPN2azgAFy",
+  "Nelayan-Kedatangan": "1Yt_-nTkJrZNO7Y2ZlBJIqebnMu0ncE-M"
 };
 
 // Global variables
@@ -1111,15 +1112,45 @@ document.addEventListener('DOMContentLoaded', function() {
   loginBtn.disabled = true;
   document.getElementById('loginBtnText').textContent = 'Loading...';
   
-  // Load Google APIs
-  if (typeof gapi !== 'undefined') {
-    gapiLoaded();
-  } else {
-    console.error('Google API not loaded');
-  }
+  // Wait for Google APIs to load with timeout
+  let attempts = 0;
+  const maxAttempts = 50; // 5 seconds maximum
   
-  if (typeof google !== 'undefined') {
+  const checkAndInitialize = () => {
+    attempts++;
+    
+    if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
+      console.log('Google APIs loaded, initializing...');
+      gapiLoaded();
+      gisLoaded();
+      return;
+    }
+    
+    if (attempts >= maxAttempts) {
+      console.error('Google APIs failed to load after timeout');
+      loginBtn.disabled = false;
+      loginBtn.style.background = '#f44336';
+      document.getElementById('loginBtnText').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error loading Google APIs';
+      return;
+    }
+    
+    // Try again after 100ms
+    setTimeout(checkAndInitialize, 100);
+  };
+  
+  // Start checking
+  setTimeout(checkAndInitialize, 500);
+});
+
+// Add manual initialization function for testing
+window.manualInit = function() {
+  console.log('Manual initialization triggered');
+  if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
+    gapiLoaded();
     gisLoaded();
   } else {
-    console.error('Google Identity Services not loaded');
+    console.log('APIs still not available');
+    console.log('gapi:', typeof gapi);
+    console.log('google:', typeof google);
   }
+};
