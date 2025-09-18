@@ -1131,7 +1131,7 @@
                 uploadBtn.onclick = async () => {
                     try {
                         showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Uploading to Google Drive...', 'info');
-                        await uploadToDrive(file, 'Petugas-Kedatangan');
+                        await uploadToDrive(file, 'Nelayan-Kedatangan');
                         showMessage(statusEl, '<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive!', 'success');
                     } catch (err) {
                         console.error('Upload error:', err);
@@ -1143,7 +1143,7 @@
                 console.error('Form processing error:', error);
                 showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message}`, 'error');
             }
-        }
+        });
 
         // Update Google Drive status for all forms
         updateGoogleDriveStatus();
