@@ -533,7 +533,7 @@
     }
 
     // Initialize Google APIs
-     function initializeGoogle() {
+    function initializeGoogle() {
         console.log('Initializing Google APIs...');
         
         // Initialize Google Identity Services for login
@@ -547,7 +547,7 @@
             console.log('Google Identity Services initialized');
         } catch (error) {
             console.error('Failed to initialize Google Identity Services:', error);
-        }
+        }}
 
         // Initialize Google API Client for Drive access
        gapi.load('client', async () => {
@@ -1131,7 +1131,7 @@
                 uploadBtn.onclick = async () => {
                     try {
                         showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Uploading to Google Drive...', 'info');
-                        await uploadToDrive(file, 'Nelayan-Kedatangan');
+                        await uploadToDrive(file, 'Petugas-Kedatangan');
                         showMessage(statusEl, '<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive!', 'success');
                     } catch (err) {
                         console.error('Upload error:', err);
@@ -1143,12 +1143,11 @@
                 console.error('Form processing error:', error);
                 showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Error: ${error.message}`, 'error');
             }
-        }
+        });
 
         // Update Google Drive status for all forms
         updateGoogleDriveStatus();
     }
-
      function showPage(pageId, element) {
         // Hide all pages
         document.querySelectorAll('.content-page').forEach(page => {
