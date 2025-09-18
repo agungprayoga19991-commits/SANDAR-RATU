@@ -555,6 +555,22 @@
                     apiKey: API_KEY,
                     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
                 });
+
+         // Initialize token client for OAuth2
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: (response) => {
+                if (response.error !== undefined) {
+                    console.error('Token client error:', response);
+                    updateGoogleDriveStatus('Failed to get Drive access token');
+                    return;
+                }
+                currentAccessToken = response.access_token;
+                console.log('Access token obtained successfully');
+                updateGoogleDriveStatus();
+            }
+        });
                 
         isGAPIReady = true;
         console.log('Google API Client initialized');
