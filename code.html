@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflaref.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js"></script>
     <style>
@@ -134,6 +134,17 @@
         .google-icon {
             width: 18px;
             height: 18px;
+        }
+
+        .auth-status {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 12px;
         }
 
         /* Dashboard Styles */
@@ -353,7 +364,6 @@
             padding: 10px;
             border-radius: 6px;
             margin: 10px 0;
-            display: none;
         }
 
         .upload-error {
@@ -363,7 +373,6 @@
             padding: 10px;
             border-radius: 6px;
             margin: 10px 0;
-            display: none;
         }
 
         .google-drive-status {
@@ -392,10 +401,8 @@
             border-radius: 6px;
             margin: 10px 0;
             text-align: center;
-            display: none;
         }
 
-        /* Error handling styles */
         .error-message {
             background: #ffebee;
             border: 1px solid #f44336;
@@ -414,14 +421,9 @@
             margin: 10px 0;
         }
 
-        /* Loading spinner */
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .loading-spinner {
@@ -481,8 +483,9 @@
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Log in with Google
+            <span id="loginBtnText">Log in with Google</span>
         </button>
+        <div id="authStatus" class="auth-status" style="display: none;"></div>
     </div>
 
     <div class="footer-login">Hak Cipta © 2025 Sandar-Ratu</div>
@@ -529,39 +532,155 @@
         "Nelayan-Kedatangan": "1AYPXMwl47Uj0p8SfxlVz7VmMVUP4l521"
     };
 
-    let isGAPIReady = false;
+    // Global state
     let currentUser = null;
-    let currentAccessToken = null;
+    let accessToken = null;
     let tokenClient = null;
-    let generatedPDFs = {}; // Store generated PDFs for upload
+    let gapiInitialized = false;
+    let gisInitialized = false;
+    let generatedPDFs = {};
 
-    function showMessage(element, message, type = 'info') {
-        const className = type === 'error' ? 'error-message' :
-            type === 'success' ? 'success-message' : 'processing-status';
-        element.className = className;
-        element.innerHTML = message;
-        element.style.display = 'block';
-    }
-
-    function hideMessage(element) {
-        element.style.display = 'none';
-    }
-
-    function validateForm(form) {
-        const inputs = form.querySelectorAll('input[required]');
-        for (let input of inputs) {
-            if (!input.value.trim()) {
-                throw new Error(`Field "${input.previousElementSibling.textContent}" harus diisi`);
+    // Authentication state management
+    function updateAuthStatus(status, message) {
+        const statusEl = document.getElementById('authStatus');
+        const loginBtn = document.getElementById('googleLoginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        
+        if (statusEl && loginBtn && loginBtnText) {
+            statusEl.textContent = message;
+            statusEl.style.display = status === 'ready' ? 'none' : 'block';
+            
+            switch(status) {
+                case 'initializing':
+                    loginBtn.disabled = true;
+                    loginBtnText.textContent = 'Initializing...';
+                    statusEl.style.background = '#fff3cd';
+                    statusEl.style.color = '#856404';
+                    break;
+                case 'ready':
+                    loginBtn.disabled = false;
+                    loginBtnText.textContent = 'Log in with Google';
+                    break;
+                case 'error':
+                    loginBtn.disabled = true;
+                    loginBtnText.textContent = 'Login Unavailable';
+                    statusEl.style.background = '#ffebee';
+                    statusEl.style.color = '#c62828';
+                    break;
             }
         }
-        return true;
     }
 
-    // Initialize Google APIs
-    function initializeGoogle() {
-        console.log('Initializing Google APIs...');
+    function updateDriveStatus(message, type = 'info') {
+        const statusElements = document.querySelectorAll('.google-drive-status');
+        const uploadButtons = document.querySelectorAll('.btn-upload-drive');
         
-        // Initialize Google Identity Services for login
+        statusElements.forEach(el => {
+            switch(type) {
+                case 'success':
+                    el.className = 'upload-status';
+                    break;
+                case 'error':
+                    el.className = 'upload-error';
+                    break;
+                default:
+                    el.className = 'google-drive-status';
+            }
+            el.innerHTML = message;
+        });
+        
+        uploadButtons.forEach(btn => {
+            btn.disabled = !accessToken || type === 'error';
+        });
+    }
+
+    // Initialize Google APIs with proper sequencing
+    async function initializeGoogleAPIs() {
+        try {
+            updateAuthStatus('initializing', 'Loading Google APIs...');
+            
+            // Wait for both scripts to load
+            await Promise.all([
+                waitForGAPI(),
+                waitForGIS()
+            ]);
+            
+            // Initialize GAPI first
+            await initializeGAPI();
+            
+            // Then initialize GIS
+            await initializeGIS();
+            
+            updateAuthStatus('ready', '');
+            updateDriveStatus('<i class="fas fa-info-circle"></i> Ready - Click "Upload to Google Drive" to connect', 'info');
+            
+        } catch (error) {
+            console.error('Failed to initialize Google APIs:', error);
+            updateAuthStatus('error', `Error: ${error.message}`);
+            updateDriveStatus('<i class="fas fa-exclamation-triangle"></i> Failed to initialize Google services', 'error');
+        }
+    }
+
+    function waitForGAPI() {
+        return new Promise((resolve, reject) => {
+            if (typeof gapi !== 'undefined') {
+                resolve();
+                return;
+            }
+            
+            const checkGapi = () => {
+                if (typeof gapi !== 'undefined') {
+                    resolve();
+                } else {
+                    setTimeout(checkGapi, 100);
+                }
+            };
+            setTimeout(checkGapi, 100);
+            
+            setTimeout(() => reject(new Error('GAPI failed to load')), 10000);
+        });
+    }
+
+    function waitForGIS() {
+        return new Promise((resolve, reject) => {
+            if (typeof google !== 'undefined' && google.accounts) {
+                resolve();
+                return;
+            }
+            
+            const checkGis = () => {
+                if (typeof google !== 'undefined' && google.accounts) {
+                    resolve();
+                } else {
+                    setTimeout(checkGis, 100);
+                }
+            };
+            setTimeout(checkGis, 100);
+            
+            setTimeout(() => reject(new Error('GIS failed to load')), 10000);
+        });
+    }
+
+    async function initializeGAPI() {
+        return new Promise((resolve, reject) => {
+            gapi.load('client', async () => {
+                try {
+                    await gapi.client.init({
+                        apiKey: API_KEY,
+                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+                    });
+                    gapiInitialized = true;
+                    console.log('GAPI initialized successfully');
+                    resolve();
+                } catch (error) {
+                    console.error('GAPI initialization failed:', error);
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    async function initializeGIS() {
         try {
             google.accounts.id.initialize({
                 client_id: CLIENT_ID,
@@ -569,43 +688,19 @@
                 auto_select: false,
                 cancel_on_tap_outside: true
             });
-            console.log('Google Identity Services initialized');
+
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: handleTokenResponse
+            });
+
+            gisInitialized = true;
+            console.log('GIS initialized successfully');
         } catch (error) {
-            console.error('Failed to initialize Google Identity Services:', error);
+            console.error('GIS initialization failed:', error);
+            throw error;
         }
-
-        // Initialize Google API Client for Drive access
-        gapi.load('client', async () => {
-            try {
-                await gapi.client.init({
-                    apiKey: API_KEY,
-                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-                });
-
-                // Initialize token client for OAuth2
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
-                    callback: (response) => {
-                        if (response.error !== undefined) {
-                            console.error('Token client error:', response);
-                            updateGoogleDriveStatus('Failed to get Drive access token');
-                            return;
-                        }
-                        currentAccessToken = response.access_token;
-                        console.log('Access token obtained successfully');
-                        updateGoogleDriveStatus();
-                    }
-                });
-
-                isGAPIReady = true;
-                console.log('Google API Client initialized');
-                updateGoogleDriveStatus();
-            } catch (error) {
-                console.error('Failed to initialize Google API Client:', error);
-                updateGoogleDriveStatus('Error: Failed to connect to Google Drive');
-            }
-        });
     }
 
     function handleCredentialResponse(response) {
@@ -630,70 +725,43 @@
         }
     }
 
-    document.getElementById('googleLoginBtn').addEventListener('click', () => {
-        try {
-            google.accounts.id.prompt();
-        } catch (error) {
-            console.error('Login error:', error);
-            alert('Google login is not available. Please check your connection.');
+    function handleTokenResponse(response) {
+        if (response.error !== undefined) {
+            console.error('Token error:', response);
+            updateDriveStatus('<i class="fas fa-exclamation-triangle"></i> Failed to get Drive access', 'error');
+            return;
         }
-    });
-
-    function showDashboard() {
-        if (!currentUser) return;
         
-        document.getElementById("loginPage").style.display = "none";
-        document.getElementById("dashboard").style.display = "flex";
-        document.body.style.background = "white";
+        accessToken = response.access_token;
+        console.log('Drive access token obtained');
+        updateDriveStatus('<i class="fas fa-check-circle"></i> Google Drive connected successfully!', 'success');
         
-        document.getElementById('userName').textContent = currentUser.name;
-        document.getElementById('userAvatar').src = currentUser.picture || '';
-        
-        initializePages();
-        showPage('departurePetugas', document.querySelector(".sidebar a"));
-    }
-
-    function updateGoogleDriveStatus(errorMsg = null) {
-        const statusElements = document.querySelectorAll('.google-drive-status');
-        
-        statusElements.forEach(el => {
-            if (errorMsg) {
-                el.className = 'upload-error';
-                el.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`;
-                disableUploadButtons();
-            } else if (isGAPIReady) {
-                if (currentAccessToken) {
-                    el.className = 'upload-status';
-                    el.innerHTML = '<i class="fas fa-check-circle"></i> Google Drive connected and ready';
-                    enableUploadButtons();
-                } else {
-                    el.className = 'google-drive-status';
-                    el.innerHTML = '<i class="fas fa-info-circle"></i> Click "Upload to Google Drive" to connect to Google Drive';
-                    enableUploadButtons(); // Enable buttons so user can click to get token
-                }
-            } else {
-                el.className = 'google-drive-status';
-                el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting to Google Drive...';
-                disableUploadButtons();
-            }
-        });
-    }
-
-    function enableUploadButtons() {
         document.querySelectorAll('.btn-upload-drive').forEach(btn => {
             btn.disabled = false;
         });
     }
 
-    function disableUploadButtons() {
-        document.querySelectorAll('.btn-upload-drive').forEach(btn => {
-            btn.disabled = true;
-        });
-    }
+    document.getElementById('googleLoginBtn').addEventListener('click', () => {
+        if (!gisInitialized) {
+            alert('Google services are not ready yet. Please wait and try again.');
+            return;
+        }
+        
+        try {
+            google.accounts.id.prompt();
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Google login failed. Please check your connection and try again.');
+        }
+    });
 
-    async function requestDrivePermission() {
+    async function requestDriveAccess() {
         if (!tokenClient) {
-            throw new Error('Google API not initialized');
+            throw new Error('Google OAuth not initialized');
+        }
+
+        if (accessToken) {
+            return accessToken;
         }
 
         return new Promise((resolve, reject) => {
@@ -703,18 +771,24 @@
                 if (response.error !== undefined) {
                     reject(new Error(response.error));
                 } else {
-                    currentAccessToken = response.access_token;
-                    updateGoogleDriveStatus();
+                    accessToken = response.access_token;
+                    updateDriveStatus('<i class="fas fa-check-circle"></i> Google Drive connected successfully!', 'success');
                     resolve(response.access_token);
                 }
             };
-            tokenClient.requestAccessToken();
+            
+            try {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } catch (error) {
+                tokenClient.callback = originalCallback;
+                reject(error);
+            }
         });
     }
 
     async function uploadToDrive(file, folderName, progressCallback) {
-        if (!currentAccessToken) {
-            await requestDrivePermission();
+        if (!accessToken) {
+            await requestDriveAccess();
         }
 
         const folderId = FOLDER_MAP[folderName];
@@ -761,27 +835,44 @@
             });
             
             xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
-            xhr.setRequestHeader('Authorization', `Bearer ${currentAccessToken}`);
+            xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
             xhr.send(form);
         });
     }
 
+    function showDashboard() {
+        if (!currentUser) return;
+        
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("dashboard").style.display = "flex";
+        document.body.style.background = "white";
+        
+        document.getElementById('userName').textContent = currentUser.name;
+        const avatarEl = document.getElementById('userAvatar');
+        if (currentUser.picture) {
+            avatarEl.src = currentUser.picture;
+            avatarEl.style.display = 'block';
+        } else {
+            avatarEl.style.display = 'none';
+        }
+        
+        initializePages();
+        showPage('departurePetugas', document.querySelector(".sidebar a"));
+    }
+
     function logout() {
-        // Clear all authentication data
         currentUser = null;
-        currentAccessToken = null;
+        accessToken = null;
         generatedPDFs = {};
         
-        // Revoke access token if exists
-        if (currentAccessToken) {
+        if (accessToken) {
             try {
-                google.accounts.oauth2.revoke(currentAccessToken);
+                google.accounts.oauth2.revoke(accessToken);
             } catch (e) {
                 console.log('Token revocation failed, but continuing logout');
             }
         }
 
-        // Show login page
         document.getElementById("loginPage").style.display = "flex";
         document.getElementById("dashboard").style.display = "none";
         document.body.style.background = "#f8f9fa";
@@ -789,10 +880,27 @@
         console.log('Logout successful');
     }
 
+    function showMessage(element, message, type = 'info') {
+        const className = type === 'error' ? 'error-message' :
+            type === 'success' ? 'success-message' : 'processing-status';
+        element.className = className;
+        element.innerHTML = message;
+        element.style.display = 'block';
+    }
+
+    function validateForm(form) {
+        const inputs = form.querySelectorAll('input[required]');
+        for (let input of inputs) {
+            if (!input.value.trim()) {
+                throw new Error(`Field "${input.previousElementSibling.textContent}" harus diisi`);
+            }
+        }
+        return true;
+    }
+
     function generatePDF(docData, docType) {
         const doc = new jspdf.jsPDF();
         
-        // Add header
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
         
@@ -802,11 +910,9 @@
             doc.text('LAPORAN KEDATANGAN', 105, 30, { align: 'center' });
         }
         
-        // Add line under header
         doc.setLineWidth(0.5);
         doc.line(20, 35, 190, 35);
         
-        // Add content
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         
@@ -835,7 +941,6 @@
             }
         });
         
-        // Add footer
         y += 20;
         doc.setFontSize(10);
         doc.text(`Dibuat pada: ${new Date().toLocaleString('id-ID')}`, 20, y);
@@ -854,21 +959,18 @@
                 validateForm(form);
                 showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Creating document...', 'info');
 
-                // Collect form data
                 const docData = {};
                 const inputs = form.querySelectorAll('input[type="text"], input[type="date"], input[type="time"]');
                 inputs.forEach(input => {
                     docData[input.id.replace(/\d+$/, '')] = input.value;
                 });
 
-                // Generate PDF
                 const doc = generatePDF(docData, docType);
                 const pdfBlob = doc.output('blob');
                 
                 const fileName = `${docType === 'departure' ? 'Persetujuan_Berlayar' : 'Laporan_Kedatangan'}_${docData.namaKapal}_${docData.tglBertolak || docData.tglTiba}.pdf`;
                 const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
 
-                // Store for upload
                 generatedPDFs[formId] = file;
 
                 const downloadUrl = URL.createObjectURL(file);
@@ -879,10 +981,14 @@
                     </div>
                 `;
 
-                // Setup upload button
                 const uploadBtn = form.querySelector('.btn-upload-drive');
                 uploadBtn.onclick = async () => {
                     try {
+                        if (!accessToken) {
+                            showMessage(statusEl, '<i class="fas fa-spinner fa-spin"></i> Connecting to Google Drive...', 'info');
+                            await requestDriveAccess();
+                        }
+
                         const progressDiv = document.createElement('div');
                         progressDiv.innerHTML = `
                             <div style="margin: 10px 0;">
@@ -897,7 +1003,7 @@
                         `;
                         statusEl.appendChild(progressDiv);
 
-                        await uploadToDrive(file, folderKey, (progress) => {
+                        const result = await uploadToDrive(file, folderKey, (progress) => {
                             const progressBar = document.getElementById(`progress-bar-${formId}`);
                             const progressText = document.getElementById(`progress-text-${formId}`);
                             if (progressBar && progressText) {
@@ -906,7 +1012,7 @@
                             }
                         });
 
-                        showMessage(statusEl, '<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive!', 'success');
+                        showMessage(statusEl, `<i class="fas fa-check-circle"></i> Document successfully uploaded to Google Drive! File ID: ${result.id}`, 'success');
                     } catch (err) {
                         console.error('Upload error:', err);
                         showMessage(statusEl, `<i class="fas fa-exclamation-triangle"></i> Upload failed: ${err.message}`, 'error');
@@ -956,7 +1062,7 @@
                                 <input type="text" id="tujuan1" required>
                             </div>
                         </div>
-                        <div class="google-drive-status">Connecting to Google Drive...</div>
+                        <div class="google-drive-status">Initializing Google Drive connection...</div>
                         <button type="submit" class="btn-generate">Create & Print Document</button>
                         <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
                     </form>
@@ -996,7 +1102,7 @@
                                 <input type="text" id="asal2" required>
                             </div>
                         </div>
-                        <div class="google-drive-status">Connecting to Google Drive...</div>
+                        <div class="google-drive-status">Initializing Google Drive connection...</div>
                         <button type="submit" class="btn-generate">Create & Print Document</button>
                         <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
                     </form>
@@ -1036,7 +1142,7 @@
                                 <input type="text" id="tujuan3" required>
                             </div>
                         </div>
-                        <div class="google-drive-status">Connecting to Google Drive...</div>
+                        <div class="google-drive-status">Initializing Google Drive connection...</div>
                         <button type="submit" class="btn-generate">Create & Print Document</button>
                         <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
                     </form>
@@ -1076,7 +1182,7 @@
                                 <input type="text" id="asal4" required>
                             </div>
                         </div>
-                        <div class="google-drive-status">Connecting to Google Drive...</div>
+                        <div class="google-drive-status">Initializing Google Drive connection...</div>
                         <button type="submit" class="btn-generate">Create & Print Document</button>
                         <button type="button" class="btn-upload-drive" disabled>Upload to Google Drive</button>
                     </form>
@@ -1085,7 +1191,6 @@
             </div>
         `;
 
-        // Attach event handlers
         document.getElementById('formDeparturePetugas').addEventListener('submit', 
             createFormHandler('formDeparturePetugas', 'departure', 'Petugas-Keberangkatan'));
         
@@ -1098,30 +1203,25 @@
         document.getElementById('formArrivalNelayan').addEventListener('submit', 
             createFormHandler('formArrivalNelayan', 'arrival', 'Nelayan-Kedatangan'));
 
-        // Update Google Drive status for all forms
-        updateGoogleDriveStatus();
+        updateDriveStatus('<i class="fas fa-info-circle"></i> Ready - Click "Upload to Google Drive" to connect', 'info');
     }
 
     function showPage(pageId, element) {
-        // Hide all pages
         document.querySelectorAll('.content-page').forEach(page => {
             page.style.display = 'none';
         });
         
-        // Show selected page
         document.getElementById(pageId).style.display = 'block';
         
-        // Update active sidebar item
         document.querySelectorAll('.sidebar a').forEach(a => {
             a.classList.remove('active');
         });
         element.classList.add('active');
     }
 
-    // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM loaded, initializing Google APIs...');
-        initializeGoogle();
+        console.log('DOM loaded, initializing application...');
+        initializeGoogleAPIs();
     });
 </script>
 </body>
