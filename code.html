@@ -547,40 +547,41 @@
             console.log('Google Identity Services initialized');
         } catch (error) {
             console.error('Failed to initialize Google Identity Services:', error);
-        }}
+        }
 
         // Initialize Google API Client for Drive access
-       gapi.load('client', async () => {
+        gapi.load('client', async () => {
             try {
                 await gapi.client.init({
                     apiKey: API_KEY,
                     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
                 });
 
-         // Initialize token client for OAuth2
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: SCOPES,
-            callback: (response) => {
-                if (response.error !== undefined) {
-                    console.error('Token client error:', response);
-                    updateGoogleDriveStatus('Failed to get Drive access token');
-                    return;
-                }
-                currentAccessToken = response.access_token;
-                console.log('Access token obtained successfully');
+                // Initialize token client for OAuth2
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: (response) => {
+                        if (response.error !== undefined) {
+                            console.error('Token client error:', response);
+                            updateGoogleDriveStatus('Failed to get Drive access token');
+                            return;
+                        }
+                        currentAccessToken = response.access_token;
+                        console.log('Access token obtained successfully');
+                        updateGoogleDriveStatus();
+                    }
+                });
+
+                isGAPIReady = true;
+                console.log('Google API Client initialized');
                 updateGoogleDriveStatus();
+            } catch (error) {
+                console.error('Failed to initialize Google API Client:', error);
+                updateGoogleDriveStatus('Error: Failed to connect to Google Drive');
             }
         });
-                
-        isGAPIReady = true;
-        console.log('Google API Client initialized');
-        updateGoogleDriveStatus();
-    } catch (error) {
-        console.error('Failed to initialize Google API Client:', error);
-        updateGoogleDriveStatus('Error: Failed to connect to Google Drive');
     }
-});
 
     function handleCredentialResponse(response) {
         if (!response.credential) {
