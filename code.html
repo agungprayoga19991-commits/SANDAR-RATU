@@ -549,15 +549,13 @@
         }
 
         // Initialize Google API Client for Drive access
-        gapi.load('client:auth2', async () => {
-    try {
-        await gapi.client.init({
-            apiKey: YOUR_API_KEY,
-            clientId: YOUR_CLIENT_ID,
-            discoveryDocs: [...],
-            scope: 'https://www.googleapis.com/auth/drive',
-        });
-
+       gapi.load('client', async () => {
+            try {
+                await gapi.client.init({
+                    apiKey: API_KEY,
+                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+                });
+                
         isGAPIReady = true;
         console.log('Google API Client initialized');
         updateGoogleDriveStatus();
