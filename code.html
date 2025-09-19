@@ -16,169 +16,896 @@ body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;displ
 .login-container{
   background:#fff;
   border-radius:20px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.1);
-  max-width:400px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.15);
+  max-width:420px;
   width:100%;
   overflow:hidden;
+  animation:slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity:0; transform:translateY(-30px); }
+  to { opacity:1; transform:translateY(0); }
 }
 
 .logo-section{
   text-align:center;
   padding:40px 30px 20px;
-  background:linear-gradient(135deg,#3498db, #1a73e8);
+  background:linear-gradient(135deg,#667eea 0%, #764ba2 100%);
+  position:relative;
+  overflow:hidden;
+}
+
+.logo-section::before {
+  content:'';
+  position:absolute;
+  top:-50%;
+  left:-50%;
+  width:200%;
+  height:200%;
+  background:radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation:rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .logo{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  gap:8px;
-  font-size:24px;
-  font-weight:700;
-  color:#333;
+  gap:12px;
+  font-size:28px;
+  font-weight:800;
+  color:#fff;
   text-decoration:none;
+  position:relative;
+  z-index:2;
+  text-shadow:2px 2px 4px rgba(0,0,0,0.3);
 }
 
 .logo-icon{
-  width:32px;
-  height:32px;
-  background:#333;
-  border-radius:6px;
+  width:40px;
+  height:40px;
+  background:rgba(255,255,255,0.2);
+  backdrop-filter:blur(10px);
+  border-radius:12px;
   display:flex;
   align-items:center;
   justify-content:center;
-  color:#3498db;
+  color:#fff;
+  font-size:20px;
+  border:2px solid rgba(255,255,255,0.3);
+  animation:pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .warning-section{
-  background:#feffd6;
-  border:1px solid #fff4ce;
+  background:linear-gradient(135deg, #fef9e7, #fefcf3);
+  border:1px solid #f4d03f;
   margin:20px;
   border-radius:12px;
   padding:20px;
   text-align:center;
+  box-shadow:inset 0 2px 10px rgba(244,208,63,0.1);
 }
 
 .warning-title{
-  background:#ffffff;
-  border:1px solid #ffeaa7;
-  color:#000000;
-  padding:8px 16px;
-  border-radius:8px;
-  font-weight:600;
+  background:#fff;
+  border:2px solid #f39c12;
+  color:#d35400;
+  padding:10px 20px;
+  border-radius:25px;
+  font-weight:700;
   margin-bottom:15px;
   display:inline-block;
+  box-shadow:0 4px 15px rgba(243,156,18,0.2);
 }
 
 .warning-text{
-  color:#000000;
+  color:#8b4513;
   font-size:14px;
-  line-height:1.5;
+  line-height:1.6;
   margin-bottom:15px;
+  font-weight:500;
 }
 
 .login-method-section{
-  padding:20px;
+  padding:25px;
   text-align:center;
 }
 
 .method-title{
   color:#6c757d;
   font-size:13px;
-  margin-bottom:15px;
+  margin-bottom:20px;
   font-style:italic;
+  letter-spacing:0.5px;
 }
 
 .google-login-btn{
   width:100%;
-  padding:12px 20px;
+  padding:15px 20px;
   border:2px solid #e0e0e0;
   background:#fff;
-  border-radius:8px;
+  border-radius:50px;
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:10px;
-  font-size:14px;
-  font-weight:500;
+  gap:12px;
+  font-size:15px;
+  font-weight:600;
   color:#5f6368;
   cursor:pointer;
-  transition:all 0.2s ease;
+  transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position:relative;
+  overflow:hidden;
+}
+
+.google-login-btn::before {
+  content:'';
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:0;
+  height:0;
+  background:radial-gradient(circle, rgba(26,115,232,0.1) 0%, transparent 70%);
+  border-radius:50%;
+  transform:translate(-50%, -50%);
+  transition:width 0.3s ease, height 0.3s ease;
+}
+
+.google-login-btn:hover::before {
+  width:300px;
+  height:300px;
 }
 
 .google-login-btn:hover{
   border-color:#1a73e8;
-  box-shadow:0 1px 3px rgba(0,0,0,0.1);
+  box-shadow:0 8px 25px rgba(26,115,232,0.15);
+  transform:translateY(-2px);
+}
+
+.google-login-btn:active {
+  transform:translateY(0);
 }
 
 .google-login-btn:disabled{
   opacity:0.6;
   cursor:not-allowed;
+  transform:none;
 }
 
 .google-icon{
-  width:18px;
-  height:18px;
+  width:20px;
+  height:20px;
+}
+
+.spinner {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #1a73e8;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+  display: none;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Dashboard Styles */
-.dashboard{display:none;flex-direction:column;height:100vh;width:100%;}
-.header{background:#2c3e50;color:white;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
-.header .logo-icon{background:#3498db;width:36px;height:36px;border-radius:8px;display:flex;justify-content:center;align-items:center;margin-right:10px;}
-.header .user-info{display:flex;align-items:center;gap:10px;}
-.header .user-avatar{width:32px;height:32px;border-radius:50%;border:2px solid #3498db;}
-.main-container{display:flex;flex:1;}
-.sidebar{width:240px;background:#3498db;color:white;padding-top:20px;}
-.sidebar div{padding:8px 20px;font-weight:600;opacity:0.8;font-size:13px;}
-.sidebar a{display:flex;align-items:center;padding:12px 20px;color:white;text-decoration:none;transition:0.3s;cursor:pointer;}
-.sidebar a:hover{background:rgba(255,255,255,0.1);}
-.sidebar a.active{background:rgba(0,0,0,0.25);font-weight:bold;}
-.content{flex:1;padding:25px;overflow-y:auto;background:#f5f5f5;}
-.content h2{margin-bottom:20px;color:#2c3e50;}
-.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
-.form-row{display:flex;gap:15px;margin-bottom:15px;}
+.dashboard{display:none;flex-direction:column;height:100vh;width:100%;background:#f8f9fa;}
+
+.header{
+  background:linear-gradient(135deg, #2c3e50, #34495e);
+  color:white;
+  height:70px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 25px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.1);
+  position:relative;
+}
+
+.header::after {
+  content:'';
+  position:absolute;
+  bottom:0;
+  left:0;
+  width:100%;
+  height:3px;
+  background:linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
+}
+
+.header .logo-icon{
+  background:linear-gradient(135deg, #3498db, #2ecc71);
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-right:12px;
+  box-shadow:0 4px 15px rgba(52,152,219,0.3);
+}
+
+.header .user-info{
+  display:flex;
+  align-items:center;
+  gap:15px;
+  background:rgba(255,255,255,0.1);
+  padding:8px 15px;
+  border-radius:25px;
+  backdrop-filter:blur(10px);
+}
+
+.header .user-avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  border:3px solid #3498db;
+  transition:transform 0.3s ease;
+}
+
+.header .user-avatar:hover {
+  transform:scale(1.1);
+}
+
+.header .user-name {
+  font-weight:600;
+  font-size:14px;
+}
+
+.main-container{display:flex;flex:1;overflow:hidden;}
+
+.sidebar{
+  width:260px;
+  background:linear-gradient(180deg, #3498db, #2980b9);
+  color:white;
+  padding-top:20px;
+  box-shadow:4px 0 20px rgba(0,0,0,0.1);
+  overflow-y:auto;
+}
+
+.sidebar div{
+  padding:12px 25px;
+  font-weight:700;
+  opacity:0.9;
+  font-size:13px;
+  letter-spacing:0.5px;
+  background:rgba(0,0,0,0.1);
+  margin:5px 15px;
+  border-radius:8px;
+  text-transform:uppercase;
+}
+
+.sidebar a{
+  display:flex;
+  align-items:center;
+  padding:15px 25px;
+  color:white;
+  text-decoration:none;
+  transition:all 0.3s ease;
+  cursor:pointer;
+  position:relative;
+  border-left:4px solid transparent;
+}
+
+.sidebar a::before {
+  content:'';
+  position:absolute;
+  left:0;
+  top:0;
+  width:0;
+  height:100%;
+  background:rgba(255,255,255,0.1);
+  transition:width 0.3s ease;
+}
+
+.sidebar a:hover::before {
+  width:100%;
+}
+
+.sidebar a:hover{
+  background:rgba(255,255,255,0.15);
+  border-left-color:#fff;
+  transform:translateX(5px);
+}
+
+.sidebar a.active{
+  background:rgba(0,0,0,0.2);
+  font-weight:bold;
+  border-left-color:#f39c12;
+  box-shadow:inset 0 0 20px rgba(0,0,0,0.2);
+}
+
+.sidebar a i {
+  margin-right:12px;
+  width:20px;
+  text-align:center;
+}
+
+.content{
+  flex:1;
+  padding:30px;
+  overflow-y:auto;
+  background:#f8f9fa;
+  position:relative;
+}
+
+.content h2{
+  margin-bottom:25px;
+  color:#2c3e50;
+  font-size:28px;
+  font-weight:700;
+  position:relative;
+  padding-bottom:10px;
+}
+
+.content h2::after {
+  content:'';
+  position:absolute;
+  bottom:0;
+  left:0;
+  width:50px;
+  height:4px;
+  background:linear-gradient(90deg, #3498db, #2ecc71);
+  border-radius:2px;
+}
+
+.card{
+  background:white;
+  padding:30px;
+  border-radius:15px;
+  margin-bottom:25px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.08);
+  border:1px solid #e9ecef;
+  transition:transform 0.3s ease, box-shadow 0.3s ease;
+  position:relative;
+  overflow:hidden;
+}
+
+.card::before {
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:4px;
+  background:linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.card:hover {
+  transform:translateY(-5px);
+  box-shadow:0 15px 50px rgba(0,0,0,0.12);
+}
+
+.form-row{display:flex;gap:20px;margin-bottom:20px;}
 .form-row .form-control{flex:1;}
-.form-control{width:100%;padding:12px;margin-bottom:15px;border:1px solid #ddd;border-radius:8px;}
-.btn-generate{width:100%;padding:12px;background:#2ecc71;border:none;color:white;border-radius:8px;font-weight:600;cursor:pointer;margin-bottom:10px;}
-.btn-generate:hover{background:#27ae60;}
-.btn-upload-drive{width:100%;padding:12px;background:#1a73e8;border:none;color:white;border-radius:8px;font-weight:600;cursor:pointer;margin-bottom:10px;}
-.btn-upload-drive:hover{background:#1557b0;}
-.btn-upload-drive:disabled{background:#ccc;cursor:not-allowed;}
-.btn-logout{background:#e74c3c;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;}
-.result-container{margin-top:15px;}
-.preview-container{margin-top:8px;padding:15px;background:#fafafa;border:1px solid #ddd;border-radius:6px;display:flex;flex-direction:column;gap:10px;}
-.preview-container .document-info{background:#fff;padding:10px;border-radius:5px;border-left:4px solid #3498db;}
-.preview-container .document-info h4{color:#2c3e50;margin-bottom:5px;}
-.preview-container .document-info p{color:#7f8c8d;font-size:12px;}
-.preview-container embed,.preview-container img{width:100%;max-height:300px;border-radius:6px;object-fit:contain;border:1px solid #ddd;}
-.preview-container a{align-self:flex-start;text-decoration:none;color:#2980b9;font-weight:bold;padding:5px 10px;background:#ecf0f1;border-radius:4px;}
-.qr-section{background:#fff;padding:15px;border-radius:8px;text-align:center;border:2px solid #3498db;margin-bottom:15px;}
-.qr-section h3{color:#2c3e50;margin-bottom:10px;}
-.qr-info{background:#e8f6ff;padding:10px;border-radius:6px;margin-top:10px;border:1px solid #3498db;}
-.qr-info p{margin:3px 0;font-size:12px;color:#2c3e50;}
-.qr-info .qr-url{background:#fff;padding:8px;margin:5px 0;border-radius:4px;word-break:break-all;font-family:monospace;font-size:13px;border:1px solid #bdc3c7;max-height:60px;overflow-y:auto;}
-.document-summary{background:#fff;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #27ae60;}
-.document-summary h3{color:#2c3e50;margin-bottom:10px;}
-.document-summary table{width:100%;border-collapse:collapse;}
-.document-summary table td{padding:5px;border-bottom:1px solid #ecf0f1;}
-.document-summary table td:first-child{font-weight:bold;width:30%;}
-.form-type-indicator{background:#e8f4f8;border:2px solid #3498db;padding:10px;border-radius:8px;margin-bottom:15px;text-align:center;}
-.form-type-indicator h3{color:#2c3e50;margin:0;}
-.test-qr-btn{background:#e74c3c;color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;margin:5px;font-size:12px;}
-.test-qr-btn:hover{background:#c0392b;}
+
+.form-control{
+  width:100%;
+  padding:15px 18px;
+  margin-bottom:20px;
+  border:2px solid #e9ecef;
+  border-radius:10px;
+  font-size:14px;
+  transition:all 0.3s ease;
+  background:#fff;
+}
+
+.form-control:focus {
+  outline:none;
+  border-color:#3498db;
+  box-shadow:0 0 20px rgba(52,152,219,0.1);
+  transform:translateY(-2px);
+}
+
+.form-control::placeholder {
+  color:#adb5bd;
+}
+
+.btn-generate{
+  width:100%;
+  padding:15px;
+  background:linear-gradient(135deg, #2ecc71, #27ae60);
+  border:none;
+  color:white;
+  border-radius:50px;
+  font-weight:700;
+  cursor:pointer;
+  margin-bottom:15px;
+  font-size:15px;
+  transition:all 0.3s ease;
+  box-shadow:0 6px 20px rgba(46,204,113,0.3);
+  position:relative;
+  overflow:hidden;
+}
+
+.btn-generate::before {
+  content:'';
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:0;
+  height:0;
+  background:rgba(255,255,255,0.2);
+  border-radius:50%;
+  transform:translate(-50%, -50%);
+  transition:width 0.4s ease, height 0.4s ease;
+}
+
+.btn-generate:hover::before {
+  width:300px;
+  height:300px;
+}
+
+.btn-generate:hover{
+  background:linear-gradient(135deg, #27ae60, #229954);
+  transform:translateY(-3px);
+  box-shadow:0 10px 30px rgba(46,204,113,0.4);
+}
+
+.btn-upload-drive{
+  width:100%;
+  padding:15px;
+  background:linear-gradient(135deg, #1a73e8, #1557b0);
+  border:none;
+  color:white;
+  border-radius:50px;
+  font-weight:700;
+  cursor:pointer;
+  margin-bottom:15px;
+  font-size:15px;
+  transition:all 0.3s ease;
+  box-shadow:0 6px 20px rgba(26,115,232,0.3);
+  position:relative;
+  overflow:hidden;
+}
+
+.btn-upload-drive::before {
+  content:'';
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:0;
+  height:0;
+  background:rgba(255,255,255,0.2);
+  border-radius:50%;
+  transform:translate(-50%, -50%);
+  transition:width 0.4s ease, height 0.4s ease;
+}
+
+.btn-upload-drive:hover::before {
+  width:300px;
+  height:300px;
+}
+
+.btn-upload-drive:hover{
+  background:linear-gradient(135deg, #1557b0, #0d47a1);
+  transform:translateY(-3px);
+  box-shadow:0 10px 30px rgba(26,115,232,0.4);
+}
+
+.btn-upload-drive:disabled{
+  background:#94a3b8;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+
+.btn-logout{
+  background:linear-gradient(135deg, #e74c3c, #c0392b);
+  color:#fff;
+  border:none;
+  padding:10px 20px;
+  border-radius:25px;
+  cursor:pointer;
+  font-weight:600;
+  transition:all 0.3s ease;
+  box-shadow:0 4px 15px rgba(231,76,60,0.3);
+}
+
+.btn-logout:hover {
+  background:linear-gradient(135deg, #c0392b, #a93226);
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(231,76,60,0.4);
+}
+
+.result-container{margin-top:20px;}
+
+.preview-container{
+  margin-top:15px;
+  padding:20px;
+  background:#f8f9fa;
+  border:2px dashed #dee2e6;
+  border-radius:12px;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+  transition:all 0.3s ease;
+}
+
+.preview-container:hover {
+  border-color:#3498db;
+  background:#f1f8ff;
+}
+
+.document-info{
+  background:#fff;
+  padding:15px;
+  border-radius:8px;
+  border-left:5px solid #3498db;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+.document-info h4{
+  color:#2c3e50;
+  margin-bottom:8px;
+  font-size:16px;
+}
+
+.document-info p{
+  color:#7f8c8d;
+  font-size:13px;
+  line-height:1.4;
+}
+
+.preview-container embed,.preview-container img{
+  width:100%;
+  max-height:350px;
+  border-radius:8px;
+  object-fit:contain;
+  border:2px solid #e9ecef;
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+.preview-container a{
+  align-self:flex-start;
+  text-decoration:none;
+  color:#fff;
+  font-weight:600;
+  padding:10px 20px;
+  background:linear-gradient(135deg, #2980b9, #3498db);
+  border-radius:25px;
+  transition:all 0.3s ease;
+  box-shadow:0 4px 15px rgba(52,152,219,0.3);
+}
+
+.preview-container a:hover {
+  background:linear-gradient(135deg, #1f618d, #2980b9);
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(52,152,219,0.4);
+}
+
+.qr-section{
+  background:linear-gradient(135deg, #fff, #f8f9fa);
+  padding:25px;
+  border-radius:15px;
+  text-align:center;
+  border:3px solid #3498db;
+  margin-bottom:20px;
+  box-shadow:0 10px 30px rgba(52,152,219,0.1);
+}
+
+.qr-section h3{
+  color:#2c3e50;
+  margin-bottom:15px;
+  font-size:20px;
+  font-weight:700;
+}
+
+.qr-info{
+  background:linear-gradient(135deg, #e8f6ff, #f0f9ff);
+  padding:15px;
+  border-radius:10px;
+  margin-top:15px;
+  border:2px solid #3498db;
+  box-shadow:inset 0 2px 10px rgba(52,152,219,0.1);
+}
+
+.qr-info p{
+  margin:5px 0;
+  font-size:13px;
+  color:#2c3e50;
+  font-weight:500;
+}
+
+.qr-url{
+  background:#fff;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  word-break:break-all;
+  font-family:'Courier New', monospace;
+  font-size:12px;
+  border:2px solid #bdc3c7;
+  max-height:80px;
+  overflow-y:auto;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.document-summary{
+  background:linear-gradient(135deg, #fff, #f8fffe);
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+  border-left:5px solid #27ae60;
+  box-shadow:0 6px 20px rgba(39,174,96,0.1);
+}
+
+.document-summary h3{
+  color:#2c3e50;
+  margin-bottom:15px;
+  font-size:18px;
+  font-weight:700;
+}
+
+.document-summary table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.document-summary table td{
+  padding:8px 12px;
+  border-bottom:1px solid #ecf0f1;
+  vertical-align:top;
+}
+
+.document-summary table td:first-child{
+  font-weight:700;
+  width:35%;
+  color:#34495e;
+}
+
+.form-type-indicator{
+  background:linear-gradient(135deg, #e8f4f8, #d5edf5);
+  border:3px solid #3498db;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:20px;
+  text-align:center;
+  box-shadow:0 4px 15px rgba(52,152,219,0.1);
+}
+
+.form-type-indicator h3{
+  color:#2c3e50;
+  margin:0;
+  font-size:18px;
+  font-weight:700;
+}
+
+.test-qr-btn{
+  background:linear-gradient(135deg, #e74c3c, #c0392b);
+  color:white;
+  border:none;
+  padding:8px 15px;
+  border-radius:20px;
+  cursor:pointer;
+  margin:5px;
+  font-size:12px;
+  font-weight:600;
+  transition:all 0.3s ease;
+  box-shadow:0 3px 10px rgba(231,76,60,0.3);
+}
+
+.test-qr-btn:hover{
+  background:linear-gradient(135deg, #c0392b, #a93226);
+  transform:translateY(-2px);
+  box-shadow:0 5px 15px rgba(231,76,60,0.4);
+}
+
 .content-page{display:none;}
 .content-page.active{display:block;}
-.document-label{display:block;margin-bottom:10px;font-weight:600;color:#2c3e50;}
-.document-label input{margin-top:5px;}
-.upload-status{background:#e8f5e8;border:1px solid #4caf50;color:#2e7d32;padding:10px;border-radius:6px;margin:10px 0;display:none;}
-.upload-error{background:#ffebee;border:1px solid #f44336;color:#c62828;padding:10px;border-radius:6px;margin:10px 0;display:none;}
-.google-drive-status{background:#e3f2fd;border:1px solid #2196f3;color:#1565c0;padding:10px;border-radius:6px;margin:10px 0;text-align:center;}
-.progress-bar{width:100%;background:#f0f0f0;border-radius:4px;overflow:hidden;margin:10px 0;display:none;}
-.progress-fill{height:20px;background:#4caf50;border-radius:4px;transition:width 0.3s ease;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:bold;}
-.footer-login{text-align:center;padding:15px;color:#6c757d;font-size:12px;border-top:1px solid #e9ecef;}
+
+.document-label{
+  display:block;
+  margin-bottom:15px;
+  font-weight:700;
+  color:#2c3e50;
+  font-size:14px;
+}
+
+.document-label input{
+  margin-top:8px;
+  border:2px dashed #bdc3c7;
+  transition:all 0.3s ease;
+}
+
+.document-label input:hover {
+  border-color:#3498db;
+}
+
+.upload-status{
+  background:linear-gradient(135deg, #e8f5e8, #d4edda);
+  border:2px solid #4caf50;
+  color:#155724;
+  padding:15px;
+  border-radius:10px;
+  margin:15px 0;
+  display:none;
+  box-shadow:0 4px 15px rgba(76,175,80,0.2);
+}
+
+.upload-error{
+  background:linear-gradient(135deg, #ffebee, #f8d7da);
+  border:2px solid #f44336;
+  color:#721c24;
+  padding:15px;
+  border-radius:10px;
+  margin:15px 0;
+  display:none;
+  box-shadow:0 4px 15px rgba(244,67,54,0.2);
+}
+
+.google-drive-status{
+  background:linear-gradient(135deg, #e3f2fd, #e1f5fe);
+  border:2px solid #2196f3;
+  color:#0d47a1;
+  padding:15px;
+  border-radius:10px;
+  margin:15px 0;
+  text-align:center;
+  font-weight:600;
+  box-shadow:0 4px 15px rgba(33,150,243,0.2);
+}
+
+.progress-bar{
+  width:100%;
+  background:#e9ecef;
+  border-radius:25px;
+  overflow:hidden;
+  margin:15px 0;
+  display:none;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.progress-fill{
+  height:25px;
+  background:linear-gradient(90deg, #4caf50, #8bc34a);
+  border-radius:25px;
+  transition:width 0.3s ease;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-size:13px;
+  font-weight:700;
+  box-shadow:0 2px 10px rgba(76,175,80,0.3);
+}
+
+.footer-login{
+  text-align:center;
+  padding:20px;
+  color:#6c757d;
+  font-size:12px;
+  border-top:1px solid #e9ecef;
+  background:#f8f9fa;
+  font-weight:500;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  border-left: 5px solid #4caf50;
+  z-index: 10000;
+  transform: translateX(400px);
+  transition: transform 0.3s ease;
+}
+
+.notification.show {
+  transform: translateX(0);
+}
+
+.notification.error {
+  border-left-color: #f44336;
+}
+
+.notification.warning {
+  border-left-color: #ff9800;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #e9ecef;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar { width: 100%; height: auto; }
+  .main-container { flex-direction: column; }
+  .form-row { flex-direction: column; }
+  .login-container { margin: 20px; }
+  .content { padding: 20px; }
+  .card { padding: 20px; }
+}
+
+/* Dark mode toggle */
+.dark-mode-toggle {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-right: 15px;
+  transition: all 0.3s ease;
+}
+
+.dark-mode-toggle:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* Validation styles */
+.form-control.invalid {
+  border-color: #e74c3c;
+  box-shadow: 0 0 10px rgba(231,76,60,0.3);
+}
+
+.form-control.valid {
+  border-color: #27ae60;
+  box-shadow: 0 0 10px rgba(39,174,96,0.3);
+}
+
+.validation-message {
+  font-size: 12px;
+  margin-top: 5px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  display: none;
+}
+
+.validation-message.error {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #f44336;
+}
+
+.validation-message.success {
+  background: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
 </style>
 </head>
 <body>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="loading-spinner"></div>
+</div>
 
 <!-- LOGIN -->
 <div id="loginPage" class="login-container">
@@ -192,17 +919,18 @@ body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;displ
   </div>
   
   <div class="warning-section">
-    <div class="warning-title">Peringatan</div>
+    <div class="warning-title">🔒 Peringatan Keamanan</div>
     <div class="warning-text">
-      Halaman ini memerlukan autentikasi.<br>
-      Silahkan klik tombol login di bawah untuk melanjutkan.<br>
-      Terima kasih.
+      Halaman ini memerlukan autentikasi Google untuk mengakses sistem administrasi pelabuhan.<br>
+      Silakan klik tombol login di bawah untuk melanjutkan.<br>
+      <strong>Terima kasih atas kerja sama Anda.</strong>
     </div>
   </div>
   
   <div class="login-method-section">
-    <div class="method-title">- select login method -</div>
+    <div class="method-title">- pilih metode login -</div>
     <button id="googleLoginBtn" class="google-login-btn">
+      <div class="spinner" id="loginSpinner"></div>
       <svg class="google-icon" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -213,7 +941,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;displ
     </button>
   </div>
   
-  <div class="footer-login">Hak Cipta © 2025 Sandar-Ratu</div>
+  <div class="footer-login">Hak Cipta © 2025 Sandar-Ratu | PPN Palabuhanratu</div>
 </div>
 
 <!-- DASHBOARD -->
@@ -224,21 +952,44 @@ body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;displ
       <strong>SANDAR-RATU</strong>
     </div>
     <div style="display:flex;align-items:center;gap:15px;">
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+        <i class="fas fa-moon"></i>
+      </button>
       <div class="user-info">
         <img id="userAvatar" class="user-avatar" src="" alt="User">
-        <span id="userName">User</span>
+        <div>
+          <div class="user-name" id="userName">User</div>
+          <div style="font-size:11px;opacity:0.8;" id="userEmail">email@domain.com</div>
+        </div>
       </div>
-      <button class="btn-logout" onclick="logout()">Keluar</button>
+      <button class="btn-logout" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Keluar
+      </button>
     </div>
   </div>
   <div class="main-container">
     <div class="sidebar">
-      <div>👨‍✈️ Petugas</div>
-      <a onclick="showPage('departurePetugas', this)"><i class="fas fa-anchor"></i>&nbsp; Keberangkatan</a>
-      <a onclick="showPage('arrivalPetugas', this)"><i class="fas fa-ship"></i>&nbsp; Kedatangan</a>
-      <div>🚢 Nelayan</div>
-      <a onclick="showPage('departureNelayan', this)"><i class="fas fa-fish"></i>&nbsp; Keberangkatan</a>
-      <a onclick="showPage('arrivalNelayan', this)"><i class="fas fa-water"></i>&nbsp; Kedatangan</a>
+      <div>👨‍✈️ PETUGAS SYAHBANDAR</div>
+      <a onclick="showPage('departurePetugas', this)">
+        <i class="fas fa-ship"></i> Keberangkatan Kapal
+      </a>
+      <a onclick="showPage('arrivalPetugas', this)">
+        <i class="fas fa-anchor"></i> Kedatangan Kapal
+      </a>
+      <div>🚢 IZIN NELAYAN</div>
+      <a onclick="showPage('departureNelayan', this)">
+        <i class="fas fa-fish"></i> Keberangkatan Nelayan
+      </a>
+      <a onclick="showPage('arrivalNelayan', this)">
+        <i class="fas fa-water"></i> Kedatangan Nelayan
+      </a>
+      <div>📊 LAPORAN & DATA</div>
+      <a onclick="showPage('reports', this)">
+        <i class="fas fa-chart-bar"></i> Statistik & Laporan
+      </a>
+      <a onclick="showPage('settings', this)">
+        <i class="fas fa-cog"></i> Pengaturan Sistem
+      </a>
     </div>
 
     <div class="content" id="mainContent">
@@ -265,8 +1016,83 @@ let isGoogleAPIReady = false;
 let authInstance = null;
 let currentUser = null;
 let accessToken = null;
+let isDarkMode = false;
+let sessionStats = {
+    documentsGenerated: 0,
+    filesUploaded: 0,
+    sessionStart: new Date()
+};
 
-// Initialize Google APIs using only OAuth2
+// Utility Functions
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 100);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 4000);
+}
+
+function showLoading(show = true) {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.style.display = show ? 'flex' : 'none';
+}
+
+function validateForm(form) {
+    let isValid = true;
+    const requiredFields = form.querySelectorAll('[required]');
+    
+    requiredFields.forEach(field => {
+        const validationMsg = field.nextElementSibling?.classList.contains('validation-message') 
+            ? field.nextElementSibling 
+            : null;
+        
+        if (!field.value.trim()) {
+            field.classList.add('invalid');
+            field.classList.remove('valid');
+            if (validationMsg) {
+                validationMsg.textContent = 'Field ini wajib diisi';
+                validationMsg.className = 'validation-message error';
+                validationMsg.style.display = 'block';
+            }
+            isValid = false;
+        } else {
+            field.classList.remove('invalid');
+            field.classList.add('valid');
+            if (validationMsg) {
+                validationMsg.style.display = 'none';
+            }
+        }
+    });
+    
+    return isValid;
+}
+
+function formatFileSize(bytes) {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 Bytes';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function generateDocumentCode(shipName, date, time) {
+    const cleanShipName = shipName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    const formattedDate = date.replace(/-/g, '');
+    const formattedTime = time.replace(':', '');
+    return `SANDAR-${cleanShipName}-${formattedDate}-${formattedTime}`;
+}
+
+// Initialize Google APIs
 function initializeGoogleAuth() {
     console.log('Initializing Google Auth...');
     
@@ -283,11 +1109,13 @@ function initializeGoogleAuth() {
             isGoogleAPIReady = true;
             
             console.log('Google Auth initialized successfully');
+            showNotification('Google Auth berhasil diinisialisasi', 'success');
             
             // Update UI
             const loginBtn = document.getElementById('googleLoginBtn');
             loginBtn.disabled = false;
             document.getElementById('loginBtnText').textContent = 'Log in with Google';
+            document.getElementById('loginSpinner').style.display = 'none';
             
             // Check if user is already signed in
             if (authInstance.isSignedIn.get()) {
@@ -297,7 +1125,13 @@ function initializeGoogleAuth() {
             
         } catch (error) {
             console.error('Error initializing Google Auth:', error);
-            showError('Gagal menginisialisasi Google Auth: ' + error.message);
+            showNotification('Gagal menginisialisasi Google Auth: ' + error.message, 'error');
+            
+            // Reset button
+            const loginBtn = document.getElementById('googleLoginBtn');
+            loginBtn.disabled = false;
+            document.getElementById('loginBtnText').textContent = 'Retry Login';
+            document.getElementById('loginSpinner').style.display = 'none';
         }
     });
 }
@@ -305,6 +1139,7 @@ function initializeGoogleAuth() {
 // Handle successful sign in
 async function handleSignInSuccess(googleUser) {
     try {
+        showLoading(true);
         const profile = googleUser.getBasicProfile();
         const authResponse = googleUser.getAuthResponse();
         
@@ -318,53 +1153,55 @@ async function handleSignInSuccess(googleUser) {
         };
         
         console.log('User signed in:', currentUser);
+        sessionStats.sessionStart = new Date();
+        
         showDashboard();
+        showNotification(`Selamat datang, ${currentUser.name}!`, 'success');
         
     } catch (error) {
         console.error('Error handling sign in:', error);
-        showError('Gagal memproses login: ' + error.message);
+        showNotification('Gagal memproses login: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
     }
 }
 
 // Google Login Button Click Handler
 document.getElementById('googleLoginBtn').addEventListener('click', async function() {
     if (!isGoogleAPIReady) {
-        showError('Google API belum siap. Mohon tunggu...');
+        showNotification('Google API belum siap. Mohon tunggu...', 'warning');
         return;
     }
     
     try {
         this.disabled = true;
         document.getElementById('loginBtnText').textContent = 'Signing in...';
+        document.getElementById('loginSpinner').style.display = 'inline-block';
         
         const googleUser = await authInstance.signIn();
         await handleSignInSuccess(googleUser);
         
     } catch (error) {
         console.error('Sign in error:', error);
-        showError('Login gagal: ' + error.message);
+        showNotification('Login gagal: ' + error.message, 'error');
         
         // Reset button
         this.disabled = false;
         document.getElementById('loginBtnText').textContent = 'Log in with Google';
+        document.getElementById('loginSpinner').style.display = 'none';
     }
 });
-
-// Show error message
-function showError(message) {
-    alert(message);
-    console.error(message);
-}
 
 // Show dashboard after successful login
 function showDashboard() {
     if (!currentUser) {
-        showError('Login gagal, silakan coba lagi');
+        showNotification('Login gagal, silakan coba lagi', 'error');
         return;
     }
     
     // Update UI with user info
     document.getElementById('userName').textContent = currentUser.name;
+    document.getElementById('userEmail').textContent = currentUser.email;
     document.getElementById('userAvatar').src = currentUser.picture;
     
     // Show dashboard
@@ -375,6 +1212,7 @@ function showDashboard() {
     // Initialize pages and show first page
     initializePages();
     showPage('departurePetugas', document.querySelector(".sidebar a"));
+    updateGoogleDriveStatus();
 }
 
 // Update Google Drive connection status
@@ -382,26 +1220,26 @@ function updateGoogleDriveStatus(errorMsg = null) {
     const statusElements = document.querySelectorAll('.google-drive-status');
     statusElements.forEach(el => {
         if (errorMsg) {
-            el.style.background = '#ffebee';
+            el.style.background = 'linear-gradient(135deg, #ffebee, #f8d7da)';
             el.style.borderColor = '#f44336';
             el.style.color = '#c62828';
             el.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`;
         } else if (isGoogleAPIReady && authInstance && authInstance.isSignedIn.get()) {
-            el.style.background = '#e8f5e8';
+            el.style.background = 'linear-gradient(135deg, #e8f5e8, #d4edda)';
             el.style.borderColor = '#4caf50';
             el.style.color = '#2e7d32';
-            el.innerHTML = '<i class="fas fa-check-circle"></i> Google Drive terhubung dan siap digunakan';
+            el.innerHTML = `<i class="fas fa-check-circle"></i> Google Drive terhubung dan siap digunakan`;
         } else {
-            el.style.background = '#e3f2fd';
+            el.style.background = 'linear-gradient(135deg, #e3f2fd, #e1f5fe)';
             el.style.borderColor = '#2196f3';
             el.style.color = '#1565c0';
-            el.innerHTML = '<i class="fas fa-info-circle"></i> Google Drive siap digunakan';
+            el.innerHTML = `<i class="fas fa-info-circle"></i> Google Drive siap digunakan`;
         }
     });
 }
 
-// Upload file to Google Drive
-async function uploadFileToGoogleDrive(file, folderId, fileName) {
+// Upload file to Google Drive with progress
+async function uploadFileToGoogleDrive(file, folderId, fileName, onProgress = null) {
     if (!accessToken) {
         throw new Error('Access token tidak tersedia');
     }
@@ -415,57 +1253,104 @@ async function uploadFileToGoogleDrive(file, folderId, fileName) {
     form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
     form.append('file', file);
 
-    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + accessToken
-        },
-        body: form
+    const xhr = new XMLHttpRequest();
+    
+    return new Promise((resolve, reject) => {
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable && onProgress) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                onProgress(percentComplete);
+            }
+        });
+        
+        xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(JSON.parse(xhr.responseText));
+            } else {
+                reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+            }
+        });
+        
+        xhr.addEventListener('error', () => {
+            reject(new Error('Network error'));
+        });
+        
+        xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+        xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+        xhr.send(form);
     });
-
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    return await response.json();
 }
 
-// Logout function
+// Enhanced logout function
 function logout() {
-    try {
-        // Sign out from Google
-        if (authInstance && authInstance.isSignedIn.get()) {
-            authInstance.signOut();
+    if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+        try {
+            showLoading(true);
+            
+            // Sign out from Google
+            if (authInstance && authInstance.isSignedIn.get()) {
+                authInstance.signOut();
+            }
+            
+            // Reset variables
+            currentUser = null;
+            accessToken = null;
+            sessionStats = {
+                documentsGenerated: 0,
+                filesUploaded: 0,
+                sessionStart: new Date()
+            };
+            
+            // Show login page
+            document.getElementById("dashboard").style.display = "none";
+            document.getElementById("loginPage").style.display = "block";
+            document.body.style.background = "#f8f9fa";
+            
+            // Clear content
+            document.getElementById("mainContent").innerHTML = "";
+            
+            showNotification('Berhasil keluar dari sistem', 'success');
+            console.log('User signed out successfully');
+            
+        } catch (error) {
+            console.error('Error during logout:', error);
+            showNotification('Terjadi error saat logout: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
         }
-        
-        // Reset variables
-        currentUser = null;
-        accessToken = null;
-        
-        // Show login page
-        document.getElementById("dashboard").style.display = "none";
-        document.getElementById("loginPage").style.display = "block";
-        document.body.style.background = "#f8f9fa";
-        
-        // Clear content
-        document.getElementById("mainContent").innerHTML = "";
-        
-        console.log('User signed out successfully');
-        
-    } catch (error) {
-        console.error('Error during logout:', error);
     }
 }
 
-// Show page function
+// Dark mode toggle
+function toggleDarkMode() {
+    isDarkMode = !isDarkMode;
+    const body = document.body;
+    const toggle = document.querySelector('.dark-mode-toggle i');
+    
+    if (isDarkMode) {
+        body.style.filter = 'invert(1) hue-rotate(180deg)';
+        toggle.className = 'fas fa-sun';
+        localStorage.setItem('darkMode', 'true');
+    } else {
+        body.style.filter = 'none';
+        toggle.className = 'fas fa-moon';
+        localStorage.setItem('darkMode', 'false');
+    }
+}
+
+// Show page function with enhanced navigation
 function showPage(pageId, el) {
     // Hide all pages
-    document.querySelectorAll(".content-page").forEach(p => p.style.display = "none");
+    document.querySelectorAll(".content-page").forEach(p => {
+        p.style.display = "none";
+        p.classList.remove("active");
+    });
     
     // Show selected page
     const targetPage = document.getElementById(pageId);
     if (targetPage) {
         targetPage.style.display = "block";
+        targetPage.classList.add("active");
     }
     
     // Update active menu
@@ -473,98 +1358,280 @@ function showPage(pageId, el) {
     if (el) {
         el.classList.add("active");
     }
+    
+    // Update page title
+    const pageTitle = el ? el.textContent.trim() : pageId;
+    document.querySelector('.content h2')?.remove();
+    
+    if (targetPage) {
+        const h2 = document.createElement('h2');
+        h2.textContent = pageTitle;
+        targetPage.insertBefore(h2, targetPage.firstChild);
+    }
 }
 
-// Menu configuration
+// Menu configuration with enhanced options
 const menu = [
-    {id:'departurePetugas', title:'⚓ Petugas - Keberangkatan', type: 'departure', category: 'Petugas'},
-    {id:'arrivalPetugas', title:'⚓ Petugas - Kedatangan', type: 'arrival', category: 'Petugas'},
+    {id:'departurePetugas', title:'⚓ Petugas - Keberangkatan Kapal', type: 'departure', category: 'Petugas'},
+    {id:'arrivalPetugas', title:'⚓ Petugas - Kedatangan Kapal', type: 'arrival', category: 'Petugas'},
     {id:'departureNelayan', title:'🚢 Nelayan - Keberangkatan', type: 'departure', category: 'Nelayan'},
-    {id:'arrivalNelayan', title:'🚢 Nelayan - Kedatangan', type: 'arrival', category: 'Nelayan'}
+    {id:'arrivalNelayan', title:'🚢 Nelayan - Kedatangan', type: 'arrival', category: 'Nelayan'},
+    {id:'reports', title:'📊 Statistik & Laporan', type: 'reports', category: 'System'},
+    {id:'settings', title:'⚙️ Pengaturan Sistem', type: 'settings', category: 'System'}
 ];
 
-// Document lists
+// Enhanced document lists
 const departurePetugasDocuments = [
-    'SPB', 'Crew List', 'Perbekalan', 'SLO', 'Pernyataan Nahkoda',
-    'Kwitansi Tambat Labuh', 'Permohonan Penerbitan SPB', 'Daftar ABK', 'STBLKK', 'Faktur BBM'
+    'SPB (Surat Persetujuan Berlayar)', 
+    'Crew List (Daftar Awak Kapal)', 
+    'Perbekalan', 
+    'SLO (Surat Laik Operasi)', 
+    'Pernyataan Nahkoda',
+    'Kwitansi Tambat Labuh', 
+    'Permohonan Penerbitan SPB', 
+    'Daftar ABK (Anak Buah Kapal)', 
+    'STBLKK (Surat Tanda Bukti Lapor Kedatangan Kapal)', 
+    'Faktur BBM (Bahan Bakar Minyak)',
+    'Sertifikat Keselamatan Kapal',
+    'Dokumen Muatan'
 ];
 
 const departureNelayanDocuments = [
-    'SPB', 'Crew List', 'Perbekalan', 'SLO', 'Pernyataan Nahkoda'
+    'SPB (Surat Persetujuan Berlayar)', 
+    'Crew List (Daftar Awak Kapal)', 
+    'Perbekalan', 
+    'SLO (Surat Laik Operasi)', 
+    'Pernyataan Nahkoda',
+    'SIPI (Surat Izin Penangkapan Ikan)',
+    'SIKPI (Surat Izin Kapal Penangkap Ikan)'
 ];
 
 const arrivalDocuments = [
-    'STBLKK', 'Rekom Bongkar', 'SPB Asal'
+    'STBLKK (Surat Tanda Bukti Lapor Kedatangan Kapal)', 
+    'Rekomendasi Bongkar Muatan', 
+    'SPB Asal (Pelabuhan Asal)',
+    'Manifest Muatan',
+    'Laporan Hasil Tangkapan'
 ];
 
-// Initialize pages
+// Initialize pages with enhanced functionality
 function initializePages() {
     const contentDiv = document.getElementById("mainContent");
     contentDiv.innerHTML = "";
     
-    menu.forEach(m => {
-        const div = document.createElement('div');
-        div.id = m.id;
-        div.className = 'content-page';
-        
-        let documents;
-        if (m.type === 'arrival') {
-            documents = arrivalDocuments;
-        } else if (m.id === 'departurePetugas') {
-            documents = departurePetugasDocuments;
-        } else if (m.id === 'departureNelayan') {
-            documents = departureNelayanDocuments;
-        } else {
-            documents = departurePetugasDocuments;
-        }
-        
-        const documentInputs = documents.map(doc => 
-            `<label class="document-label">${doc}: 
-                <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
-            </label>`
-        ).join('');
+    // Create regular form pages
+    menu.filter(m => m.type !== 'reports' && m.type !== 'settings').forEach(m => {
+        createFormPage(m, contentDiv);
+    });
+    
+    // Create reports page
+    createReportsPage(contentDiv);
+    
+    // Create settings page
+    createSettingsPage(contentDiv);
+    
+    // Set default date and time
+    setDefaultDateTime();
+    
+    // Update Google Drive status
+    setTimeout(() => {
+        updateGoogleDriveStatus();
+    }, 100);
+    
+    // Load dark mode preference
+    if (localStorage.getItem('darkMode') === 'true') {
+        toggleDarkMode();
+    }
+}
 
-        div.innerHTML = `
-            <h2>${m.title}</h2>
-            <div class="card">
-                <div class="form-type-indicator">
-                    <h3>📋 Form ${m.category} - ${m.type === 'departure' ? 'Keberangkatan' : 'Kedatangan'}</h3>
-                </div>
-                
-                <div class="google-drive-status">
-                    <i class="fas fa-info-circle"></i> Google Drive siap digunakan
-                </div>
-                
-                <form data-form-type="${m.category}-${m.type === 'departure' ? 'Keberangkatan' : 'Kedatangan'}">
-                    <input type="text" class="form-control" placeholder="Nama Kapal" required>
-                    <div class="form-row">
-                        <input type="date" class="form-control" required>
-                        <input type="time" class="form-control" required>
+function createFormPage(menuItem, container) {
+    const div = document.createElement('div');
+    div.id = menuItem.id;
+    div.className = 'content-page';
+    
+    let documents;
+    if (menuItem.type === 'arrival') {
+        documents = arrivalDocuments;
+    } else if (menuItem.id === 'departurePetugas') {
+        documents = departurePetugasDocuments;
+    } else if (menuItem.id === 'departureNelayan') {
+        documents = departureNelayanDocuments;
+    } else {
+        documents = departurePetugasDocuments;
+    }
+    
+    const documentInputs = documents.map(doc => 
+        `<label class="document-label">${doc}: 
+            <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required>
+            <div class="validation-message"></div>
+        </label>`
+    ).join('');
+
+    div.innerHTML = `
+        <div class="card">
+            <div class="form-type-indicator">
+                <h3>📋 Form ${menuItem.category} - ${menuItem.type === 'departure' ? 'Keberangkatan' : 'Kedatangan'}</h3>
+            </div>
+            
+            <div class="google-drive-status">
+                <i class="fas fa-info-circle"></i> Google Drive siap digunakan
+            </div>
+            
+            <form data-form-type="${menuItem.category}-${menuItem.type === 'departure' ? 'Keberangkatan' : 'Kedatangan'}">
+                <div class="form-row">
+                    <div style="flex:2;">
+                        <input type="text" class="form-control" placeholder="Nama Kapal *" required>
+                        <div class="validation-message"></div>
                     </div>
-                    <input type="text" class="form-control" placeholder="Nama Nahkoda" required>
-                    <input type="text" class="form-control" placeholder="GT">
-                    <h4 style="margin:15px 0 10px;color:#2c3e50;">📎 Upload Dokumen</h4>
-                    ${documentInputs}
-                    <button type="button" class="btn-generate" onclick="generateAll(this)">Generate QR & Preview</button>
+                    <div style="flex:1;">
+                        <input type="text" class="form-control" placeholder="IMO Number">
+                        <div class="validation-message"></div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <input type="date" class="form-control" required>
+                    <input type="time" class="form-control" required>
+                </div>
+                
+                <div class="form-row">
+                    <input type="text" class="form-control" placeholder="Nama Nahkoda *" required>
+                    <input type="text" class="form-control" placeholder="GT (Gross Tonnage)">
+                </div>
+                
+                <div class="form-row">
+                    <input type="text" class="form-control" placeholder="Pelabuhan Asal/Tujuan">
+                    <select class="form-control">
+                        <option value="">Pilih Jenis Kapal</option>
+                        <option value="Kapal Penumpang">Kapal Penumpang</option>
+                        <option value="Kapal Barang">Kapal Barang</option>
+                        <option value="Kapal Tanker">Kapal Tanker</option>
+                        <option value="Kapal Ikan">Kapal Ikan</option>
+                        <option value="Kapal Pesiar">Kapal Pesiar</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                
+                <h4 style="margin:20px 0 15px;color:#2c3e50;">📎 Upload Dokumen Wajib</h4>
+                ${documentInputs}
+                
+                <div style="margin-top:30px;">
+                    <button type="button" class="btn-generate" onclick="generateAll(this)">
+                        <i class="fas fa-qrcode"></i> Generate QR & Preview Dokumen
+                    </button>
                     <button type="button" class="btn-upload-drive" onclick="uploadToGoogleDrive(this)">
                         <i class="fab fa-google-drive"></i> Upload ke Google Drive
                     </button>
-                    <button type="button" class="btn-generate" onclick="downloadAll(this)">⬇ Download Semua Dokumen + QR PDF</button>
-                    
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 0%;">0%</div>
-                    </div>
-                    <div class="upload-status"></div>
-                    <div class="upload-error"></div>
-                </form>
-                <div class="result-container"></div>
-            </div>
-        `;
-        
-        contentDiv.appendChild(div);
-    });
+                    <button type="button" class="btn-generate" onclick="downloadAll(this)" style="background:linear-gradient(135deg, #f39c12, #e67e22);">
+                        <i class="fas fa-download"></i> Download Semua Dokumen + QR PDF
+                    </button>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%;">0%</div>
+                </div>
+                <div class="upload-status"></div>
+                <div class="upload-error"></div>
+            </form>
+            <div class="result-container"></div>
+        </div>
+    `;
     
-    // Set default date and time
+    container.appendChild(div);
+}
+
+function createReportsPage(container) {
+    const div = document.createElement('div');
+    div.id = 'reports';
+    div.className = 'content-page';
+    
+    div.innerHTML = `
+        <div class="card">
+            <h3>📊 Statistik Sesi Saat Ini</h3>
+            <div class="document-summary">
+                <table>
+                    <tr><td>Sesi Login:</td><td><span id="sessionTime">-</span></td></tr>
+                    <tr><td>Dokumen Dibuat:</td><td><span id="docsGenerated">${sessionStats.documentsGenerated}</span></td></tr>
+                    <tr><td>File Diupload:</td><td><span id="filesUploaded">${sessionStats.filesUploaded}</span></td></tr>
+                    <tr><td>User Aktif:</td><td>${currentUser ? currentUser.name : 'Unknown'}</td></tr>
+                    <tr><td>Email:</td><td>${currentUser ? currentUser.email : 'Unknown'}</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>📈 Informasi Sistem</h3>
+            <div class="document-summary">
+                <table>
+                    <tr><td>Versi Sistem:</td><td>SANDAR-RATU v2.1.0</td></tr>
+                    <tr><td>Google API Status:</td><td><span class="${isGoogleAPIReady ? 'text-success' : 'text-danger'}">${isGoogleAPIReady ? 'Aktif' : 'Tidak Aktif'}</span></td></tr>
+                    <tr><td>Browser:</td><td id="browserInfo">-</td></tr>
+                    <tr><td>Waktu Server:</td><td id="serverTime">-</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>📁 Folder Google Drive</h3>
+            <div class="document-summary">
+                <table>
+                    <tr><td>Petugas - Keberangkatan:</td><td><a href="https://drive.google.com/drive/folders/${FOLDER_MAP['Petugas-Keberangkatan']}" target="_blank">Lihat Folder</a></td></tr>
+                    <tr><td>Petugas - Kedatangan:</td><td><a href="https://drive.google.com/drive/folders/${FOLDER_MAP['Petugas-Kedatangan']}" target="_blank">Lihat Folder</a></td></tr>
+                    <tr><td>Nelayan - Keberangkatan:</td><td><a href="https://drive.google.com/drive/folders/${FOLDER_MAP['Nelayan-Keberangkatan']}" target="_blank">Lihat Folder</a></td></tr>
+                    <tr><td>Nelayan - Kedatangan:</td><td><a href="https://drive.google.com/drive/folders/${FOLDER_MAP['Nelayan-Kedatangan']}" target="_blank">Lihat Folder</a></td></tr>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(div);
+}
+
+function createSettingsPage(container) {
+    const div = document.createElement('div');
+    div.id = 'settings';
+    div.className = 'content-page';
+    
+    div.innerHTML = `
+        <div class="card">
+            <h3>⚙️ Pengaturan Tampilan</h3>
+            <div style="display:flex;align-items:center;gap:15px;margin:20px 0;">
+                <label style="font-weight:600;">Mode Gelap:</label>
+                <button class="btn-generate" onclick="toggleDarkMode()" style="width:auto;padding:10px 20px;">
+                    <i class="fas fa-moon"></i> Toggle Dark Mode
+                </button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>🔧 Pengaturan Sistem</h3>
+            <div class="form-row">
+                <button class="btn-generate" onclick="clearCache()" style="background:linear-gradient(135deg, #f39c12, #e67e22);">
+                    <i class="fas fa-trash"></i> Bersihkan Cache Browser
+                </button>
+                <button class="btn-generate" onclick="exportSettings()" style="background:linear-gradient(135deg, #9b59b6, #8e44ad);">
+                    <i class="fas fa-download"></i> Export Pengaturan
+                </button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>📞 Informasi Kontak</h3>
+            <div class="document-summary">
+                <table>
+                    <tr><td>PPN Palabuhanratu:</td><td>+62 266 431 001</td></tr>
+                    <tr><td>Email Support:</td><td>support@ppnpalabuhanratu.com</td></tr>
+                    <tr><td>Alamat:</td><td>Jl. Pelabuhan, Palabuhanratu, Sukabumi</td></tr>
+                    <tr><td>Jam Operasional:</td><td>24 Jam (Senin - Minggu)</td></tr>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(div);
+}
+
+function setDefaultDateTime() {
     const today = new Date().toISOString().split("T")[0];
     const now = new Date().toTimeString().slice(0, 5);
     
@@ -575,14 +1642,9 @@ function initializePages() {
     document.querySelectorAll('input[type="time"]').forEach(input => {
         input.value = now;
     });
-    
-    // Update Google Drive status
-    setTimeout(() => {
-        updateGoogleDriveStatus();
-    }, 100);
 }
 
-// Upload to Google Drive function
+// Enhanced upload to Google Drive function
 async function uploadToGoogleDrive(btn) {
     const form = btn.closest("form");
     const formType = form.getAttribute('data-form-type');
@@ -590,6 +1652,12 @@ async function uploadToGoogleDrive(btn) {
     const progressFill = form.querySelector('.progress-fill');
     const statusDiv = form.querySelector('.upload-status');
     const errorDiv = form.querySelector('.upload-error');
+    
+    // Validate form first
+    if (!validateForm(form)) {
+        showNotification('Mohon lengkapi semua field yang wajib diisi', 'error');
+        return;
+    }
     
     // Hide previous messages
     statusDiv.style.display = 'none';
@@ -639,6 +1707,7 @@ async function uploadToGoogleDrive(btn) {
     // Show progress bar
     progressBar.style.display = 'block';
     btn.disabled = true;
+    showLoading(true);
     
     try {
         let uploadedCount = 0;
@@ -651,12 +1720,21 @@ async function uploadToGoogleDrive(btn) {
         for (const fileData of filesToUpload) {
             const { file, label } = fileData;
             
-            // Create filename
+            // Create filename with timestamp
             const timestamp = date.replace(/-/g, '') + '_' + time.replace(':', '');
-            const fileName = `[${formType}]_${shipName.replace(/\s+/g, '_')}_${label}_${timestamp}.${file.name.split('.').pop()}`;
+            const fileName = `[${formType}]_${shipName.replace(/\s+/g, '_')}_${label.replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}.${file.name.split('.').pop()}`;
             
             try {
-                const result = await uploadFileToGoogleDrive(file, folderId, fileName);
+                const result = await uploadFileToGoogleDrive(
+                    file, 
+                    folderId, 
+                    fileName,
+                    (progress) => {
+                        const overallProgress = Math.round(((uploadedCount + progress/100) / totalFiles) * 100);
+                        progressFill.style.width = overallProgress + '%';
+                        progressFill.textContent = overallProgress + '%';
+                    }
+                );
                 
                 if (result.id) {
                     uploadedCount++;
@@ -664,8 +1742,10 @@ async function uploadToGoogleDrive(btn) {
                         name: fileName,
                         label: label,
                         id: result.id,
-                        url: `https://drive.google.com/file/d/${result.id}/view`
+                        url: `https://drive.google.com/file/d/${result.id}/view`,
+                        size: formatFileSize(file.size)
                     });
+                    sessionStats.filesUploaded++;
                 } else {
                     throw new Error('Upload failed: ' + (result.error?.message || 'Unknown error'));
                 }
@@ -694,7 +1774,7 @@ async function uploadToGoogleDrive(btn) {
             let resultHtml = `<i class="fas fa-check-circle"></i> Berhasil mengupload ${successCount} file ke Google Drive!<br><br>`;
             
             results.filter(r => !r.error).forEach(result => {
-                resultHtml += `• <strong>${result.label}</strong>: <a href="${result.url}" target="_blank">${result.name}</a><br>`;
+                resultHtml += `• <strong>${result.label}</strong> (${result.size}): <a href="${result.url}" target="_blank">${result.name}</a><br>`;
             });
             
             if (errorCount > 0) {
@@ -705,124 +1785,161 @@ async function uploadToGoogleDrive(btn) {
             }
             
             statusDiv.innerHTML = resultHtml;
-            statusDiv.style.background = '#e8f5e8';
+            statusDiv.style.background = 'linear-gradient(135deg, #e8f5e8, #d4edda)';
             statusDiv.style.borderColor = '#4caf50';
             statusDiv.style.color = '#2e7d32';
+            
+            showNotification(`Berhasil upload ${successCount} file ke Google Drive!`, 'success');
         } else {
             errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Gagal mengupload semua file!<br>${results.map(r => `• ${r.label}: ${r.error}`).join('<br>')}`;
             errorDiv.style.display = 'block';
             statusDiv.style.display = 'none';
+            
+            showNotification('Gagal mengupload file ke Google Drive!', 'error');
         }
+        
+        // Update stats display
+        updateStatsDisplay();
         
     } catch (error) {
         console.error('Upload process failed:', error);
         errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Terjadi kesalahan: ${error.message}`;
         errorDiv.style.display = 'block';
         statusDiv.style.display = 'none';
+        
+        showNotification('Terjadi kesalahan saat upload: ' + error.message, 'error');
     } finally {
         btn.disabled = false;
+        showLoading(false);
         setTimeout(() => {
             progressBar.style.display = 'none';
             progressFill.style.width = '0%';
             progressFill.textContent = '0%';
-        }, 2000);
+        }, 3000);
     }
 }
 
-// Generate QR and preview
+// Enhanced generate QR and preview function
 function generateAll(btn) {
     const form = btn.closest("form");
     const resultBox = form.nextElementSibling;
     const formType = form.getAttribute('data-form-type');
+    
+    // Validate form
+    if (!validateForm(form)) {
+        showNotification('Mohon lengkapi semua field yang wajib diisi', 'error');
+        return;
+    }
+    
     resultBox.innerHTML = "";
 
     // Get form data
-    const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
+    const formInputs = form.querySelectorAll('input[type="text"], select');
+    const shipName = formInputs[0].value || "KAPAL";
+    const imoNumber = formInputs[1]?.value || "-";
     const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
     const time = form.querySelector('input[type="time"]').value || "00:00";
-    const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
-    const gt = form.querySelectorAll('input[type="text"]')[2].value || "-";
+    const captain = formInputs[2].value || "Nahkoda";
+    const gt = formInputs[3]?.value || "-";
+    const port = formInputs[4]?.value || "-";
+    const shipType = form.querySelector('select')?.value || "-";
     
-    const formattedDate = date.replace(/-/g, '');
-    const formattedTime = time.replace(':', '');
-    const code = `SANDAR-${shipName.replace(/\s+/g, '')}-${formattedDate}-${formattedTime}`;
+    const code = generateDocumentCode(shipName, date, time);
 
-    // Document summary
+    // Document summary with enhanced info
     const summaryDiv = document.createElement("div");
     summaryDiv.className = "document-summary";
     summaryDiv.innerHTML = `
         <h3>📋 Ringkasan Dokumen</h3>
         <table>
             <tr><td>Jenis Form:</td><td><strong>${formType}</strong></td></tr>
+            <tr><td>Kode Dokumen:</td><td><strong>${code}</strong></td></tr>
             <tr><td>Nama Kapal:</td><td>${shipName}</td></tr>
+            <tr><td>IMO Number:</td><td>${imoNumber}</td></tr>
+            <tr><td>Jenis Kapal:</td><td>${shipType}</td></tr>
             <tr><td>Tanggal:</td><td>${new Date(date).toLocaleDateString('id-ID')}</td></tr>
             <tr><td>Waktu:</td><td>${time}</td></tr>
             <tr><td>Nahkoda:</td><td>${captain}</td></tr>
             <tr><td>GT:</td><td>${gt}</td></tr>
-            <tr><td>Kode Dokumen:</td><td><strong>${code}</strong></td></tr>
+            <tr><td>Pelabuhan:</td><td>${port}</td></tr>
             <tr><td>Petugas:</td><td><strong>${currentUser ? currentUser.name : 'Unknown'}</strong></td></tr>
+            <tr><td>Email Petugas:</td><td>${currentUser ? currentUser.email : 'Unknown'}</td></tr>
             <tr><td>Dibuat:</td><td>${new Date().toLocaleString('id-ID')}</td></tr>
         </table>
     `;
     resultBox.appendChild(summaryDiv);
 
-    // QR Code section
+    // Enhanced QR Code section
     const qrSection = document.createElement("div");
     qrSection.className = "qr-section";
-    qrSection.innerHTML = `<h3>🔲 QR Code Dokumen</h3>`;
+    qrSection.innerHTML = `<h3>🔲 QR Code Verifikasi Dokumen</h3>`;
     
     const qrDiv = document.createElement("div");
     qrDiv.id = `qrcode-${Date.now()}`;
     qrSection.appendChild(qrDiv);
     
-    // Create QR URL - Using the appropriate folder based on form type
+    // Create enhanced QR URL with more parameters
     const folderId = FOLDER_MAP[formType];
-    const baseUrl = `https://drive.google.com/drive/folders/1ZpBOs2z1OkHMWFW5Zy4D4_fd_3v62xOa`;
+    const baseUrl = `https://drive.google.com/drive/folders/${folderId}`;
     const params = new URLSearchParams({
         code: code,
         type: formType,
         ship: shipName,
+        imo: imoNumber,
+        shipType: shipType,
         date: date,
         time: time,
         captain: captain,
         gt: gt,
-        officer: currentUser ? currentUser.name : 'Unknown'
+        port: port,
+        officer: currentUser ? currentUser.name : 'Unknown',
+        email: currentUser ? currentUser.email : 'Unknown',
+        timestamp: new Date().getTime()
     });
     const qrUrl = `${baseUrl}?${params.toString()}`;
     
-    // QR Info
+    // Enhanced QR Info
     const qrInfo = document.createElement("div");
     qrInfo.className = "qr-info";
     qrInfo.innerHTML = `
         <p><strong>🔗 URL QR Code:</strong></p>
         <div class="qr-url">${qrUrl}</div>
         <p><strong>📏 Panjang URL:</strong> ${qrUrl.length} karakter</p>
-        <p><strong>📊 Error Correction:</strong> Medium (25%)</p>
-        <p><strong>📁 Folder:</strong> ${formType}</p>
+        <p><strong>📊 Error Correction:</strong> High (30%)</p>
+        <p><strong>📁 Folder Target:</strong> ${formType}</p>
         <p><strong>👤 Petugas:</strong> ${currentUser ? currentUser.name : 'Unknown'}</p>
-        <button class="test-qr-btn" onclick="copyToClipboard('${qrUrl.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">📋 Copy URL</button>
-        <button class="test-qr-btn" onclick="openUrl('${qrUrl.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">🔗 Test URL</button>
+        <p><strong>📧 Email:</strong> ${currentUser ? currentUser.email : 'Unknown'}</p>
+        <div style="margin-top:15px;">
+            <button class="test-qr-btn" onclick="copyToClipboard('${qrUrl.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">
+                <i class="fas fa-copy"></i> Copy URL
+            </button>
+            <button class="test-qr-btn" onclick="openUrl('${qrUrl.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">
+                <i class="fas fa-external-link-alt"></i> Test URL
+            </button>
+            <button class="test-qr-btn" onclick="downloadQR('${qrDiv.id}', '${code}')">
+                <i class="fas fa-download"></i> Download QR
+            </button>
+        </div>
     `;
     qrSection.appendChild(qrInfo);
-    
     resultBox.appendChild(qrSection);
     
-    // Generate QR Code
+    // Generate QR Code with higher error correction
     try {
         new QRCode(qrDiv, {
             text: qrUrl,
-            width: 256,
-            height: 256,
+            width: 300,
+            height: 300,
             colorDark: "#2c3e50",
             colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
+            correctLevel: QRCode.CorrectLevel.H
         });
     } catch (error) {
         console.error('Error generating QR code:', error);
-        qrDiv.innerHTML = '<p style="color: red;">Error generating QR code</p>';
+        qrDiv.innerHTML = '<p style="color: red; padding: 50px; text-align: center;">Error generating QR code</p>';
     }
 
-    // Preview uploaded documents
+    // Enhanced document preview
     let docCount = 0;
     const fileInputs = form.querySelectorAll('input[type="file"]');
     
@@ -837,17 +1954,20 @@ function generateAll(btn) {
                 const previewContainer = document.createElement("div");
                 previewContainer.className = "preview-container";
                 
-                // Document info
+                // Enhanced document info
                 const docInfo = document.createElement("div");
                 docInfo.className = "document-info";
                 docInfo.innerHTML = `
-                    <h4>${label}</h4>
-                    <p>📄 ${file.name} | 📏 ${(file.size/1024).toFixed(2)} KB | 📅 ${new Date().toLocaleDateString('id-ID')}<br>
-                    <strong>📋 Jenis: ${formType}</strong> | 👤 <strong>Petugas: ${currentUser ? currentUser.name : 'Unknown'}</strong></p>
+                    <h4>📄 ${label}</h4>
+                    <p><strong>File:</strong> ${file.name}<br>
+                    <strong>Ukuran:</strong> ${formatFileSize(file.size)}<br>
+                    <strong>Tipe:</strong> ${file.type || 'Unknown'}<br>
+                    <strong>Upload:</strong> ${new Date().toLocaleString('id-ID')}<br>
+                    <strong>Form:</strong> ${formType} | <strong>Petugas:</strong> ${currentUser ? currentUser.name : 'Unknown'}</p>
                 `;
                 previewContainer.appendChild(docInfo);
                 
-                // Preview element
+                // Enhanced preview element
                 let previewEl;
                 if (file.type.includes("pdf")) {
                     previewEl = document.createElement("embed");
@@ -859,15 +1979,22 @@ function generateAll(btn) {
                     previewEl.alt = file.name;
                 } else {
                     previewEl = document.createElement("div");
-                    previewEl.innerHTML = `<p style="text-align:center;padding:50px;color:#7f8c8d;">📄 ${file.name}<br><small>Preview tidak tersedia untuk tipe file ini</small></p>`;
+                    previewEl.innerHTML = `
+                        <div style="text-align:center;padding:50px;color:#7f8c8d;border:2px dashed #bdc3c7;border-radius:8px;">
+                            <i class="fas fa-file-alt" style="font-size:48px;margin-bottom:15px;"></i><br>
+                            <strong>${file.name}</strong><br>
+                            <small>Preview tidak tersedia untuk tipe file ini</small><br>
+                            <small>Ukuran: ${formatFileSize(file.size)}</small>
+                        </div>
+                    `;
                 }
                 previewContainer.appendChild(previewEl);
 
-                // Download link
+                // Enhanced download link
                 const downloadLink = document.createElement("a");
                 downloadLink.href = e.target.result;
-                downloadLink.download = `[${formType}]_${code}_${label}_${file.name}`;
-                downloadLink.textContent = `⬇ Download ${label}`;
+                downloadLink.download = `[${formType}]_${code}_${label.replace(/[^a-zA-Z0-9]/g, '_')}_${file.name}`;
+                downloadLink.innerHTML = `<i class="fas fa-download"></i> Download ${label}`;
                 previewContainer.appendChild(downloadLink);
 
                 resultBox.appendChild(previewContainer);
@@ -877,16 +2004,22 @@ function generateAll(btn) {
     });
     
     if (docCount === 0) {
-        alert("Silakan upload minimal satu dokumen!");
+        showNotification('Silakan upload minimal satu dokumen!', 'warning');
         return;
     }
+    
+    // Update session stats
+    sessionStats.documentsGenerated++;
+    updateStatsDisplay();
+    
+    showNotification(`Berhasil generate QR Code untuk ${docCount} dokumen`, 'success');
 }
 
 // Helper functions for QR Code
 function copyToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
-            alert('URL berhasil disalin ke clipboard!');
+            showNotification('URL berhasil disalin ke clipboard!', 'success');
         }).catch(err => {
             console.error('Gagal menyalin: ', err);
             fallbackCopyToClipboard(text);
@@ -907,10 +2040,10 @@ function fallbackCopyToClipboard(text) {
     textArea.select();
     try {
         document.execCommand('copy');
-        alert('URL berhasil disalin ke clipboard!');
+        showNotification('URL berhasil disalin ke clipboard!', 'success');
     } catch (err) {
         console.error('Fallback copy failed: ', err);
-        alert('Gagal menyalin URL');
+        showNotification('Gagal menyalin URL', 'error');
     }
     document.body.removeChild(textArea);
 }
@@ -919,18 +2052,34 @@ function openUrl(url) {
     window.open(url, '_blank');
 }
 
-// Download all documents as PDF
+function downloadQR(qrDivId, fileName) {
+    const qrDiv = document.getElementById(qrDivId);
+    const canvas = qrDiv.querySelector('canvas');
+    
+    if (canvas) {
+        const link = document.createElement('a');
+        link.download = `QR_${fileName}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+        showNotification('QR Code berhasil didownload', 'success');
+    } else {
+        showNotification('QR Code belum dibuat', 'error');
+    }
+}
+
+// Enhanced download all documents as PDF
 async function downloadAll(btn) {
     const form = btn.closest("form");
     const resultBox = form.nextElementSibling;
     const formType = form.getAttribute('data-form-type');
     
     if (!resultBox.innerHTML.trim()) {
-        alert("Generate QR & Preview terlebih dahulu!");
+        showNotification('Generate QR & Preview terlebih dahulu!', 'warning');
         return;
     }
 
     try {
+        showLoading(true);
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         let yOffset = 20;
@@ -939,11 +2088,15 @@ async function downloadAll(btn) {
         const margin = 20;
         
         // Get form data
-        const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
+        const formInputs = form.querySelectorAll('input[type="text"], select');
+        const shipName = formInputs[0].value || "KAPAL";
+        const imoNumber = formInputs[1]?.value || "-";
         const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
         const time = form.querySelector('input[type="time"]').value || "00:00";
-        const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
-        const gt = form.querySelectorAll('input[type="text"]')[2].value || "-";
+        const captain = formInputs[2].value || "Nahkoda";
+        const gt = formInputs[3]?.value || "-";
+        const port = formInputs[4]?.value || "-";
+        const shipType = form.querySelector('select')?.value || "-";
         
         function checkAndAddPage(neededHeight) {
             if (yOffset + neededHeight > pageHeight - 35) {
@@ -954,77 +2107,82 @@ async function downloadAll(btn) {
             return false;
         }
         
-        // PDF Header
-        pdf.setFontSize(18);
+        // Enhanced PDF Header
+        pdf.setFontSize(20);
         pdf.setFont(undefined, 'bold');
         pdf.text('SANDAR-RATU', pageWidth/2, yOffset, { align: 'center' });
         yOffset += 8;
         
-        pdf.setFontSize(12);
+        pdf.setFontSize(14);
         pdf.text('Sistem Administrasi & Dokumen Kesyahbandaran', pageWidth/2, yOffset, { align: 'center' });
         yOffset += 5;
         pdf.text('PPN Palabuhanratu', pageWidth/2, yOffset, { align: 'center' });
         yOffset += 20;
         
-        // Form Type
+        // Enhanced Form Type Header
         pdf.setDrawColor(52, 152, 219);
         pdf.setFillColor(232, 244, 248);
-        pdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 15, 3, 3, 'FD');
+        pdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 20, 3, 3, 'FD');
         
-        yOffset += 10;
-        pdf.setFontSize(14);
+        yOffset += 13;
+        pdf.setFontSize(16);
         pdf.setFont(undefined, 'bold');
         pdf.setTextColor(44, 62, 80);
-        pdf.text('JENIS FORM: ' + formType, pageWidth/2, yOffset, { align: 'center' });
-        yOffset += 15;
+        pdf.text('FORM: ' + formType, pageWidth/2, yOffset, { align: 'center' });
+        yOffset += 20;
         
-        // Document info
+        // Enhanced document info
         pdf.setDrawColor(100);
         pdf.setFillColor(245, 245, 245);
-        pdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 50, 3, 3, 'FD');
+        pdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 70, 3, 3, 'FD');
         
-        yOffset += 10;
-        pdf.setFontSize(12);
+        yOffset += 12;
+        pdf.setFontSize(14);
         pdf.setFont(undefined, 'bold');
         pdf.setTextColor(0);
         pdf.text('INFORMASI DOKUMEN', margin + 10, yOffset);
-        yOffset += 8;
+        yOffset += 10;
         
         pdf.setFontSize(10);
         pdf.setFont(undefined, 'normal');
+        
+        // Column 1
         pdf.text('Nama Kapal: ' + shipName, margin + 10, yOffset);
-        pdf.text('GT: ' + gt, margin + 100, yOffset);
-        yOffset += 6;
-        pdf.text('Tanggal: ' + new Date(date).toLocaleDateString('id-ID'), margin + 10, yOffset);
-        pdf.text('Waktu: ' + time, margin + 100, yOffset);
-        yOffset += 6;
-        pdf.text('Nahkoda: ' + captain, margin + 10, yOffset);
-        yOffset += 6;
-        pdf.text('Petugas: ' + (currentUser ? currentUser.name : 'Unknown'), margin + 10, yOffset);
-        pdf.text('Email: ' + (currentUser ? currentUser.email : 'Unknown'), margin + 100, yOffset);
-        yOffset += 20;
+        pdf.text('IMO Number: ' + imoNumber, margin + 10, yOffset + 6);
+        pdf.text('Jenis Kapal: ' + shipType, margin + 10, yOffset + 12);
+        pdf.text('Tanggal: ' + new Date(date).toLocaleDateString('id-ID'), margin + 10, yOffset + 18);
+        pdf.text('Waktu: ' + time, margin + 10, yOffset + 24);
+        
+        // Column 2
+        pdf.text('Nahkoda: ' + captain, margin + 100, yOffset);
+        pdf.text('GT: ' + gt, margin + 100, yOffset + 6);
+        pdf.text('Pelabuhan: ' + port, margin + 100, yOffset + 12);
+        pdf.text('Petugas: ' + (currentUser ? currentUser.name : 'Unknown'), margin + 100, yOffset + 18);
+        pdf.text('Email: ' + (currentUser ? currentUser.email : 'Unknown'), margin + 100, yOffset + 24);
+        
+        yOffset += 40;
 
-        // QR Code
+        // Enhanced QR Code
         const qrCanvas = resultBox.querySelector('canvas');
         if (qrCanvas) {
-            checkAndAddPage(70);
-            pdf.setFontSize(12);
+            checkAndAddPage(80);
+            pdf.setFontSize(14);
             pdf.setFont(undefined, 'bold');
             pdf.text('QR CODE VERIFIKASI DOKUMEN', pageWidth/2, yOffset, { align: 'center' });
-            yOffset += 5;
+            yOffset += 10;
             
             const imgData = qrCanvas.toDataURL('image/png');
-            const qrSize = 50;
+            const qrSize = 60;
             pdf.addImage(imgData, 'PNG', (pageWidth-qrSize)/2, yOffset, qrSize, qrSize);
-            yOffset += qrSize + 10;
+            yOffset += qrSize + 15;
         }
 
-        // Document list
-        checkAndAddPage(20);
-        pdf.setFontSize(12);
+        // Enhanced document list
+        checkAndAddPage(30);
+        pdf.setFontSize(14);
         pdf.setFont(undefined, 'bold');
         pdf.text('DOKUMEN TERLAMPIR:', margin, yOffset);
-        yOffset += 10;
+        yOffset += 12;
         
         let docNumber = 1;
         const fileInputs = form.querySelectorAll('input[type="file"]');
@@ -1034,110 +2192,188 @@ async function downloadAll(btn) {
                 const file = fileInput.files[0];
                 const label = fileInput.parentElement.textContent.split(':')[0];
                 
-                checkAndAddPage(30);
+                checkAndAddPage(35);
                 
-                pdf.setFontSize(11);
+                // Document header
+                pdf.setDrawColor(52, 152, 219);
+                pdf.setFillColor(248, 252, 255);
+                pdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 25, 2, 2, 'FD');
+                
+                pdf.setFontSize(12);
                 pdf.setFont(undefined, 'bold');
-                pdf.text(docNumber + '. ' + label, margin, yOffset);
-                yOffset += 6;
+                pdf.setTextColor(44, 62, 80);
+                pdf.text(docNumber + '. ' + label, margin + 5, yOffset + 8);
                 
                 pdf.setFontSize(9);
                 pdf.setFont(undefined, 'normal');
-                const fileInfo = file.name + ' | ' + (file.size/1024).toFixed(2) + ' KB';
-                pdf.text(fileInfo, margin + 10, yOffset);
-                yOffset += 4;
+                pdf.setTextColor(127, 140, 141);
+                const fileInfo = file.name + ' | ' + formatFileSize(file.size);
+                pdf.text(fileInfo, margin + 5, yOffset + 15);
                 
                 pdf.setFontSize(8);
                 pdf.setTextColor(41, 128, 185);
-                pdf.text('Jenis Form: ' + formType, margin + 10, yOffset);
+                pdf.text('Form: ' + formType + ' | Upload: ' + new Date().toLocaleDateString('id-ID'), margin + 5, yOffset + 21);
                 pdf.setTextColor(0);
-                yOffset += 5;
                 
-                // Document box
-                pdf.setDrawColor(200);
-                pdf.setFillColor(250, 250, 250);
-                pdf.roundedRect(margin + 10, yOffset, pageWidth - 2*margin - 20, 15, 2, 2, 'FD');
-                
-                let fileTypeText = 'File - ' + file.name;
-                if (file.type.includes('pdf')) {
-                    fileTypeText = 'Dokumen PDF - ' + file.name;
-                } else if (file.type.includes('image')) {
-                    fileTypeText = 'Gambar - ' + file.name;
-                }
-                
-                pdf.text(fileTypeText, margin + 15, yOffset + 10);
-                yOffset += 20;
+                yOffset += 30;
                 docNumber++;
             }
         });
         
-        // Footer for all pages
+        // Enhanced footer for all pages
         const totalPages = pdf.internal.getNumberOfPages();
         for (let i = 1; i <= totalPages; i++) {
             pdf.setPage(i);
+            
+            // Footer line
+            pdf.setDrawColor(200);
+            pdf.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25);
+            
             pdf.setFontSize(8);
             pdf.setTextColor(100);
             
-            const footerY = pageHeight - 15;
+            const footerY = pageHeight - 18;
             pdf.text('SANDAR-RATU © 2025', margin, footerY);
             pdf.text('Halaman ' + i + ' dari ' + totalPages, pageWidth/2, footerY, { align: 'center' });
-            pdf.text('Dicetak: ' + new Date().toLocaleDateString('id-ID'), pageWidth - margin, footerY, { align: 'right' });
+            pdf.text('Dicetak: ' + new Date().toLocaleString('id-ID'), pageWidth - margin, footerY, { align: 'right' });
             
-            // Form type and officer in footer
+            // Enhanced footer info
             pdf.setFontSize(7);
-            pdf.text('Form: ' + formType + ' | Petugas: ' + (currentUser ? currentUser.name : 'Unknown'), pageWidth/2, footerY + 5, { align: 'center' });
+            pdf.text('Form: ' + formType + ' | Kapal: ' + shipName + ' | Petugas: ' + (currentUser ? currentUser.name : 'Unknown'), pageWidth/2, footerY + 6, { align: 'center' });
         }
         
         // Save PDF
-        const fileName = `[${formType}]_SANDAR_RATU_${shipName.replace(/\s+/g,'_')}_${date.replace(/-/g,'')}.pdf`;
-        pdf.save(fileName);
-        
-        alert(`Dokumen PDF berhasil di-download: ${fileName}\nJenis Form: ${formType}\nJumlah dokumen: ${docNumber-1}\nPetugas: ${currentUser ? currentUser.name : 'Unknown'}`);
-        
-    } catch (error) {
-        console.error('Error generating PDF:', error);
-        alert('Terjadi error saat membuat PDF. Silakan coba lagi.');
+        const fileName = `[${formType}]_SANDAR_RATU_${shipName.replace(/\s+/g,'_')
+
+// Utility: Copy URL to clipboard
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('URL berhasil dicopy ke clipboard', 'success');
+    }).catch(err => {
+        console.error('Clipboard error:', err);
+        showNotification('Gagal copy URL', 'error');
+    });
+}
+
+// Utility: Open URL in new tab
+function openUrl(url) {
+    window.open(url, '_blank');
+}
+
+// Utility: Download QR image
+function downloadQR(qrId, code) {
+    const qrCanvas = document.querySelector(`#${qrId} canvas`);
+    if (!qrCanvas) {
+        showNotification('QR Code tidak ditemukan', 'error');
+        return;
+    }
+    const link = document.createElement('a');
+    link.href = qrCanvas.toDataURL('image/png');
+    link.download = code + '_QR.png';
+    link.click();
+}
+
+// Download all docs + QR as PDF
+async function downloadAll(btn) {
+    const form = btn.closest("form");
+    const resultBox = form.nextElementSibling;
+    if (!resultBox || resultBox.innerHTML.trim() === '') {
+        showNotification('Silakan generate QR & preview dulu sebelum download', 'warning');
+        return;
+    }
+    showLoading(true);
+    try {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+        let y = 10;
+
+        // Tambahkan ringkasan
+        const summary = resultBox.querySelector('.document-summary');
+        if (summary) {
+            pdf.setFontSize(14);
+            pdf.text("Ringkasan Dokumen", 10, y);
+            y += 8;
+            pdf.setFontSize(10);
+            summary.querySelectorAll('tr').forEach(row => {
+                const cols = row.querySelectorAll('td');
+                if (cols.length >= 2) {
+                    pdf.text(`${cols[0].innerText} ${cols[1].innerText}`, 10, y);
+                    y += 6;
+                }
+            });
+            y += 10;
+        }
+
+        // Tambahkan QR
+        const qrCanvas = resultBox.querySelector('.qr-section canvas');
+        if (qrCanvas) {
+            const qrImg = qrCanvas.toDataURL("image/png");
+            pdf.addImage(qrImg, "PNG", 10, y, 60, 60);
+            y += 70;
+        }
+
+        // Tambahkan daftar dokumen
+        const previews = resultBox.querySelectorAll('.document-info');
+        if (previews.length > 0) {
+            pdf.setFontSize(14);
+            pdf.text("Daftar Dokumen", 10, y);
+            y += 8;
+            pdf.setFontSize(10);
+            previews.forEach(info => {
+                pdf.text(info.innerText, 10, y);
+                y += 6;
+            });
+        }
+
+        pdf.save("Dokumen_SandarRatu.pdf");
+        showNotification('PDF berhasil dibuat dan didownload', 'success');
+    } catch (err) {
+        console.error('Download error:', err);
+        showNotification('Gagal membuat PDF: ' + err.message, 'error');
+    } finally {
+        showLoading(false);
     }
 }
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded, initializing Google Auth...');
-    
-    const loginBtn = document.getElementById('googleLoginBtn');
-    loginBtn.disabled = true;
-    document.getElementById('loginBtnText').textContent = 'Loading...';
-    
-    // Check if Google APIs are available
-    function checkAndInitialize() {
-        if (typeof gapi !== 'undefined') {
-            initializeGoogleAuth();
-        } else {
-            console.log('Google API not yet available, retrying...');
-            setTimeout(checkAndInitialize, 1000);
-        }
+// Update statistik di halaman laporan
+function updateStatsDisplay() {
+    document.getElementById("docsGenerated").textContent = sessionStats.documentsGenerated;
+    document.getElementById("filesUploaded").textContent = sessionStats.filesUploaded;
+    document.getElementById("sessionTime").textContent = sessionStats.sessionStart.toLocaleString('id-ID');
+    document.getElementById("browserInfo").textContent = navigator.userAgent;
+    document.getElementById("serverTime").textContent = new Date().toLocaleString('id-ID');
+}
+
+// Clear cache
+function clearCache() {
+    if (confirm("Apakah Anda yakin ingin menghapus cache browser?")) {
+        localStorage.clear();
+        caches.keys().then(function(names) {
+            for (let name of names) caches.delete(name);
+        });
+        showNotification("Cache browser dibersihkan", "success");
     }
-    
-    checkAndInitialize();
+}
+
+// Export pengaturan
+function exportSettings() {
+    const settings = {
+        darkMode: localStorage.getItem('darkMode') || 'false',
+        sessionStats: sessionStats,
+        currentUser: currentUser
+    };
+    const blob = new Blob([JSON.stringify(settings, null, 2)], {type: "application/json"});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "settings_sandar_ratu.json";
+    link.click();
+    showNotification("Pengaturan berhasil diexport", "success");
+}
+
+// Inisialisasi setelah DOM siap
+document.addEventListener("DOMContentLoaded", () => {
+    initializeGoogleAuth();
 });
-
-// Handle auth state changes
-function handleAuthStateChange() {
-    if (authInstance) {
-        if (authInstance.isSignedIn.get()) {
-            const currentGoogleUser = authInstance.currentUser.get();
-            accessToken = currentGoogleUser.getAuthResponse().access_token;
-            updateGoogleDriveStatus();
-        } else {
-            accessToken = null;
-            updateGoogleDriveStatus();
-        }
-    }
-}
-
-// Listen for auth state changes
-setInterval(() => {
-    if (authInstance) {
-        handleAuthStateChange();
-    }
-}, 5000);
+</script>
+</body>
+</html>
