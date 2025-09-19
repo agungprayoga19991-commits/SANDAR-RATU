@@ -487,8 +487,8 @@
 </div>
 
 <script>
-    const CLIENT_ID = "180722419885-1u9s23e55gjirb60igrv8uq5dfk7ltsn.apps.googleusercontent.com";
-    const API_KEY = "AIzaSyAWrUdv79vEKgd3YVkYsHvfwS3-vKev_lk";
+    const CLIENT_ID = "464575855879-theqehj563fo25tp00gf6fhj6efr5045.apps.googleusercontent.com";
+    const API_KEY = "AIzaSyCYc9V2aXzmfOj8zcGbPdTimauSYxnCQd4";
     const SCOPES = "https://www.googleapis.com/auth/drive.file";
 
     const FOLDER_MAP = {
@@ -543,13 +543,12 @@
         }
 
         // Initialize Google API Client for Drive access
-        gapi.load('client', async () => {
-            try {
-                await gapi.client.init({
-                    apiKey: API_KEY,
-                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-                });
-
+        gapi.client.init({
+            apiKey: API_KEY,
+            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+            clientId: CLIENT_ID,
+            scope: "https://www.googleapis.com/auth/drive.file",
+        });
                 // Initialize token client for OAuth2
                 tokenClient = google.accounts.oauth2.initTokenClient({
                     client_id: CLIENT_ID,
