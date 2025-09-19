@@ -568,12 +568,11 @@
                 isGAPIReady = true;
                 console.log('Google API Client initialized');
                 updateGoogleDriveStatus();
-            } catch (error) {
-                console.error('Failed to initialize Google API Client:', error);
-                updateGoogleDriveStatus('Error: Failed to connect to Google Drive');
-            }
-        });
-    }
+            } try {
+              // kode kamu
+              } catch (e) {
+                console.error(e);
+              }
 
     function handleCredentialResponse(response) {
         if (!response.credential) {
