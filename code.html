@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://apis.google.com/js/api.js"></script>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;display:flex;justify-content:center;align-items:center;}
@@ -2255,20 +2256,23 @@ async function downloadAll(btn) {
 }
 
 // Initialize Google Drive API when page loads
-document.addEventListener('DOMContentLoaded', function() {
-  // Wait a bit for the Google API to load
-  setTimeout(() => {
-    if (typeof gapi !== 'undefined') {
-      initializeGoogleDrive();
-    } else {
-      console.log('Google API not available');
-      // Update status to show Google Drive is not available
-      setTimeout(() => {
-        updateGoogleDriveStatus('Google API tidak tersedia');
-      }, 1000);
-    }
-  }, 1000);
-});
+function initializeGoogleDrive() {
+    // Pastikan gapi sudah dimuat
+    gapi.load('client:auth2', () => {
+      gapi.client.init({
+        apiKey: 'YOUR_API_KEY',
+        clientId: 'YOUR_CLIENT_ID.apps.googleusercontent.com',
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+        scope: 'https://www.googleapis.com/auth/drive.file'
+      }).then(() => {
+        console.log('Google Drive API initialized');
+        updateGoogleDriveStatus('Google Drive API siap digunakan');
+      }, (error) => {
+        console.error('Gagal inisialisasi Google Drive API:', error);
+        updateGoogleDriveStatus('Gagal inisialisasi Google Drive API');
+      });
+    });
+  }
 
 // Listen for auth status changes
 setInterval(() => {
