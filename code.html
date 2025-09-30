@@ -942,8 +942,8 @@ async function downloadAll(btn) {
   const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
   const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
   const time = form.querySelector('input[type="time"]').value || "00:00";
-  const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
-  const gt = form.querySelectorAll('input[type="text"]')[2].value || "-";
+  const captain = form.querySelectorAll('input[type="text"]')[1]?.value || "Nahkoda";
+  const gt = form.querySelectorAll('input[type="text"]')[2]?.value || "-";
   const officer = currentUser ? currentUser.name : "Unknown";
   const email = currentUser ? currentUser.email : "Unknown";
 
@@ -974,7 +974,7 @@ async function downloadAll(btn) {
   cover.drawText(`Petugas: ${officer}`, { x: 60, y: infoY });
   cover.drawText(`Email: ${email}`, { x: 300, y: infoY });
 
-  // Tambahkan QR code dari preview (kalau ada)
+  // Tambahkan QR code (kalau ada)
   const qrCanvas = form.closest(".card").querySelector("canvas");
   if (qrCanvas) {
     const qrImg = await pdfDoc.embedPng(qrCanvas.toDataURL("image/png"));
@@ -987,20 +987,19 @@ async function downloadAll(btn) {
   for (const fileInput of fileInputs) {
     if (!fileInput.files[0]) continue;
     const file = fileInput.files[0];
-    const arrayBuffer = await readFileAsArrayBuffer(file);
+    const arrayBuffer = await file.arrayBuffer();
     const fileName = file.name.toLowerCase();
 
     if (fileName.endsWith(".pdf")) {
-      // Import semua halaman PDF
       try {
-        const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer);
+        const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         const copiedPages = await pdfDoc.copyPages(donorPdf, donorPdf.getPageIndices());
         copiedPages.forEach(p => pdfDoc.addPage(p));
+        console.log("✅ Merge sukses:", fileName);
       } catch (err) {
-        console.error("Gagal import PDF:", file.name, err);
+        console.error("❌ Gagal merge PDF:", fileName, err);
       }
     } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-      // Embed gambar
       const imgPage = pdfDoc.addPage([595, 842]);
       let img;
       if (fileName.endsWith(".png")) {
@@ -1010,8 +1009,9 @@ async function downloadAll(btn) {
       }
       const { width, height } = img.scale(0.9);
       imgPage.drawImage(img, { x: (595 - width)/2, y: (842 - height)/2, width, height });
+      console.log("✅ Gambar ditambahkan:", fileName);
     } else {
-      console.warn("File dilewati (tidak didukung):", file.name);
+      console.warn("⚠️ File dilewati (format tidak didukung):", fileName);
     }
   }
 
