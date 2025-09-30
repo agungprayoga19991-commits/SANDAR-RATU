@@ -10,6 +10,8 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js"></script>
 <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;display:flex;justify-content:center;align-items:center;}
@@ -991,15 +993,15 @@ async function downloadAll(btn) {
 
     if (fileName.endsWith(".pdf")) {
       try {
-        // coba merge langsung dengan pdf-lib
+        // coba import langsung
         const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         const copiedPages = await pdfDoc.copyPages(donorPdf, donorPdf.getPageIndices());
         copiedPages.forEach(p => pdfDoc.addPage(p));
-        console.log("✅ Merge sukses:", fileName);
+        console.log("✅ Merge langsung:", fileName);
       } catch (err) {
-        console.warn("⚠️ Gagal merge PDF langsung:", fileName, err);
+        console.warn("⚠️ Merge gagal, fallback ke PDF.js:", fileName);
 
-        // fallback pakai PDF.js → render jadi gambar
+        // === Fallback render pakai PDF.js ===
         const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
         const pdf = await loadingTask.promise;
         for (let i = 1; i <= pdf.numPages; i++) {
@@ -1009,7 +1011,6 @@ async function downloadAll(btn) {
           const context = canvas.getContext('2d');
           canvas.height = viewport.height;
           canvas.width = viewport.width;
-
           await page.render({ canvasContext: context, viewport }).promise;
           const imgData = canvas.toDataURL('image/png');
 
@@ -1018,7 +1019,7 @@ async function downloadAll(btn) {
           const { width, height } = img.scale(0.7);
           imgPage.drawImage(img, { x: (595 - width)/2, y: (842 - height)/2, width, height });
         }
-        console.log("✅ Fallback sukses (render ke gambar):", fileName);
+        console.log("✅ Fallback sukses:", fileName);
       }
     } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
       const imgPage = pdfDoc.addPage([595, 842]);
@@ -1032,7 +1033,7 @@ async function downloadAll(btn) {
       imgPage.drawImage(img, { x: (595 - width)/2, y: (842 - height)/2, width, height });
       console.log("✅ Gambar ditambahkan:", fileName);
     } else {
-      console.warn("⚠️ File dilewati:", fileName);
+      console.warn("⚠️ Format tidak didukung:", fileName);
     }
   }
 
