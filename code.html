@@ -948,7 +948,7 @@ async function downloadAll(btn) {
   const email = currentUser ? currentUser.email : "Unknown";
 
   const pdfDoc = await PDFLib.PDFDocument.create();
-  const cover = pdfDoc.addPage([595, 842]); // A4
+  const cover = pdfDoc.addPage([595, 842]); 
   const { height } = cover.getSize();
 
   // === COVER PAGE ===
@@ -974,7 +974,6 @@ async function downloadAll(btn) {
   cover.drawText(`Petugas: ${officer}`, { x: 60, y: infoY });
   cover.drawText(`Email: ${email}`, { x: 300, y: infoY });
 
-  // Tambahkan QR code (kalau ada)
   const qrCanvas = form.closest(".card").querySelector("canvas");
   if (qrCanvas) {
     const qrImg = await pdfDoc.embedPng(qrCanvas.toDataURL("image/png"));
@@ -992,12 +991,34 @@ async function downloadAll(btn) {
 
     if (fileName.endsWith(".pdf")) {
       try {
+        // coba merge langsung dengan pdf-lib
         const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         const copiedPages = await pdfDoc.copyPages(donorPdf, donorPdf.getPageIndices());
         copiedPages.forEach(p => pdfDoc.addPage(p));
         console.log("✅ Merge sukses:", fileName);
       } catch (err) {
-        console.error("❌ Gagal merge PDF:", fileName, err);
+        console.warn("⚠️ Gagal merge PDF langsung:", fileName, err);
+
+        // fallback pakai PDF.js → render jadi gambar
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          await page.render({ canvasContext: context, viewport }).promise;
+          const imgData = canvas.toDataURL('image/png');
+
+          const img = await pdfDoc.embedPng(imgData);
+          const imgPage = pdfDoc.addPage([595, 842]);
+          const { width, height } = img.scale(0.7);
+          imgPage.drawImage(img, { x: (595 - width)/2, y: (842 - height)/2, width, height });
+        }
+        console.log("✅ Fallback sukses (render ke gambar):", fileName);
       }
     } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
       const imgPage = pdfDoc.addPage([595, 842]);
@@ -1011,7 +1032,7 @@ async function downloadAll(btn) {
       imgPage.drawImage(img, { x: (595 - width)/2, y: (842 - height)/2, width, height });
       console.log("✅ Gambar ditambahkan:", fileName);
     } else {
-      console.warn("⚠️ File dilewati (format tidak didukung):", fileName);
+      console.warn("⚠️ File dilewati:", fileName);
     }
   }
 
