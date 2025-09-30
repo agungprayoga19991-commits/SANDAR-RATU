@@ -927,6 +927,15 @@ function openUrl(url) {
 }
 
 // Download all documents as PDF
+function readFileAsArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 async function downloadAll(btn) {
   const form = btn.closest("form");
   const formType = form.getAttribute('data-form-type');
@@ -939,79 +948,82 @@ async function downloadAll(btn) {
   const email = currentUser ? currentUser.email : "Unknown";
 
   const pdfDoc = await PDFLib.PDFDocument.create();
-  const page = pdfDoc.addPage([595, 842]); // A4
-  const { height } = page.getSize();
+  const cover = pdfDoc.addPage([595, 842]); // A4
+  const { height } = cover.getSize();
 
-  // Header
-  page.setFontSize(18);
-  page.drawText("SANDAR-RATU", { x: 200, y: height - 50 });
-  page.setFontSize(12);
-  page.drawText("Sistem Administrasi & Dokumen Kesyahbandaran", { x: 120, y: height - 70 });
-  page.drawText("PPN Palabuhanratu", { x: 220, y: height - 85 });
+  // === COVER PAGE ===
+  cover.setFontSize(18);
+  cover.drawText("SANDAR-RATU", { x: 200, y: height - 50 });
+  cover.setFontSize(12);
+  cover.drawText("Sistem Administrasi & Dokumen Kesyahbandaran", { x: 120, y: height - 70 });
+  cover.drawText("PPN Palabuhanratu", { x: 220, y: height - 85 });
 
-  // Jenis Form
-  page.drawRectangle({ x: 50, y: height - 120, width: 495, height: 25, borderWidth: 1, color: PDFLib.rgb(0.9, 0.95, 1) });
-  page.setFontSize(14);
-  page.drawText(`JENIS FORM: ${formType}`, { x: 200, y: height - 110 });
+  cover.setFontSize(14);
+  cover.drawText(`JENIS FORM: ${formType}`, { x: 200, y: height - 120 });
 
-  // Informasi dokumen
-  page.setFontSize(12);
   let infoY = height - 160;
-  page.drawText(`Nama Kapal: ${shipName}`, { x: 60, y: infoY });
-  page.drawText(`GT: ${gt}`, { x: 300, y: infoY });
+  cover.setFontSize(11);
+  cover.drawText(`Nama Kapal: ${shipName}`, { x: 60, y: infoY });
+  cover.drawText(`GT: ${gt}`, { x: 300, y: infoY });
   infoY -= 15;
-  page.drawText(`Tanggal: ${new Date(date).toLocaleDateString('id-ID')}`, { x: 60, y: infoY });
-  page.drawText(`Waktu: ${time}`, { x: 300, y: infoY });
+  cover.drawText(`Tanggal: ${new Date(date).toLocaleDateString('id-ID')}`, { x: 60, y: infoY });
+  cover.drawText(`Waktu: ${time}`, { x: 300, y: infoY });
   infoY -= 15;
-  page.drawText(`Nahkoda: ${captain}`, { x: 60, y: infoY });
+  cover.drawText(`Nahkoda: ${captain}`, { x: 60, y: infoY });
   infoY -= 15;
-  page.drawText(`Petugas: ${officer}`, { x: 60, y: infoY });
-  page.drawText(`Email: ${email}`, { x: 300, y: infoY });
+  cover.drawText(`Petugas: ${officer}`, { x: 60, y: infoY });
+  cover.drawText(`Email: ${email}`, { x: 300, y: infoY });
 
-  // Tambahkan QR Code
-  const qrCanvas = form.closest(".card").querySelector("canvas"); // ambil QR dari preview
+  // Tambahkan QR code dari preview (kalau ada)
+  const qrCanvas = form.closest(".card").querySelector("canvas");
   if (qrCanvas) {
     const qrImg = await pdfDoc.embedPng(qrCanvas.toDataURL("image/png"));
-    page.drawText("QR CODE VERIFIKASI DOKUMEN", { x: 180, y: infoY - 40 });
-    page.drawImage(qrImg, { x: 200, y: infoY - 250, width: 150, height: 150 });
+    cover.drawText("QR CODE VERIFIKASI DOKUMEN", { x: 180, y: infoY - 40 });
+    cover.drawImage(qrImg, { x: 200, y: infoY - 250, width: 150, height: 150 });
   }
 
-  // Sekarang gabungkan dokumen asli
+  // === MERGE FILE UPLOAD ===
   const fileInputs = form.querySelectorAll('input[type="file"]');
   for (const fileInput of fileInputs) {
     if (!fileInput.files[0]) continue;
     const file = fileInput.files[0];
-    const arrayBuffer = await file.arrayBuffer();
+    const arrayBuffer = await readFileAsArrayBuffer(file);
+    const fileName = file.name.toLowerCase();
 
-    if (file.type.includes("pdf")) {
-      const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer);
-      const copiedPages = await pdfDoc.copyPages(donorPdf, donorPdf.getPageIndices());
-      copiedPages.forEach(p => pdfDoc.addPage(p));
-    } else if (file.type.includes("image")) {
+    if (fileName.endsWith(".pdf")) {
+      // Import semua halaman PDF
+      try {
+        const donorPdf = await PDFLib.PDFDocument.load(arrayBuffer);
+        const copiedPages = await pdfDoc.copyPages(donorPdf, donorPdf.getPageIndices());
+        copiedPages.forEach(p => pdfDoc.addPage(p));
+      } catch (err) {
+        console.error("Gagal import PDF:", file.name, err);
+      }
+    } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+      // Embed gambar
       const imgPage = pdfDoc.addPage([595, 842]);
       let img;
-      if (file.type.includes("png")) {
+      if (fileName.endsWith(".png")) {
         img = await pdfDoc.embedPng(arrayBuffer);
       } else {
         img = await pdfDoc.embedJpg(arrayBuffer);
       }
-      const { width, height: h } = img.scale(0.9);
-      imgPage.drawImage(img, {
-        x: (595 - width) / 2,
-        y: (842 - h) / 2,
-        width,
-        height: h
-      });
+      const { width, height } = img.scale(0.9);
+      imgPage.drawImage(img, { x: (595 - width)/2, y: (842 - height)/2, width, height });
+    } else {
+      console.warn("File dilewati (tidak didukung):", file.name);
     }
   }
 
-  // Download hasil PDF
+  // === DOWNLOAD ===
   const mergedPdfBytes = await pdfDoc.save();
   const blob = new Blob([mergedPdfBytes], { type: "application/pdf" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = `[${formType}]_SANDAR_RATU_${shipName}_${date.replace(/-/g,'')}.pdf`;
   link.click();
+
+  alert("✅ Dokumen berhasil digabung & di-download!");
 }
 
 // Initialize Google APIs when page loads
