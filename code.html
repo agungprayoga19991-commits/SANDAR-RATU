@@ -1001,25 +1001,30 @@ async function downloadAll(btn) {
       } catch (err) {
         console.warn("⚠️ Merge gagal, fallback ke PDF.js:", fileName);
 
-        // === Fallback render pakai PDF.js ===
+        // === Fallback render pakai PDF.js → embed sebagai JPEG full A4 ===
         const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
         const pdf = await loadingTask.promise;
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 1.5 });
+          const viewport = page.getViewport({ scale: 2 }); // lebih tajam
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
           canvas.height = viewport.height;
           canvas.width = viewport.width;
-          await page.render({ canvasContext: context, viewport }).promise;
-          const imgData = canvas.toDataURL('image/png');
 
-          const img = await pdfDoc.embedPng(imgData);
-          const imgPage = pdfDoc.addPage([595, 842]);
-          const { width, height } = img.scale(0.7);
-          imgPage.drawImage(img, { x: (595 - width)/2, y: (842 - height)/2, width, height });
+          await page.render({ canvasContext: context, viewport }).promise;
+          const imgData = canvas.toDataURL('image/jpeg', 1.0); // pakai JPEG biar solid
+
+          const img = await pdfDoc.embedJpg(imgData);
+          const imgPage = pdfDoc.addPage([595, 842]); // A4
+          imgPage.drawImage(img, {
+            x: 0,
+            y: 0,
+            width: 595,
+            height: 842
+          });
         }
-        console.log("✅ Fallback sukses:", fileName);
+        console.log("✅ Fallback sukses (render sebagai gambar):", fileName);
       }
     } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
       const imgPage = pdfDoc.addPage([595, 842]);
