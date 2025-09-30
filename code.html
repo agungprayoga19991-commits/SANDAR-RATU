@@ -982,6 +982,87 @@ async function downloadAll(btn) {
 
   alert("✅ Dokumen berhasil digabung & di-download!");
 }
+    
+    // Get form data
+    const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
+    const date = form.querySelector('input[type="date"]').value || new Date().toISOString().split('T')[0];
+    const time = form.querySelector('input[type="time"]').value || "00:00";
+    const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
+    const gt = form.querySelectorAll('input[type="text"]')[2].value || "-";
+    
+    function checkAndAddPage(neededHeight) {
+      if (yOffset + neededHeight > pageHeight - 35) {
+        pdf.addPage();
+        yOffset = 20;
+        return true;
+      }
+      return false;
+    }
+    
+    // PDF Header
+    pdf.setFontSize(18);
+    pdf.setFont(undefined, 'bold');
+    pdf.text('SANDAR-RATU', pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 8;
+    
+    pdf.setFontSize(12);
+    pdf.text('Sistem Administrasi & Dokumen Kesyahbandaran', pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 5;
+    pdf.text('PPN Palabuhanratu', pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 20;
+    
+    // Form Type
+    pdf.setDrawColor(52, 152, 219);
+    pdf.setFillColor(232, 244, 248);
+    pdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 15, 3, 3, 'FD');
+    
+    yOffset += 10;
+    pdf.setFontSize(14);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(44, 62, 80);
+    pdf.text('JENIS FORM: ' + formType, pageWidth/2, yOffset, { align: 'center' });
+    yOffset += 15;
+    
+    // Document info
+    pdf.setDrawColor(100);
+    pdf.setFillColor(245, 245, 245);
+    pdf.roundedRect(margin, yOffset, pageWidth - 2*margin, 50, 3, 3, 'FD');
+    
+    yOffset += 10;
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(0);
+    pdf.text('INFORMASI DOKUMEN', margin + 10, yOffset);
+    yOffset += 8;
+    
+    pdf.setFontSize(10);
+    pdf.setFont(undefined, 'normal');
+    pdf.text('Nama Kapal: ' + shipName, margin + 10, yOffset);
+    pdf.text('GT: ' + gt, margin + 100, yOffset);
+    yOffset += 6;
+    pdf.text('Tanggal: ' + new Date(date).toLocaleDateString('id-ID'), margin + 10, yOffset);
+    pdf.text('Waktu: ' + time, margin + 100, yOffset);
+    yOffset += 6;
+    pdf.text('Nahkoda: ' + captain, margin + 10, yOffset);
+    yOffset += 6;
+    pdf.text('Petugas: ' + (currentUser ? currentUser.name : 'Unknown'), margin + 10, yOffset);
+    pdf.text('Email: ' + (currentUser ? currentUser.email : 'Unknown'), margin + 100, yOffset);
+    yOffset += 20;
+
+    // QR Code
+    const qrCanvas = resultBox.querySelector('canvas');
+    if (qrCanvas) {
+      checkAndAddPage(70);
+      pdf.setFontSize(12);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('QR CODE VERIFIKASI DOKUMEN', pageWidth/2, yOffset, { align: 'center' });
+      yOffset += 5;
+      
+      const imgData = qrCanvas.toDataURL('image/png');
+      const qrSize = 50;
+      pdf.addImage(imgData, 'PNG', (pageWidth-qrSize)/2, yOffset, qrSize, qrSize);
+      yOffset += qrSize + 10;
+    }
 
 // Initialize Google APIs when page loads
 document.addEventListener('DOMContentLoaded', function() {
