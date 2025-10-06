@@ -350,7 +350,6 @@ async function uploadToDrive(file, folderName) {
     return await response.json();
 }
 
-// ============ FUNGSI BARU: KONVERSI GAMBAR KE PDF ============
 async function convertImageToPDF(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -392,7 +391,6 @@ async function convertImageToPDF(file) {
     });
 }
 
-// ============ FUNGSI BARU: GABUNG SEMUA PDF ============
 async function mergePDFs(pdfFiles) {
     const mergedPdf = await PDFLib.PDFDocument.create();
     
@@ -414,7 +412,154 @@ async function mergePDFs(pdfFiles) {
     return mergedPdfBytes;
 }
 
-// ============ FUNGSI UPLOAD YANG SUDAH DIMODIFIKASI ============
+async function createCoverPage(formData) {
+    const pdfDoc = await PDFLib.PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]);
+    const { width, height } = page.getSize();
+    
+    const helveticaBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+    const helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+    
+    let yPosition = height - 80;
+    
+    page.drawText('SANDAR-RATU', {
+        x: width / 2 - 80,
+        y: yPosition,
+        size: 24,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.2, 0.3, 0.4)
+    });
+    
+    yPosition -= 20;
+    page.drawText('Sistem Administrasi & Dokumen Kesyahbandaran', {
+        x: width / 2 - 140,
+        y: yPosition,
+        size: 10,
+        font: helvetica,
+        color: PDFLib.rgb(0.3, 0.3, 0.3)
+    });
+    
+    yPosition -= 15;
+    page.drawText('PPN Palabuhanratu', {
+        x: width / 2 - 55,
+        y: yPosition,
+        size: 10,
+        font: helvetica,
+        color: PDFLib.rgb(0.3, 0.3, 0.3)
+    });
+    
+    yPosition -= 60;
+    
+    page.drawRectangle({
+        x: 60,
+        y: yPosition - 30,
+        width: width - 120,
+        height: 40,
+        borderColor: PDFLib.rgb(0.4, 0.6, 0.8),
+        borderWidth: 2,
+        color: PDFLib.rgb(0.95, 0.97, 0.99)
+    });
+    
+    page.drawText(`JENIS FORM: ${formData.formType}`, {
+        x: width / 2 - 100,
+        y: yPosition - 15,
+        size: 12,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.2, 0.4, 0.6)
+    });
+    
+    yPosition -= 80;
+    
+    page.drawRectangle({
+        x: 60,
+        y: yPosition - 150,
+        width: width - 120,
+        height: 160,
+        borderColor: PDFLib.rgb(0.7, 0.7, 0.7),
+        borderWidth: 1.5
+    });
+    
+    page.drawText('INFORMASI DOKUMEN', {
+        x: 80,
+        y: yPosition - 20,
+        size: 11,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.2, 0.2, 0.2)
+    });
+    
+    yPosition -= 45;
+    
+    const info = [
+        [`Nama Kapal: ${formData.shipName}`, `GT: ${formData.gt}`],
+        [`Tanggal: ${formData.date}`, `Waktu: ${formData.time}`],
+        [`Nahkoda: ${formData.captain}`, `Email: ${formData.email}`],
+        [`Petugas: ${formData.officer}`, ``]
+    ];
+    
+    info.forEach(([left, right]) => {
+        page.drawText(left, {
+            x: 80,
+            y: yPosition,
+            size: 9,
+            font: helvetica,
+            color: PDFLib.rgb(0.2, 0.2, 0.2)
+        });
+        
+        if (right) {
+            page.drawText(right, {
+                x: 320,
+                y: yPosition,
+                size: 9,
+                font: helvetica,
+                color: PDFLib.rgb(0.2, 0.2, 0.2)
+            });
+        }
+        yPosition -= 25;
+    });
+    
+    yPosition -= 30;
+    
+    page.drawText('QR CODE VERIFIKASI DOKUMEN', {
+        x: width / 2 - 90,
+        y: yPosition,
+        size: 11,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.2, 0.2, 0.2)
+    });
+    
+    yPosition -= 140;
+    
+    page.drawRectangle({
+        x: width / 2 - 60,
+        y: yPosition,
+        width: 120,
+        height: 120,
+        borderColor: PDFLib.rgb(0.5, 0.5, 0.5),
+        borderWidth: 1
+    });
+    
+    page.drawText('[QR CODE]', {
+        x: width / 2 - 30,
+        y: yPosition + 55,
+        size: 10,
+        font: helvetica,
+        color: PDFLib.rgb(0.5, 0.5, 0.5)
+    });
+    
+    yPosition -= 40;
+    
+    page.drawText('DOKUMEN TERLAMPIR:', {
+        x: 80,
+        y: yPosition,
+        size: 10,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.2, 0.2, 0.2)
+    });
+    
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes;
+}
+
 async function uploadToGoogleDrive(btn) {
     const form = btn.closest("form");
     const formType = form.getAttribute('data-form-type');
@@ -429,6 +574,8 @@ async function uploadToGoogleDrive(btn) {
     const shipName = form.querySelector('input[type="text"]').value || "KAPAL";
     const date = form.querySelector('input[type="date"]').value;
     const time = form.querySelector('input[type="time"]').value;
+    const captain = form.querySelectorAll('input[type="text"]')[1].value || "Nahkoda";
+    const gt = form.querySelectorAll('input[type="text"]')[2].value || "-";
     
     if (!shipName.trim()) {
         errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Nama kapal harus diisi!';
@@ -459,14 +606,29 @@ async function uploadToGoogleDrive(btn) {
     btn.disabled = true;
     
     try {
-        statusDiv.innerHTML = `<i class="fas fa-cog fa-spin"></i> Menggabungkan ${filesToProcess.length} dokumen menjadi satu PDF...`;
+        statusDiv.innerHTML = '<i class="fas fa-cog fa-spin"></i> Membuat halaman cover dokumen...';
         statusDiv.style.display = 'block';
+        progressFill.style.width = '10%';
+        progressFill.textContent = '10%';
+        
+        const coverData = {
+            formType: formType,
+            shipName: shipName,
+            date: new Date(date).toLocaleDateString('id-ID'),
+            time: time,
+            captain: captain,
+            gt: gt,
+            officer: currentUser ? currentUser.name : 'Unknown',
+            email: currentUser ? currentUser.email : '-'
+        };
+        
+        const coverPdfBytes = await createCoverPage(coverData);
+        const pdfFiles = [{ bytes: coverPdfBytes, name: 'Cover Page' }];
+        
+        statusDiv.innerHTML = `<i class="fas fa-cog fa-spin"></i> Menggabungkan ${filesToProcess.length} dokumen menjadi satu PDF...`;
         progressFill.style.width = '20%';
         progressFill.textContent = '20%';
         
-        const pdfFiles = [];
-        
-        // Proses setiap file
         for (let i = 0; i < filesToProcess.length; i++) {
             const { file, label } = filesToProcess[i];
             
@@ -482,21 +644,18 @@ async function uploadToGoogleDrive(btn) {
             }
         }
         
-        // Gabungkan semua PDF
         statusDiv.innerHTML = '<i class="fas fa-cog fa-spin"></i> Menggabungkan semua halaman...';
         progressFill.style.width = '50%';
         progressFill.textContent = '50%';
         
         const mergedPdfBytes = await mergePDFs(pdfFiles);
         
-        // Buat file PDF gabungan
         const timestamp = date.replace(/-/g, '') + '_' + time.replace(':', '');
         const mergedFileName = `[${formType}]_${shipName.replace(/\s+/g, '_')}_DOKUMEN_LENGKAP_${timestamp}.pdf`;
         
         const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
         const mergedFile = new File([mergedBlob], mergedFileName, { type: 'application/pdf' });
         
-        // Upload ke Google Drive
         statusDiv.innerHTML = '<i class="fas fa-upload"></i> Mengupload PDF gabungan ke Google Drive...';
         progressFill.style.width = '75%';
         progressFill.textContent = '75%';
@@ -512,7 +671,8 @@ async function uploadToGoogleDrive(btn) {
             statusDiv.innerHTML = `
                 <i class="fas fa-check-circle"></i> <strong>Berhasil!</strong> Dokumen gabungan telah diupload<br><br>
                 📄 <strong>File:</strong> ${mergedFileName}<br>
-                📊 <strong>Total Halaman:</strong> ${filesToProcess.length} dokumen digabung<br>
+                📄 <strong>Halaman Cover:</strong> Otomatis ditambahkan<br>
+                📊 <strong>Total Halaman:</strong> 1 cover + ${filesToProcess.length} dokumen<br>
                 📁 <strong>Folder:</strong> ${formType}<br>
                 💾 <strong>Ukuran:</strong> ${(mergedBlob.size / 1024).toFixed(2)} KB<br><br>
                 <a href="${fileUrl}" target="_blank" style="color:#1a73e8;font-weight:bold;">🔗 Buka Dokumen di Google Drive</a>
@@ -521,7 +681,6 @@ async function uploadToGoogleDrive(btn) {
             statusDiv.style.borderColor = '#4caf50';
             statusDiv.style.color = '#2e7d32';
             
-            // Update QR Code untuk mengarah ke PDF gabungan
             const qrSection = form.nextElementSibling.querySelector('.qr-section');
             if (qrSection) {
                 const qrInfo = qrSection.querySelector('.qr-info');
@@ -536,7 +695,6 @@ async function uploadToGoogleDrive(btn) {
                     `;
                 }
                 
-                // Regenerate QR code dengan link PDF
                 const qrDiv = qrSection.querySelector('[id^="qrcode-"]');
                 if (qrDiv) {
                     qrDiv.innerHTML = '';
@@ -628,9 +786,9 @@ function initializePages() {
                 
                 <div class="merge-info">
                     <h4>📦 Fitur Penggabungan Dokumen Aktif</h4>
-                    <p>✅ Semua dokumen akan digabung menjadi <strong>SATU FILE PDF</strong><br>
-                    ✅ QR Code akan mengarah ke <strong>PDF gabungan</strong><br>
-                    ✅ Mudah untuk discan dan diakses</p>
+                    <p>✅ Halaman cover otomatis dibuat<br>
+                    ✅ Semua dokumen digabung menjadi <strong>SATU FILE PDF</strong><br>
+                    ✅ QR Code mengarah ke <strong>PDF gabungan</strong></p>
                 </div>
                 
                 <div class="google-drive-status"><i class="fas fa-spinner fa-spin"></i> Menghubungkan...</div>
