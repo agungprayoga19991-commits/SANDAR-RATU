@@ -7,8 +7,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="console.log('GSI loaded')" onerror="console.error('GSI failed to load')"></script>
+<script src="https://apis.google.com/js/api.js" onload="console.log('GAPI loaded')" onerror="console.error('GAPI failed to load')"></script>
 <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <style>
@@ -179,6 +179,7 @@ function logDebug(msg) {
 function initializeGoogle() {
     logDebug('Initializing Google APIs...');
     
+    // Step 1: Initialize Google Sign-In
     try {
         google.accounts.id.initialize({
             client_id: CLIENT_ID,
@@ -189,38 +190,34 @@ function initializeGoogle() {
         logDebug('✓ Google Identity Services initialized');
     } catch (error) {
         logDebug('✗ Failed to init Google Identity: ' + error.message);
+        return;
     }
 
-    gapi.load('client', async () => {
-        try {
-            await gapi.client.init({
-                apiKey: API_KEY,
-                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-            });
-
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: (response) => {
-                    if (response.error !== undefined) {
-                        logDebug('✗ Token error: ' + response.error);
-                        updateGoogleDriveStatus('Failed to get Drive access');
-                        return;
-                    }
-                    currentAccessToken = response.access_token;
-                    logDebug('✓ Access token obtained');
-                    updateGoogleDriveStatus();
+    // Step 2: Initialize Token Client (tidak perlu gapi.client.init untuk Drive API)
+    try {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: (response) => {
+                if (response.error !== undefined) {
+                    logDebug('✗ Token error: ' + response.error);
+                    updateGoogleDriveStatus('Gagal mendapatkan akses Drive');
+                    return;
                 }
-            });
+                currentAccessToken = response.access_token;
+                logDebug('✓ Access token obtained successfully');
+                updateGoogleDriveStatus();
+            }
+        });
 
-            isGAPIReady = true;
-            logDebug('✓ Google API Client initialized');
-            updateGoogleDriveStatus();
-        } catch (error) {
-            logDebug('✗ GAPI init error: ' + error.message);
-            updateGoogleDriveStatus('Error: ' + error.message);
-        }
-    });
+        isGAPIReady = true;
+        logDebug('✓ Token Client initialized (Drive API ready)');
+        updateGoogleDriveStatus();
+    } catch (error) {
+        logDebug('✗ Token Client error: ' + error.message);
+        updateGoogleDriveStatus('Error: Gagal inisialisasi Drive API');
+        isGAPIReady = false;
+    }
 }
 
 function handleCredentialResponse(response) {
@@ -736,16 +733,30 @@ function fallbackCopy(text) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    logDebug('DOM loaded');
-    setTimeout(() => {
-        if (typeof google !== 'undefined' && typeof gapi !== 'undefined') {
+    logDebug('DOM loaded, checking Google APIs...');
+    
+    // Wait longer for Google scripts to load
+    let checkCount = 0;
+    const maxChecks = 10;
+    
+    const checkGoogleAPIs = setInterval(() => {
+        checkCount++;
+        logDebug(`Check attempt ${checkCount}/${maxChecks}`);
+        
+        if (typeof google !== 'undefined' && typeof google.accounts !== 'undefined') {
+            clearInterval(checkGoogleAPIs);
+            logDebug('✓ Google libraries loaded');
             initializeGoogle();
-        } else {
-            logDebug('✗ Google APIs not available');
-            document.querySelector('.google-login-btn').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Google API tidak tersedia';
+        } else if (checkCount >= maxChecks) {
+            clearInterval(checkGoogleAPIs);
+            logDebug('✗ Google APIs failed to load after ' + maxChecks + ' attempts');
+            document.querySelector('.google-login-btn').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Google API tidak dapat dimuat';
             document.querySelector('.google-login-btn').disabled = true;
+            
+            const debugEl = document.getElementById('loginDebug');
+            debugEl.innerHTML += '<br><strong>Troubleshooting:</strong><br>1. Periksa koneksi internet<br>2. Coba refresh halaman<br>3. Gunakan browser Chrome/Edge<br>4. Nonaktifkan AdBlock';
         }
-    }, 1500);
+    }, 500); // Check every 500ms
 });
 </script>
 </body>
