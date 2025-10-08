@@ -488,196 +488,212 @@ async function createCoverPage(formData, qrCodeUrl) {
     
     let yPosition = height - 60;
     
-    // Header - SANDAR-RATU
+    // Header dengan background
+    page.drawRectangle({
+        x: 0,
+        y: height - 110,
+        width: width,
+        height: 110,
+        color: PDFLib.rgb(0.95, 0.97, 0.99)
+    });
+    
     page.drawText('SANDAR-RATU', {
-        x: width / 2 - 85,
+        x: width / 2 - 80,
         y: yPosition,
         size: 28,
         font: helveticaBold,
-        color: PDFLib.rgb(0.15, 0.25, 0.35)
+        color: PDFLib.rgb(0.13, 0.59, 0.95)
     });
     
-    yPosition -= 20;
+    yPosition -= 25;
     page.drawText('Sistem Administrasi & Dokumen Kesyahbandaran', {
-        x: width / 2 - 135,
+        x: width / 2 - 140,
         y: yPosition,
-        size: 11,
+        size: 10,
         font: helvetica,
         color: PDFLib.rgb(0.3, 0.3, 0.3)
     });
     
     yPosition -= 18;
     page.drawText('PPN Palabuhanratu', {
-        x: width / 2 - 52,
+        x: width / 2 - 55,
         y: yPosition,
-        size: 11,
+        size: 10,
         font: helvetica,
         color: PDFLib.rgb(0.3, 0.3, 0.3)
     });
     
     yPosition -= 50;
     
-    // Box Jenis Form
+    // Box Jenis Form dengan styling lebih baik
     page.drawRectangle({
         x: 50,
         y: yPosition - 35,
         width: width - 100,
         height: 45,
-        borderColor: PDFLib.rgb(0.2, 0.4, 0.65),
+        borderColor: PDFLib.rgb(0.13, 0.59, 0.95),
         borderWidth: 2,
-        color: PDFLib.rgb(0.93, 0.95, 0.98)
+        color: PDFLib.rgb(0.95, 0.97, 1)
     });
     
-    page.drawText('JENIS FORM: ' + formData.formType, {
-        x: width / 2 - (formData.formType.length * 3.5),
-        y: yPosition - 15,
-        size: 14,
+    page.drawText('JENIS FORM:', {
+        x: width / 2 - 120,
+        y: yPosition - 10,
+        size: 10,
+        font: helvetica,
+        color: PDFLib.rgb(0.4, 0.4, 0.4)
+    });
+    
+    page.drawText(formData.formType, {
+        x: width / 2 - 120,
+        y: yPosition - 25,
+        size: 13,
         font: helveticaBold,
-        color: PDFLib.rgb(0.2, 0.4, 0.65)
+        color: PDFLib.rgb(0.13, 0.59, 0.95)
     });
     
-    yPosition -= 80;
+    yPosition -= 65;
     
     // Box Informasi Dokumen
+    const infoBoxHeight = 135;
     page.drawRectangle({
         x: 50,
-        y: yPosition - 125,
+        y: yPosition - infoBoxHeight,
         width: width - 100,
-        height: 135,
-        borderColor: PDFLib.rgb(0.6, 0.6, 0.6),
+        height: infoBoxHeight,
+        borderColor: PDFLib.rgb(0.7, 0.7, 0.7),
         borderWidth: 1.5,
         color: PDFLib.rgb(1, 1, 1)
     });
     
-    // Header box
+    // Header section
     page.drawRectangle({
         x: 50,
-        y: yPosition - 5,
+        y: yPosition - 30,
         width: width - 100,
-        height: 25,
+        height: 30,
         color: PDFLib.rgb(0.95, 0.95, 0.95)
     });
     
     page.drawText('INFORMASI DOKUMEN', {
         x: 65,
-        y: yPosition + 3,
+        y: yPosition - 20,
         size: 12,
         font: helveticaBold,
         color: PDFLib.rgb(0.2, 0.2, 0.2)
-    });
-    
-    yPosition -= 40;
-    
-    // Informasi dengan layout 2 kolom
-    const leftCol = 65;
-    const rightCol = 320;
-    const lineHeight = 22;
-    
-    // Baris 1
-    page.drawText('Nama Kapal:', {
-        x: leftCol,
-        y: yPosition,
-        size: 10,
-        font: helveticaBold,
-        color: PDFLib.rgb(0.3, 0.3, 0.3)
-    });
-    page.drawText(formData.shipName, {
-        x: leftCol + 80,
-        y: yPosition,
-        size: 10,
-        font: helvetica,
-        color: PDFLib.rgb(0, 0, 0)
-    });
-    
-    page.drawText('GT:', {
-        x: rightCol,
-        y: yPosition,
-        size: 10,
-        font: helveticaBold,
-        color: PDFLib.rgb(0.3, 0.3, 0.3)
-    });
-    page.drawText(formData.gt, {
-        x: rightCol + 30,
-        y: yPosition,
-        size: 10,
-        font: helvetica,
-        color: PDFLib.rgb(0, 0, 0)
-    });
-    
-    yPosition -= lineHeight;
-    
-    // Baris 2
-    page.drawText('Tanggal:', {
-        x: leftCol,
-        y: yPosition,
-        size: 10,
-        font: helveticaBold,
-        color: PDFLib.rgb(0.3, 0.3, 0.3)
-    });
-    page.drawText(formData.date, {
-        x: leftCol + 80,
-        y: yPosition,
-        size: 10,
-        font: helvetica,
-        color: PDFLib.rgb(0, 0, 0)
-    });
-    
-    page.drawText('Waktu:', {
-        x: rightCol,
-        y: yPosition,
-        size: 10,
-        font: helveticaBold,
-        color: PDFLib.rgb(0.3, 0.3, 0.3)
-    });
-    page.drawText(formData.time, {
-        x: rightCol + 30,
-        y: yPosition,
-        size: 10,
-        font: helvetica,
-        color: PDFLib.rgb(0, 0, 0)
-    });
-    
-    yPosition -= lineHeight;
-    
-    // Baris 3
-    page.drawText('Nahkoda:', {
-        x: leftCol,
-        y: yPosition,
-        size: 10,
-        font: helveticaBold,
-        color: PDFLib.rgb(0.3, 0.3, 0.3)
-    });
-    page.drawText(formData.captain, {
-        x: leftCol + 80,
-        y: yPosition,
-        size: 10,
-        font: helvetica,
-        color: PDFLib.rgb(0, 0, 0)
     });
     
     yPosition -= 50;
     
-    // QR Code Section
-    page.drawText('QR CODE VERIFIKASI DOKUMEN', {
-        x: width / 2 - 85,
+    // Data dengan format tabel yang rapi
+    const leftX = 70;
+    const rightX = 320;
+    const lineHeight = 22;
+    
+    // Row 1
+    page.drawText('Nama Kapal:', {
+        x: leftX,
         y: yPosition,
-        size: 12,
+        size: 9,
+        font: helvetica,
+        color: PDFLib.rgb(0.4, 0.4, 0.4)
+    });
+    page.drawText(formData.shipName, {
+        x: leftX + 80,
+        y: yPosition,
+        size: 9,
         font: helveticaBold,
-        color: PDFLib.rgb(0.2, 0.2, 0.2)
+        color: PDFLib.rgb(0.1, 0.1, 0.1)
     });
     
-    yPosition -= 155;
-    
-    // Box untuk QR Code
-    page.drawRectangle({
-        x: width / 2 - 75,
+    page.drawText('GT:', {
+        x: rightX,
         y: yPosition,
-        width: 150,
-        height: 150,
-        borderColor: PDFLib.rgb(0.7, 0.7, 0.7),
-        borderWidth: 1,
-        color: PDFLib.rgb(1, 1, 1)
+        size: 9,
+        font: helvetica,
+        color: PDFLib.rgb(0.4, 0.4, 0.4)
     });
+    page.drawText(formData.gt, {
+        x: rightX + 50,
+        y: yPosition,
+        size: 9,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.1, 0.1, 0.1)
+    });
+    
+    yPosition -= lineHeight;
+    
+    // Row 2
+    page.drawText('Tanggal:', {
+        x: leftX,
+        y: yPosition,
+        size: 9,
+        font: helvetica,
+        color: PDFLib.rgb(0.4, 0.4, 0.4)
+    });
+    page.drawText(formData.date, {
+        x: leftX + 80,
+        y: yPosition,
+        size: 9,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.1, 0.1, 0.1)
+    });
+    
+    page.drawText('Waktu:', {
+        x: rightX,
+        y: yPosition,
+        size: 9,
+        font: helvetica,
+        color: PDFLib.rgb(0.4, 0.4, 0.4)
+    });
+    page.drawText(formData.time, {
+        x: rightX + 50,
+        y: yPosition,
+        size: 9,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.1, 0.1, 0.1)
+    });
+    
+    yPosition -= lineHeight;
+    
+    // Row 3
+    page.drawText('Nahkoda:', {
+        x: leftX,
+        y: yPosition,
+        size: 9,
+        font: helvetica,
+        color: PDFLib.rgb(0.4, 0.4, 0.4)
+    });
+    page.drawText(formData.captain, {
+        x: leftX + 80,
+        y: yPosition,
+        size: 9,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.1, 0.1, 0.1)
+    });
+    
+    yPosition -= 45;
+    
+    // Section QR Code dengan border yang lebih baik
+    page.drawRectangle({
+        x: 50,
+        y: yPosition - 195,
+        width: width - 100,
+        height: 195,
+        borderColor: PDFLib.rgb(0.13, 0.59, 0.95),
+        borderWidth: 2,
+        color: PDFLib.rgb(0.98, 0.99, 1)
+    });
+    
+    page.drawText('QR CODE VERIFIKASI DOKUMEN', {
+        x: width / 2 - 90,
+        y: yPosition - 18,
+        size: 11,
+        font: helveticaBold,
+        color: PDFLib.rgb(0.13, 0.59, 0.95)
+    });
+    
+    yPosition -= 55;
     
     if (qrCodeUrl) {
         try {
@@ -685,62 +701,78 @@ async function createCoverPage(formData, qrCodeUrl) {
             const qrImageBytes = await qrBlob.arrayBuffer();
             const qrImage = await pdfDoc.embedPng(qrImageBytes);
             
-            const qrSize = 140;
+            const qrSize = 128;
             page.drawImage(qrImage, {
                 x: width / 2 - qrSize / 2,
-                y: yPosition + 5,
+                y: yPosition - qrSize,
                 width: qrSize,
                 height: qrSize,
             });
+            
+            // Tambahkan instruksi scan
+            page.drawText('Scan QR Code untuk membuka dokumen', {
+                x: width / 2 - 85,
+                y: yPosition - qrSize - 20,
+                size: 8,
+                font: helvetica,
+                color: PDFLib.rgb(0.4, 0.4, 0.4)
+            });
+            
         } catch (error) {
             console.error('Error embedding QR code:', error);
-            page.drawText('[QR CODE]', {
-                x: width / 2 - 35,
-                y: yPosition + 70,
-                size: 12,
-                font: helvetica,
+            page.drawRectangle({
+                x: width / 2 - 64,
+                y: yPosition - 128,
+                width: 128,
+                height: 128,
+                borderColor: PDFLib.rgb(0.7, 0.7, 0.7),
+                borderWidth: 2,
+                color: PDFLib.rgb(0.95, 0.95, 0.95)
+            });
+            
+            page.drawText('QR CODE', {
+                x: width / 2 - 30,
+                y: yPosition - 60,
+                size: 10,
+                font: helveticaBold,
                 color: PDFLib.rgb(0.5, 0.5, 0.5)
             });
         }
     } else {
-        page.drawText('[QR CODE]', {
-            x: width / 2 - 35,
-            y: yPosition + 70,
-            size: 12,
-            font: helvetica,
+        page.drawRectangle({
+            x: width / 2 - 64,
+            y: yPosition - 128,
+            width: 128,
+            height: 128,
+            borderColor: PDFLib.rgb(0.7, 0.7, 0.7),
+            borderWidth: 2,
+            color: PDFLib.rgb(0.95, 0.95, 0.95)
+        });
+        
+        page.drawText('QR CODE', {
+            x: width / 2 - 30,
+            y: yPosition - 60,
+            size: 10,
+            font: helveticaBold,
             color: PDFLib.rgb(0.5, 0.5, 0.5)
         });
     }
     
-    yPosition -= 35;
-    
-    // Footer dengan garis
+    // Footer
     page.drawLine({
         x1: 50,
-        y1: yPosition,
+        y1: 60,
         x2: width - 50,
-        y2: yPosition,
+        y2: 60,
         thickness: 1,
         color: PDFLib.rgb(0.8, 0.8, 0.8)
     });
     
-    yPosition -= 20;
-    
-    page.drawText('DOKUMEN TERLAMPIR:', {
-        x: 50,
-        y: yPosition,
-        size: 11,
-        font: helveticaBold,
-        color: PDFLib.rgb(0.2, 0.2, 0.2)
-    });
-    
-    yPosition -= 20;
-    
-    page.drawText('Scan QR Code di atas untuk membuka dokumen lengkap di Google Drive', {
-        x: 50,
-        y: yPosition,
+    page.drawText('DOKUMEN TERLAMPIR PADA HALAMAN BERIKUTNYA', {
+        x: width / 2 - 110,
+        y: 40,
         size: 9,
-        font: helvetica,
+        font: helveticaBold,
         color: PDFLib.rgb(0.4, 0.4, 0.4)
     });
     
