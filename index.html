@@ -95,7 +95,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f8f9fa;min-height:100vh;displ
 
 <div id="loginPage" class="login-container">
   <div class="logo-section">
-    <a href="icon" class="logo">
+    <a href="#" class="logo">
       <div class="logo-icon">
         <img id="logoImg" src="logoicon.png" alt="SANDAR-RATU Logo">
       </div>
@@ -171,7 +171,6 @@ const FOLDER_MAP = {
 };
 
 let customLogo = null;
-
 let isGAPIReady = false;
 let currentUser = null;
 let currentAccessToken = null;
@@ -187,8 +186,6 @@ function logDebug(msg) {
 }
 
 function loadCustomLogo() {
-    const fileReader = new FileReader();
-    
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
@@ -203,8 +200,8 @@ function loadCustomLogo() {
         document.getElementById('headerLogoImg').src = customLogo;
     };
     
-    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNmZmZmZmYiLz4KICAKICA8IS0tIEFuY2hvciAtLT4KICA8cGF0aCBkPSJNIDEwMCAyMCBMIDEwMCAxNDAgTSA1MCAxNDAgTCA1MCAxNjAgUSA1MCAxODAgNzAgMTgwIEwgMTMwIDE4MCBRIDE1MCAxODAgMTUwIDE2MCBMIDE1MCAxNDAgTSA1MCAxNDAgUSA1MCAxMjAgNzAgMTIwIEwgMTMwIDEyMCBRIDE1MCAxMjAgMTUwIDE0MCIgZmlsbD0iI0ZGRDcwMCIgc3Ryb2tlPSIjRkZBNTAwIiBzdHJva2Utd2lkdGg9IjMiLz4KICAKICA8IS0tIEZpc2ggLS0+CiAgPGVsbGlwc2UgY3g9IjEwMCIgY3k9IjkwIiByeD0iMzAiIHJ5PSI0MCIgZmlsbD0iIzIxOTZGMyIvPgogIDxwYXRoIGQ9Ik0gMTMwIDkwIEwgMTUwIDcwIEwgMTUwIDExMCBaIiBmaWxsPSIjMjE5NkYzIi8+CiAgPGNpcmNsZSBjeD0iOTAiIGN5PSI4MCIgcj0iMyIgZmlsbD0iIzAwMDAwMCIvPgogIAogIDwhLS0gTmV0IC0tPgogIDxsaW5lIHgxPSI0MCIgeTE9IjQwIiB4Mj0iNDAiIHkyPSIxNDAiIHN0cm9rZT0iIzRDQUY1MCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGxpbmUgeDE9IjE2MCIgeTE9IjQwIiB4Mj0iMTYwIiB5Mj0iMTQwIiBzdHJva2U9IiM0Q0FGNTA=' +
-        'IHN0cm9rZS13aWR0aD0iMiIvPgogIDxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzRDQUY1MCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPCEtLSBHcmlkIC0tPgogIDxwYXRoIGQ9Ik0gNTUgNDAgTCA1NSAxNDAgTSA3MCA0MCBMIDCMIDE0MCBNIDY1IDQwIEwgODUgMTQwIE0gMTAwIDQwIEwgMTAwIDE0MCBNIDEXNSA0MCBMIDEXNSA0MCBNIDEZWIDA0MCBMIDEZWIDA0MCBNIDE0NSA0MCBMIDE0NSAxNDAiIHN0cm9rZT0iIzRDQUY1MCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPHBhdGggZD0iTSA0MCA1NSBMIDE2MCA1NSBNICE3MCBMIDE2MCA3MCBNIDQWIDA4NSBMIDde2MCBoNSBNIDQwIDEwMCBMIDE2MCAxMDAgTSA0MCAxMTUgTCAxNjAgMTE1IE0gNDAgMTMwIEwgMTYwIDEzMCIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+';
+    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNmZmZmZmYiLz4KICAKICA8IS0tIEFuY2hvciAtLT4KICA8cGF0aCBkPSJNIDEwMCAyMCBMIDEwMCAxNDAgTSA1MCAxNDAgTCA1MCAxNjAgUSA1MCAxODAgNzAgMTgwIEwgMTMwIDE4MCBRIDE1MCAxODAgMTUwIDE2MCBMIDE1MCAxNDAgTSA1MCAxNDAgUSA1MCAxMjAgNzAgMTIwIEwgMTMwIDEyMCBRIDE1MCAxMjAgMTUwIDE0MCIgZmlsbD0iI0ZGRDcwMCIgc3Ryb2tlPSIjRkZBNTAwIiBzdHJva2Utd2lkdGg9IjMiLz4KICAKICA8IS0tIEZpc2ggLS0+CiAgPGVsbGlwc2UgY3g9IjEwMCIgY3k9IjkwIiByeD0iMzAiIHJ5PSI0MCIgZmlsbD0iIzIxOTZGMyIvPgogIDxwYXRoIGQ9Ik0gMTMwIDkwIEwgMTUwIDcwIEwgMTUwIDExMCBaIiBmaWxsPSIjMjE5NkYzIi8+CiAgPGNpcmNsZSBjeD0iOTAiIGN5PSI4MCIgcj0iMyIgZmlsbD0iIzAwMDAwMCIvPgogIAogIDwhLS0gTmV0IC0tPgogIDxsaW5lIHgxPSI0MCIgeTE9IjQwIiB4Mj0iNDAiIHkyPSIxNDAiIHN0cm9rZT0iIzRDQUY1MCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGxpbmUgeDE9IjE2MCIgeTE9IjQwIiB4Mj0iMTYwIiB5Mj0iMTQwIiBzdHJva2U9IiM0Q0FGNTA' +
+        'IHN0cm9rZS13aWR0aD0iMiIvPgogIDxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzRDQUY1MCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPCEtLSBHcmlkIC0tPgogIDxwYXRoIGQ9Ik0gNTUgNDAgTCA1NSAxNDAgTSA3MCA0MCBMIDCMIDE0MCBNIDY1IDQwIEwgODUgMTQwIE0gMTAwIDQwIEwgMTAwIDE0MCBNIDEXNSA0MCBMIDEXNSA0MCBNIDEZWIDA0MCBMIDEZWIDA0MCBNIDE0NSA0MCBMIDE0NSAxNDAiIHN0cm9rZT0iIzRDQUY1MCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPHBhdGggZD0iTSA0MCA1NSBMIDE2MCA1NSBNICE3MCBMIDE2MCA3MCBNIDQWIDA4NSBMIDde2AgaNSBNIDQwIDEwMCBMIDE2MCAxMDAgTSA0MCAxMTUgTCAxNjAgMTE1IE0gNDAgMTMwIEwgMTYwIDEzMCIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+';
 }
 
 function initializeGoogle() {
@@ -441,7 +438,47 @@ async function mergePDFs(pdfFiles) {
     return mergedPdfBytes;
 }
 
-async function createCoverPage(formData) {
+async function generateQRCodeImage(url) {
+    return new Promise((resolve, reject) => {
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        document.body.appendChild(tempDiv);
+        
+        try {
+            new QRCode(tempDiv, {
+                text: url,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            setTimeout(() => {
+                const canvas = tempDiv.querySelector('canvas');
+                if (canvas) {
+                    canvas.toBlob((blob) => {
+                        document.body.removeChild(tempDiv);
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject(new Error('Failed to create blob from canvas'));
+                        }
+                    }, 'image/png');
+                } else {
+                    document.body.removeChild(tempDiv);
+                    reject(new Error('QR canvas not found'));
+                }
+            }, 100);
+        } catch (error) {
+            document.body.removeChild(tempDiv);
+            reject(error);
+        }
+    });
+}
+
+async function createCoverPage(formData, qrCodeUrl) {
     const pdfDoc = await PDFLib.PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]);
     const { width, height } = page.getSize();
@@ -521,8 +558,7 @@ async function createCoverPage(formData) {
     const info = [
         [`Nama Kapal: ${formData.shipName}`, `GT: ${formData.gt}`],
         [`Tanggal: ${formData.date}`, `Waktu: ${formData.time}`],
-        [`Nahkoda: ${formData.captain}`, `Email: ${formData.email}`],
-        [`Petugas: ${formData.officer}`, ``]
+        [`Nahkoda: ${formData.captain}`, ``]
     ];
     
     info.forEach(([left, right]) => {
@@ -558,22 +594,56 @@ async function createCoverPage(formData) {
     
     yPosition -= 140;
     
-    page.drawRectangle({
-        x: width / 2 - 60,
-        y: yPosition,
-        width: 120,
-        height: 120,
-        borderColor: PDFLib.rgb(0.5, 0.5, 0.5),
-        borderWidth: 1
-    });
-    
-    page.drawText('[QR CODE]', {
-        x: width / 2 - 30,
-        y: yPosition + 55,
-        size: 10,
-        font: helvetica,
-        color: PDFLib.rgb(0.5, 0.5, 0.5)
-    });
+    if (qrCodeUrl) {
+        try {
+            const qrBlob = await generateQRCodeImage(qrCodeUrl);
+            const qrImageBytes = await qrBlob.arrayBuffer();
+            const qrImage = await pdfDoc.embedPng(qrImageBytes);
+            
+            const qrSize = 120;
+            page.drawImage(qrImage, {
+                x: width / 2 - qrSize / 2,
+                y: yPosition,
+                width: qrSize,
+                height: qrSize,
+            });
+        } catch (error) {
+            console.error('Error embedding QR code:', error);
+            page.drawRectangle({
+                x: width / 2 - 60,
+                y: yPosition,
+                width: 120,
+                height: 120,
+                borderColor: PDFLib.rgb(0.5, 0.5, 0.5),
+                borderWidth: 1
+            });
+            
+            page.drawText('[QR CODE]', {
+                x: width / 2 - 30,
+                y: yPosition + 55,
+                size: 10,
+                font: helvetica,
+                color: PDFLib.rgb(0.5, 0.5, 0.5)
+            });
+        }
+    } else {
+        page.drawRectangle({
+            x: width / 2 - 60,
+            y: yPosition,
+            width: 120,
+            height: 120,
+            borderColor: PDFLib.rgb(0.5, 0.5, 0.5),
+            borderWidth: 1
+        });
+        
+        page.drawText('[QR CODE]', {
+            x: width / 2 - 30,
+            y: yPosition + 55,
+            size: 10,
+            font: helvetica,
+            color: PDFLib.rgb(0.5, 0.5, 0.5)
+        });
+    }
     
     yPosition -= 40;
     
@@ -635,10 +705,31 @@ async function uploadToGoogleDrive(btn) {
     btn.disabled = true;
     
     try {
-        statusDiv.innerHTML = '<i class="fas fa-cog fa-spin"></i> Membuat halaman cover dokumen...';
+        statusDiv.innerHTML = '<i class="fas fa-cog fa-spin"></i> Mengupload dokumen ke Google Drive...';
         statusDiv.style.display = 'block';
         progressFill.style.width = '10%';
         progressFill.textContent = '10%';
+        
+        statusDiv.innerHTML = '<i class="fas fa-upload"></i> Membuat dokumen sementara...';
+        progressFill.style.width = '15%';
+        progressFill.textContent = '15%';
+        
+        const tempPdfDoc = await PDFLib.PDFDocument.create();
+        const tempPage = tempPdfDoc.addPage([595, 842]);
+        tempPage.drawText('Processing...', { x: 50, y: 400, size: 20 });
+        const tempPdfBytes = await tempPdfDoc.save();
+        
+        const timestamp = date.replace(/-/g, '') + '_' + time.replace(':', '');
+        const tempFileName = `[${formType}]_${shipName.replace(/\s+/g, '_')}_TEMP_${timestamp}.pdf`;
+        const tempBlob = new Blob([tempPdfBytes], { type: 'application/pdf' });
+        const tempFile = new File([tempBlob], tempFileName, { type: 'application/pdf' });
+        
+        const tempResult = await uploadToDrive(tempFile, formType);
+        const finalFileUrl = `https://drive.google.com/file/d/${tempResult.id}/view`;
+        
+        statusDiv.innerHTML = '<i class="fas fa-cog fa-spin"></i> Membuat halaman cover dengan QR Code...';
+        progressFill.style.width = '25%';
+        progressFill.textContent = '25%';
         
         const coverData = {
             formType: formType,
@@ -651,7 +742,7 @@ async function uploadToGoogleDrive(btn) {
             email: currentUser ? currentUser.email : '-'
         };
         
-        const coverPdfBytes = await createCoverPage(coverData);
+        const coverPdfBytes = await createCoverPage(coverData, finalFileUrl);
         const pdfFiles = [{ bytes: coverPdfBytes, name: 'Cover Page' }];
         
         statusDiv.innerHTML = `<i class="fas fa-cog fa-spin"></i> Menggabungkan ${filesToProcess.length} dokumen menjadi satu PDF...`;
@@ -679,17 +770,38 @@ async function uploadToGoogleDrive(btn) {
         
         const mergedPdfBytes = await mergePDFs(pdfFiles);
         
-        const timestamp = date.replace(/-/g, '') + '_' + time.replace(':', '');
         const mergedFileName = `[${formType}]_${shipName.replace(/\s+/g, '_')}_DOKUMEN_LENGKAP_${timestamp}.pdf`;
         
         const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
         const mergedFile = new File([mergedBlob], mergedFileName, { type: 'application/pdf' });
         
-        statusDiv.innerHTML = '<i class="fas fa-upload"></i> Mengupload PDF gabungan ke Google Drive...';
+        statusDiv.innerHTML = '<i class="fas fa-upload"></i> Mengupload PDF gabungan final ke Google Drive...';
         progressFill.style.width = '75%';
         progressFill.textContent = '75%';
         
-        const result = await uploadToDrive(mergedFile, formType);
+        const updateResponse = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${tempResult.id}?uploadType=media`, {
+            method: 'PATCH',
+            headers: new Headers({
+                'Authorization': `Bearer ${currentAccessToken}`,
+                'Content-Type': 'application/pdf'
+            }),
+            body: mergedBlob
+        });
+        
+        if (!updateResponse.ok) {
+            throw new Error('Gagal mengupdate file final');
+        }
+        
+        await fetch(`https://www.googleapis.com/drive/v3/files/${tempResult.id}`, {
+            method: 'PATCH',
+            headers: new Headers({
+                'Authorization': `Bearer ${currentAccessToken}`,
+                'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify({ name: mergedFileName })
+        });
+        
+        const result = { id: tempResult.id };
         
         if (result.id) {
             progressFill.style.width = '100%';
@@ -700,7 +812,7 @@ async function uploadToGoogleDrive(btn) {
             statusDiv.innerHTML = `
                 <i class="fas fa-check-circle"></i> <strong>Berhasil!</strong> Dokumen gabungan telah diupload<br><br>
                 📄 <strong>File:</strong> ${mergedFileName}<br>
-                📄 <strong>Halaman Cover:</strong> Otomatis ditambahkan<br>
+                📄 <strong>Halaman Cover:</strong> Otomatis ditambahkan dengan QR Code<br>
                 📊 <strong>Total Halaman:</strong> 1 cover + ${filesToProcess.length} dokumen<br>
                 📁 <strong>Folder:</strong> ${formType}<br>
                 💾 <strong>Ukuran:</strong> ${(mergedBlob.size / 1024).toFixed(2)} KB<br><br>
@@ -812,14 +924,6 @@ function initializePages() {
             <h2>${m.title}</h2>
             <div class="card">
                 <div class="form-type-indicator"><h3>📋 Form ${m.category} - ${m.type === 'departure' ? 'Keberangkatan' : 'Kedatangan'}</h3></div>
-                
-                <div class="merge-info">
-                    <h4>📦 Fitur Penggabungan Dokumen Aktif</h4>
-                    <p>✅ Halaman cover otomatis dibuat<br>
-                    ✅ Semua dokumen digabung menjadi <strong>SATU FILE PDF</strong><br>
-                    ✅ QR Code mengarah ke <strong>PDF gabungan</strong></p>
-                </div>
-                
                 <div class="google-drive-status"><i class="fas fa-spinner fa-spin"></i> Menghubungkan...</div>
                 <form data-form-type="${m.category}-${m.type === 'departure' ? 'Keberangkatan' : 'Kedatangan'}">
                     <input type="text" class="form-control" placeholder="Nama Kapal" required>
