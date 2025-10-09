@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Gabungan - Perikanan & Kesyahbandaran</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- PapaParse for CSV -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color:#f5f7fa; color:#333; }
+    .container { max-width:1200px; margin:0 auto; padding:20px; }
+
+    .submenu { display:flex; justify-content:center; align-items:center; background:white; padding:10px 0; border-bottom:1px solid #ddd; margin-bottom:20px; }
+    .submenu-item { padding:8px 20px; cursor:pointer; font-weight:600; color:#666; transition:color .2s; }
+    .submenu-item.active { color:#1a73e8; border-bottom:2px solid #1a73e8; }
+    .submenu-item:hover:not(.active) { color:#1a73e8; }
+
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+    h1 { font-weight:600; color:#2c3e50; font-size:18px; }
+    .date-filter { display:flex; gap:10px; align-items:center; }
+    .date-filter input { padding:8px 12px; border:1px solid #ddd; border-radius:6px; }
+
+    .production-section { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; margin-bottom:30px; }
+    .section-card { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+    .section-title { font-size:18px; font-weight:bold; margin-bottom:15px; text-align:center; color:#2c3e50; }
+
+    .metric-row { display:flex; align-items:center; margin-bottom:15px; }
+    .metric-icon { width:50px; height:50px; margin-right:15px; display:flex; align-items:center; justify-content:center; background:#e0f2fe; border-radius:8px; }
+    .metric-label { font-size:14px; color:#666; }
+    .metric-value { font-size:24px; font-weight:700; margin-left:10px; color:#1a73e8; }
+
+    .fish-table { width:100%; border-collapse:collapse; margin-top:15px; font-size:14px; }
+    .fish-table th { background-color:#ff9900; color:white; padding:8px; text-align:left; }
+    .fish-table td { padding:8px; border-bottom:1px solid #ddd; }
+    .fish-table tr:nth-child(even) { background-color:#f9f9f9; }
+
+    .chart-container { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.08); margin-top:20px; }
+    .chart-title { margin-bottom:16px; font-weight:600; color:#2c3e50; text-align:center; }
+    canvas { max-width:100%; }
+
+    .kb-controls { display:flex; gap:10px; align-items:center; justify-content:flex-end; margin-bottom:12px; }
+    .kb-controls button { padding:8px 16px; background:#1a73e8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500; }
+    .kb-controls button:hover { background:#1557b0; }
+    .kb-summary { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:12px; }
+    .kb-card { background:#fff; border-radius:10px; padding:12px; box-shadow:0 1px 6px rgba(0,0,0,.06); text-align:center;}
+    .kb-card h3 { margin-bottom:6px; color:#2c3e50; font-size:16px;}
+    .kb-card p { font-size:20px; font-weight:700; color:#1a73e8; }
+
+    .kb-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
+    .kb-table th { background:#1a73e8; color:#fff; padding:8px; text-align:left;}
+    .kb-table td { padding:6px; border-bottom:1px solid #eee; }
+
+    .loading { text-align:center; padding:20px; color:#666; }
+    .error { background:#fee; border:1px solid #fcc; padding:12px; border-radius:6px; color:#c00; margin:10px 0; }
+
+    @media (max-width:768px) {
+      .production-section { grid-template-columns:1fr; }
+      .metric-row { flex-direction:column; align-items:flex-start; }
+      .kb-controls { flex-direction:column; align-items:stretch; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Submenu -->
+    <div class="submenu">
+      <div class="submenu-item active">2025</div>
+      <div class="submenu-item">Daily Monitoring PIT</div>
+      <div class="submenu-item">2024</div>
+    </div>
+
+    <!-- Header Dashboard -->
+    <header>
+      <h1>DASHBOARD PRODUKSI PERIKANAN & KESYAHBANDARAN<br>PELABUHAN PERIKANAN SAMUDERA KENDARI</h1>
+      <div class="date-filter">
+        <input type="date" id="start-date" value="2025-01-01" />
+        <span>–</span>
+        <input type="date" id="end-date" value="2025-08-31" />
+      </div>
+    </header>
+
+    <!-- Bagian Produksi Perikanan -->
+    <div class="production-section">
+      <div class="section-card">
+        <div class="section-title">Produksi dari dalam Pelabuhan</div>
+        <div class="metric-row">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          </div>
+          <div>
+            <div class="metric-label">Volume Ikan dari Kapal Bongkar</div>
+            <div class="metric-value">250.399 Kg</div>
+          </div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.8 3-1.8s3 .71 3 1.8c0 .95-.73 1.56-3 2.15v2.05c2.27.59 3 1.2 3 2.15 0 1.09-1.01 1.8-3 1.8s-3-.71-3-1.8c0-.95.73-1.56 3-2.15v-2.05z"/></svg>
+          </div>
+          <div>
+            <div class="metric-label">Nilai Produksi</div>
+            <div class="metric-value">Rp 4.280.594.000</div>
+          </div>
+        </div>
+        <table class="fish-table">
+          <thead>
+            <tr><th>Nama Ikan</th><th>Volume</th><th>Harga</th><th>Nilai Produksi</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1. Cakalang</td><td>152.165 Kg</td><td>Rp 16.000</td><td>Rp 2.434.640.000</td></tr>
+            <tr><td>2. Madidihang</td><td>42.408 Kg</td><td>Rp 20.000</td><td>Rp 848.160.000</td></tr>
+            <tr><td>3. Layang</td><td>37.030 Kg</td><td>Rp 18.261</td><td>Rp 676.424.000</td></tr>
+            <tr><td>4. Tongkol</td><td>11.592 Kg</td><td>Rp 17.000</td><td>Rp 197.064.000</td></tr>
+            <tr><td>5. Tuna Mata Besar</td><td>4.835 Kg</td><td>Rp 19.000</td><td>Rp 91.865.000</td></tr>
+            <tr><td>6. Lemadang</td><td>1.271 Kg</td><td>Rp 10.364</td><td>Rp 13.078.000</td></tr>
+            <tr><td>7. Sunglir</td><td>983 Kg</td><td>Rp 17.200</td><td>Rp 16.833.000</td></tr>
+            <tr><td>8. Selar</td><td>115 Kg</td><td>Rp 22.000</td><td>Rp 2.530.000</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">Produksi dari luar Pelabuhan</div>
+        <div class="metric-row">
+          <div class="metric-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M15 5v14H5V5h10m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></div>
+          <div>
+            <div class="metric-label">Volume Ikan Masuk dari Darat</div>
+            <div class="metric-value">110.300 Kg</div>
+          </div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.8 3-1.8s3 .71 3 1.8c0 .95-.73 1.56-3 2.15v2.05c2.27.59 3 1.2 3 2.15 0 1.09-1.01 1.8-3 1.8s-3-.71-3-1.8c0-.95.73-1.56 3-2.15v-2.05z"/></svg></div>
+          <div>
+            <div class="metric-label">Nilai Produksi Darat</div>
+            <div class="metric-value">Rp 2.232.900.000</div>
+          </div>
+        </div>
+        <table class="fish-table">
+          <thead>
+            <tr><th>Nama Ikan</th><th>Asal Daerah</th><th>Volume (Kg)</th><th>Harga Rata-Rata / Kg</th><th>Nilai Produksi</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1. Layang</td><td>Kendari</td><td>42.150 Kg</td><td>Rp 20.600</td><td>Rp 861.150.000</td></tr>
+            <tr><td>2. Madidihang</td><td>Kendari</td><td>27.800 Kg</td><td>Rp 22.400</td><td>Rp 620.600.000</td></tr>
+            <tr><td>3. Cakalang</td><td>Kendari</td><td>18.000 Kg</td><td>Rp 18.000</td><td>Rp 324.000.000</td></tr>
+            <tr><td>4. Layang</td><td>Ereke</td><td>6.100 Kg</td><td>Rp 20.000</td><td>Rp 122.000.000</td></tr>
+            <tr><td>5. Teri</td><td>Kendari</td><td>3.700 Kg</td><td>Rp 15.000</td><td>Rp 55.500.000</td></tr>
+            <tr><td>6. Layang</td><td>BAU BAU</td><td>3.300 Kg</td><td>Rp 20.000</td><td>Rp 66.000.000</td></tr>
+            <tr><td>7. Cumi</td><td>Bau Bau</td><td>2.100 Kg</td><td>Rp 25.000</td><td>Rp 52.500.000</td></tr>
+            <tr><td>8. Selar</td><td>Kendari</td><td>1.800 Kg</td><td>Rp 21.500</td><td>Rp 39.900.000</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <div class="section-title">Target Produksi Tahun 2025</div>
+        <div style="font-size:28px; font-weight:bold; color:#2c3e50; margin-bottom:10px;">16.000 Ton</div>
+        <div style="position:relative; width:150px; height:150px; margin:15px 0;">
+          <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+            <circle cx="50" cy="50" r="40" stroke="#ddd" stroke-width="10" fill="none" />
+            <circle cx="50" cy="50" r="40" stroke="#ff9900" stroke-width="10" fill="none" stroke-dasharray="251.2 251.2" stroke-dashoffset="71.2" transform="rotate(-90 50 50)" />
+            <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="16" fill="#2c3e50">71,7%</text>
+          </svg>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:14px; color:#666;">Persentase Capaian</div>
+          <div style="font-size:24px; font-weight:bold; color:#1a73e8; margin:5px 0;">71,7%</div>
+          <div style="font-size:14px; color:#666;">Capaian Produksi</div>
+          <div style="font-size:24px; font-weight:bold; color:#2c3e50;">11.474 Ton</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grafik Tren Perikanan -->
+    <div class="charts">
+      <div class="chart-container">
+        <div class="chart-title">Trend Volume Kapal Bongkar Tahun 2024</div>
+        <canvas id="trendChart1"></canvas>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">Trend Volume Ikan Masuk dari Darat Tahun 2024</div>
+        <canvas id="trendChart2"></canvas>
+      </div>
+    </div>
+
+    <!-- Bagian KESYAHBANDARAN (Data dari Google Sheets) -->
+    <div style="margin-top:28px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 style="color:#2c3e50;">Dashboard Kesyahbandaran (PKL)</h2>
+        <div class="kb-controls">
+          <button id="btn-load-gsheets">Muat Data dari Google Sheets</button>
+        </div>
+      </div>
+
+      <div id="loading-indicator" class="loading" style="display:none;">Memuat data...</div>
+      <div id="error-message" class="error" style="display:none;"></div>
+
+      <div class="kb-summary" id="kb-summary">
+        <div class="kb-card">
+          <h3>Total Kapal Terdaftar</h3>
+          <p id="kb-total-kapal">-</p>
+        </div>
+        <div class="kb-card">
+          <h3>Total GT</h3>
+          <p id="kb-total-gt">-</p>
+        </div>
+        <div class="kb-card">
+          <h3>Total Awak Kapal</h3>
+          <p id="kb-total-awak">-</p>
+        </div>
+        <div class="kb-card">
+          <h3>Jenis Pengupahan</h3>
+          <p id="kb-total-pengupahan">-</p>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 420px; gap:16px;">
+        <div>
+          <div class="chart-container">
+            <div class="chart-title">Jumlah PKL per Bulan</div>
+            <canvas id="chart-pkl-month"></canvas>
+          </div>
+
+          <div class="chart-container" style="margin-top:12px;">
+            <div class="chart-title">Tabel Data PKL</div>
+            <div style="max-height:360px; overflow:auto;">
+              <table class="kb-table" id="kb-table">
+                <thead>
+                  <tr>
+                    <th>No.</th><th>NOMOR PKL</th><th>TANGGAL PKL</th><th>NAMA KAPAL</th><th>GT</th><th>NAMA PEMILIK</th><th>NAMA AWAK</th><th>JABATAN</th><th>JENIS PENGUPAHAN</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="chart-container" style="margin-bottom:12px;">
+            <div class="chart-title">Distribusi Jabatan</div>
+            <canvas id="chart-jabatan"></canvas>
+          </div>
+          <div class="chart-container">
+            <div class="chart-title">Distribusi Jenis Pengupahan</div>
+            <canvas id="chart-pengupahan"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/* ------------------ Data statis grafik perikanan ------------------ */
+const monthsAll = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const volumeBongkar = [2112,2300,2500,2600,2700,2800,2900,3000,2950,2850,2750,2650];
+const volumeDarat = [449,460,480,500,520,540,560,600,580,560,540,520];
+
+const ctx1 = document.getElementById('trendChart1').getContext('2d');
+new Chart(ctx1, { 
+  type:'line', 
+  data:{ 
+    labels: monthsAll, 
+    datasets:[{ 
+      label:'Volume (Ton)', 
+      data:volumeBongkar, 
+      borderColor:'#1a73e8', 
+      backgroundColor:'rgba(26,115,232,0.1)', 
+      tension:0.3, 
+      fill:true 
+    }] 
+  }, 
+  options:{ 
+    responsive:true, 
+    plugins:{ legend:{ display:false } }, 
+    scales:{ 
+      y:{ beginAtZero:true, grid:{ drawBorder:false } }, 
+      x:{ grid:{ display:false } } 
+    } 
+  } 
+});
+
+const ctx2 = document.getElementById('trendChart2').getContext('2d');
+new Chart(ctx2, { 
+  type:'line', 
+  data:{ 
+    labels: monthsAll, 
+    datasets:[{ 
+      label:'Volume (Ton)', 
+      data:volumeDarat, 
+      borderColor:'#34a853', 
+      backgroundColor:'rgba(52,168,83,0.1)', 
+      tension:0.3, 
+      fill:true 
+    }] 
+  }, 
+  options:{ 
+    responsive:true, 
+    plugins:{ legend:{ display:false } }, 
+    scales:{ 
+      y:{ beginAtZero:true, grid:{ drawBorder:false } }, 
+      x:{ grid:{ display:false } } 
+    } 
+  } 
+});
+
+/* ------------------ Google Sheets Integration ------------------ */
+const SHEET_ID = '1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254';
+const GID = '2099648587';
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+
+let chartPKLMonth = null, chartJabatan = null, chartPengupahan = null;
+
+document.getElementById('btn-load-gsheets').addEventListener('click', loadGoogleSheetsData);
+
+function showLoading() {
+  document.getElementById('loading-indicator').style.display = 'block';
+  document.getElementById('error-message').style.display = 'none';
+}
+
+function hideLoading() {
+  document.getElementById('loading-indicator').style.display = 'none';
+}
+
+function showError(message) {
+  const errorEl = document.getElementById('error-message');
+  errorEl.textContent = message;
+  errorEl.style.display = 'block';
+  hideLoading();
+}
+
+function loadGoogleSheetsData() {
+  showLoading();
+  
+  Papa.parse(CSV_URL, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      hideLoading();
+      if (results.errors.length > 0) {
+        console.error('Parse errors:', results.errors);
+        showError('Terjadi kesalahan saat membaca data. Silakan coba lagi.');
+        return;
+      }
+      processKesyahbandaranData(results.data);
+    },
+    error: function(error) {
+      hideLoading();
+      console.error('Download error:', error);
+      showError('Gagal memuat data dari Google Sheets. Pastikan spreadsheet dapat diakses publik.');
+    }
+  });
+}
+
+function parseNumber(str) {
+  if (str === null || str === undefined || str === '') return 0;
+  if (typeof str === 'number') return str;
+  const normalized = String(str).replace(/[^0-9\-,.]/g,'').replace(/,/g,'.');
+  const maybe = parseFloat(normalized);
+  return isNaN(maybe) ? 0 : maybe;
+}
+
+function parseDate(dateStr) {
+  if (!dateStr || dateStr === '') return null;
+  
+  // Try various date formats
+  const formats = [
+    /^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/, // dd/mm/yyyy or dd-mm-yyyy
+    /^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/, // yyyy-mm-dd
+  ];
+  
+  for (const format of formats) {
+    const match = String(dateStr).trim().match(format);
+    if (match) {
+      if (match[0].startsWith('20') || match[0].startsWith('19')) {
+        // yyyy-mm-dd format
+        return new Date(match[1], parseInt(match[2]) - 1, match[3]);
+      } else {
+        // dd/mm/yyyy format
+        const year = match[3].length === 2 ? '20' + match[3] : match[3];
+        return new Date(year, parseInt(match[2]) - 1, match[1]);
+      }
+    }
+  }
+  
+  // Try native parse
+  const parsed = new Date(dateStr);
+  return isNaN(parsed) ? null : parsed;
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  const date = new Date(d);
+  if (isNaN(date)) return String(d);
+  const dd = String(date.getDate()).padStart(2,'0');
+  const mm = String(date.getMonth()+1).padStart(2,'0');
+  const yy = date.getFullYear();
+  return `${dd}/${mm}/${yy}`;
+}
+
+function processKesyahbandaranData(rows) {
+  if (!rows || rows.length === 0) {
+    showError('Data kosong atau tidak valid.');
+    return;
+  }
+
+  // Normalize data
+  const normalized = rows.map(r => {
+    const tanggal = parseDate(r['TANGGAL PKL'] || r['Tanggal PKL'] || r['tanggal pkl'] || '');
+    const gt = parseNumber(r['GT'] || r['gt'] || '0');
+    
+    return {
+      no: r['NO.'] || r['No.'] || r['no'] || '',
+      nomor_pkl: r['NOMOR PKL'] || r['Nomor PKL'] || r['nomor pkl'] || '',
+      tanggal_pkl: tanggal,
+      nama_kapal: r['NAMA KAPAL'] || r['Nama Kapal'] || r['nama kapal'] || '',
+      gt: gt,
+      nama_pemilik: r['NAMA PEMILIK/OPERATOR'] || r['NAMA PEMILIK'] || r['Nama Pemilik'] || '',
+      nama_awak: r['NAMA AWAK KAPAL'] || r['NAMA AWAK'] || r['Nama Awak'] || '',
+      jabatan: r['JABATAN'] || r['Jabatan'] || r['jabatan'] || '',
+      jenis_pengupahan: r['JENIS PENGUPAHAN'] || r['Jenis Pengupahan'] || r['jenis pengupahan'] || ''
+    };
+  });
+
+  // Calculate statistics
+  const kapalSet = new Set();
+  let totalGT = 0;
+  const awakSet = new Set();
+  const jenisPengupahanSet = new Set();
+  const jabatanCounts = {};
+  const pengupahanCounts = {};
+  const monthCounts = {};
+
+  normalized.forEach(item => {
+    if (item.nama_kapal && String(item.nama_kapal).trim() !== '') {
+      kapalSet.add(String(item.nama_kapal).trim());
+    }
+    totalGT += Number(item.gt) || 0;
+    if (item.nama_awak && String(item.nama_awak).trim() !== '') {
+      awakSet.add(String(item.nama_awak).trim());
+    }
+    if (item.jenis_pengupahan && String(item.jenis_pengupahan).trim() !== '') {
+      jenisPengupahanSet.add(String(item.jenis_pengupahan).trim());
+    }
+
+    const jab = String(item.jabatan || 'LAINNYA').trim();
+    jabatanCounts[jab] = (jabatanCounts[jab] || 0) + 1;
+
+    const jup = String(item.jenis_pengupahan || 'LAINNYA').trim();
+    pengupahanCounts[jup] = (pengupahanCounts[jup] || 0) + 1;
+
+    if (item.tanggal_pkl instanceof Date && !isNaN(item.tanggal_pkl)) {
+      const yyyy = item.tanggal_pkl.getFullYear();
+      const mm = String(item.tanggal_pkl.getMonth()+1).padStart(2,'0');
+      const key = `${yyyy}-${mm}`;
+      monthCounts[key] = (monthCounts[key] || 0) + 1;
+    }
+  });
+
+  // Update summary cards
+  document.getElementById('kb-total-kapal').textContent = kapalSet.size.toLocaleString();
+  document.getElementById('kb-total-gt').textContent = totalGT ? totalGT.toLocaleString() : '-';
+  document.getElementById('kb-total-awak').textContent = awakSet.size.toLocaleString();
+  document.getElementById('kb-total-pengupahan').textContent = jenisPengupahanSet.size.toLocaleString();
+
+  // Update table
+  const tbody = document.querySelector('#kb-table tbody');
+  tbody.innerHTML = '';
+  normalized.forEach((it, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${it.no || (idx+1)}</td>
+      <td>${it.nomor_pkl || '-'}</td>
+      <td>${formatDate(it.tanggal_pkl)}</td>
+      <td>${it.nama_kapal || '-'}</td>
+      <td>${it.gt ? it.gt.toLocaleString() : '-'}</td>
+      <td>${it.nama_pemilik || '-'}</td>
+      <td>${it.nama_awak || '-'}</td>
+      <td>${it.jabatan || '-'}</td>
+      <td>${it.jenis_pengupahan || '-'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Chart: PKL per Bulan
+  const monthKeys = Object.keys(monthCounts).sort();
+  let labelsMonths = [];
+  let dataMonths = [];
+  
+  if (monthKeys.length === 0) {
+    const curYear = (new Date()).getFullYear();
+    labelsMonths = monthsAll.map((m,i)=>`${m} ${curYear}`);
+    dataMonths = new Array(12).fill(0);
+  } else {
+    const minKey = monthKeys[0];
+    const maxKey = monthKeys[monthKeys.length-1];
+    const [minY, minM] = minKey.split('-').map(Number);
+    const [maxY, maxM] = maxKey.split('-').map(Number);
+    const start = new Date(minY, minM-1, 1);
+    const end = new Date(maxY, maxM-1, 1);
+    const monthsList = [];
+    const counts = {};
+    
+    for (const k of monthKeys) counts[k] = monthCounts[k] || 0;
+    
+    let curr = new Date(start);
+    while (curr <= end) {
+      const ky = `${curr.getFullYear()}-${String(curr.getMonth()+1).padStart(2,'0')}`;
+      monthsList.push(ky);
+      curr.setMonth(curr.getMonth()+1);
+    }
+    
+    labelsMonths = monthsList.map(k => {
+      const [y, m] = k.split('-');
+      return `${monthsAll[Number(m)-1]} ${y}`;
+    });
+    dataMonths = monthsList.map(k => counts[k] || 0);
+  }
+
+  const ctxPKL = document.getElementById('chart-pkl-month').getContext('2d');
+  if (chartPKLMonth) chartPKLMonth.destroy();
+  chartPKLMonth = new Chart(ctxPKL, {
+    type: 'line',
+    data: { 
+      labels: labelsMonths, 
+      datasets: [{ 
+        label: 'Jumlah PKL', 
+        data: dataMonths, 
+        borderColor:'#1a73e8', 
+        backgroundColor:'rgba(26,115,232,0.08)', 
+        tension:0.25, 
+        fill:true 
+      }] 
+    },
+    options: { 
+      responsive:true, 
+      plugins:{ legend:{ display:false } }, 
+      scales:{ 
+        y:{ beginAtZero:true }, 
+        x:{ ticks:{ maxRotation:45, minRotation:0 } } 
+      } 
+    }
+  });
+
+  // Chart: Distribusi Jabatan
+  const jabatanLabels = Object.keys(jabatanCounts).filter(k => k !== '' && k !== 'LAINNYA');
+  if (jabatanCounts['LAINNYA']) jabatanLabels.push('LAINNYA');
+  const jabatanValues = jabatanLabels.map(l => jabatanCounts[l]);
+  
+  const ctxJab = document.getElementById('chart-jabatan').getContext('2d');
+  if (chartJabatan) chartJabatan.destroy();
+  chartJabatan = new Chart(ctxJab, { 
+    type:'pie', 
+    data:{ 
+      labels: jabatanLabels, 
+      datasets:[{ 
+        data: jabatanValues,
+        backgroundColor: [
+          '#1a73e8', '#34a853', '#fbbc04', '#ea4335', '#46bdc6',
+          '#7c4dff', '#ff6d00', '#00897b', '#6200ea', '#d50000'
+        ]
+      }] 
+    }, 
+    options:{ 
+      responsive:true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    } 
+  });
+
+  // Chart: Distribusi Pengupahan
+  const pengLabels = Object.keys(pengupahanCounts).filter(k => k !== '' && k !== 'LAINNYA');
+  if (pengupahanCounts['LAINNYA']) pengLabels.push('LAINNYA');
+  const pengValues = pengLabels.map(l => pengupahanCounts[l]);
+  
+  const ctxPeng = document.getElementById('chart-pengupahan').getContext('2d');
+  if (chartPengupahan) chartPengupahan.destroy();
+  chartPengupahan = new Chart(ctxPeng, { 
+    type:'pie', 
+    data:{ 
+      labels: pengLabels, 
+      datasets:[{ 
+        data: pengValues,
+        backgroundColor: [
+          '#34a853', '#1a73e8', '#fbbc04', '#ea4335', '#46bdc6',
+          '#7c4dff', '#ff6d00', '#00897b', '#6200ea', '#d50000'
+        ]
+      }] 
+    }, 
+    options:{ 
+      responsive:true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    } 
+  });
+
+  // Scroll to dashboard
+  document.querySelector('h2').scrollIntoView({ behavior:'smooth', block: 'start' });
+}
+
+// Auto-load data on page load (optional)
+// Uncomment the line below if you want to automatically load data when the page opens
+// window.addEventListener('load', loadGoogleSheetsData);
