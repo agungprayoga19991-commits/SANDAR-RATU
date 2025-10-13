@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard INPELKES-PPSK 2025 </title>
+  <title>Dashboard Kesyahbandaran 2025</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <style>
     * {
@@ -145,7 +145,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <h2>Kinerja Sistem Informasi Pelayanan Kesyahbandaran PPS Kendari 2025</h2>
+      <h2>Kinerja Kesyahbandaran 2025</h2>
       <div class="kb-controls">
         <button id="btn-load-gsheets">Muat Data dari Google Sheets</button>
       </div>
@@ -481,18 +481,39 @@
       
       const grouped = {};
       
+      // Cari kolom alat tangkap dan GT dengan lebih spesifik
       data.forEach(row => {
-        const alat = Object.values(row).find(v => v && v.length > 0) || 'Lainnya';
-        const gtValue = Object.values(row).find(v => !isNaN(parseFloat(v)));
-        const gt = parseFloat(gtValue || 0);
+        const keys = Object.keys(row);
+        let alatTangkap = '';
+        let gt = 0;
         
-        if (alat && alat !== '0') {
-          grouped[alat] = (grouped[alat] || 0) + gt;
+        // Cari kolom alat tangkap (biasanya kolom pertama atau kolom dengan nama 'alat')
+        for (let key of keys) {
+          if (key.toLowerCase().includes('alat') || key.toLowerCase().includes('tangkap') || keys.indexOf(key) === 0) {
+            alatTangkap = row[key];
+            break;
+          }
+        }
+        
+        // Cari kolom GT
+        for (let key of keys) {
+          if (key.toLowerCase().includes('gt') || !isNaN(parseFloat(row[key]))) {
+            const val = parseFloat(row[key]);
+            if (!isNaN(val) && val > 0) {
+              gt = val;
+              break;
+            }
+          }
+        }
+        
+        // Skip jika alat tangkap kosong atau angka
+        if (alatTangkap && alatTangkap.length > 0 && isNaN(alatTangkap)) {
+          grouped[alatTangkap] = (grouped[alatTangkap] || 0) + gt;
         }
       });
       
       let sorted = Object.entries(grouped)
-        .filter(([k, v]) => v > 0)
+        .filter(([k, v]) => v > 0 && k.trim() !== '')
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
       
@@ -613,12 +634,29 @@
       const displayData = data.slice(0, 10);
       
       displayData.forEach(row => {
-        const values = Object.values(row);
+        const headers = Object.keys(row);
+        
+        // Cari kolom yang sesuai
+        const findValue = (keywords) => {
+          for (let keyword of keywords) {
+            for (let header of headers) {
+              if (header.toLowerCase().includes(keyword.toLowerCase())) {
+                return row[header] || '-';
+              }
+            }
+          }
+          return '-';
+        };
+        
+        const namaKapal = findValue(['nama kapal', 'kapal', 'nama']);
+        const nomorIzin = findValue(['nomor izin', 'izin', 'no', 'nomor']);
+        const tanggalAkhir = findValue(['tanggal akhir', 'akhir', 'expired', 'tanggal']);
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${values[0] || '-'}</td>
-          <td>${values[1] || '-'}</td>
-          <td>${values[2] || '-'}</td>
+          <td>${namaKapal}</td>
+          <td>${nomorIzin}</td>
+          <td>${tanggalAkhir}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -635,18 +673,41 @@
       }
       
       data.forEach((row, idx) => {
-        const values = Object.values(row);
+        // Mapping kolom sesuai header yang diharapkan
+        const headers = Object.keys(row);
+        
+        // Cari kolom yang sesuai (case insensitive)
+        const findValue = (keywords) => {
+          for (let keyword of keywords) {
+            for (let header of headers) {
+              if (header.toLowerCase().includes(keyword.toLowerCase())) {
+                return row[header] || '-';
+              }
+            }
+          }
+          return '-';
+        };
+        
+        const nomorPKL = findValue(['nomor pkl', 'nomor', 'no pkl']);
+        const tanggalPKL = findValue(['tanggal pkl', 'tanggal', 'tgl']);
+        const namaKapal = findValue(['nama kapal', 'kapal']);
+        const gt = findValue(['gt']);
+        const namaPemilik = findValue(['nama pemilik', 'pemilik']);
+        const namaAwak = findValue(['nama awak', 'awak']);
+        const jabatan = findValue(['jabatan']);
+        const jenisPengupahan = findValue(['jenis pengupahan', 'pengupahan', 'upah']);
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${idx + 1}</td>
-          <td>${values[0] || '-'}</td>
-          <td>${values[1] || '-'}</td>
-          <td>${values[2] || '-'}</td>
-          <td>${values[3] || '-'}</td>
-          <td>${values[4] || '-'}</td>
-          <td>${values[5] || '-'}</td>
-          <td>${values[6] || '-'}</td>
-          <td>${values[7] || '-'}</td>
+          <td>${nomorPKL}</td>
+          <td>${tanggalPKL}</td>
+          <td>${namaKapal}</td>
+          <td>${gt}</td>
+          <td>${namaPemilik}</td>
+          <td>${namaAwak}</td>
+          <td>${jabatan}</td>
+          <td>${jenisPengupahan}</td>
         `;
         tbody.appendChild(tr);
       });
