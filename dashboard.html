@@ -248,33 +248,74 @@
 
     let charts = {};
 
-    // Fungsi untuk mengambil data dari Google Sheets via gviz
+    // Fungsi untuk mengambil data dari Google Sheets via CORS proxy
     async function fetchSheetData(gid) {
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
-        const response = await fetch(url);
-        const text = await response.text();
+        // Gunakan CORS proxy untuk development
+        const baseUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`;
         
-        // Parse JSON dari respons Google
-        const jsonStr = text.substring(47, text.length - 2);
-        const data = JSON.parse(jsonStr);
+        const response = await fetch(proxyUrl);
         
-        // Ekstrak header dan data
-        const headers = data.table.cols.map(col => col.label);
-        const rows = data.table.rows.map(row => {
-          const obj = {};
-          row.c.forEach((cell, i) => {
-            obj[headers[i]] = cell ? cell.v : '';
-          });
-          return obj;
-        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
-        console.log(`Data dari GID ${gid}:`, rows.slice(0, 2));
-        return rows;
+        const csv = await response.text();
+        console.log(`CSV dari GID ${gid}:`, csv.substring(0, 200));
+        return parseCSV(csv);
       } catch (error) {
         console.error(`Error fetching GID ${gid}:`, error);
         return [];
       }
+    }
+
+    // Parse CSV yang lebih robust
+    function parseCSV(csv) {
+      const lines = csv.trim().split('\n').filter(line => line.trim());
+      if (lines.length === 0) return [];
+      
+      // Parse header
+      const headers = parseCSVLine(lines[0]);
+      const data = [];
+      
+      // Parse data rows
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        if (values.length > 0) {
+          const row = {};
+          headers.forEach((header, idx) => {
+            row[header] = values[idx] || '';
+          });
+          data.push(row);
+        }
+      }
+      
+      console.log('Parsed data:', data.slice(0, 3));
+      return data;
+    }
+
+    // Parse single CSV line (handle quotes)
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      
+      result.push(current.trim());
+      return result;
     }
 
     // === 1. Aktivitas Kapal (STBLKK) ===
@@ -282,13 +323,11 @@
       const ctx = document.getElementById('chart-aktivitas-kapal').getContext('2d');
       if (charts.aktivitas) charts.aktivitas.destroy();
       
-      // Gunakan nama kolom eksplisit berdasarkan screenshot
       const labels = [];
       const masuk = [];
       const keluar = [];
       
       data.forEach(row => {
-        // Coba ambil dari kolom yang mungkin ada
         const bulan = row['Bulan'] || row['bulan'] || row['Month'] || row['month'] || 'Bulan';
         const masukVal = parseInt(row['Kapal Masuk'] || row['masuk'] || row['In'] || 0);
         const keluarVal = parseInt(row['Kapal Keluar'] || row['keluar'] || row['Out'] || 0);
@@ -355,16 +394,13 @@
       const ctx = document.getElementById('chart-perizinan-detail').getContext('2d');
       if (charts.perizinanDetail) charts.perizinanDetail.destroy();
       
-      // Ambil jenis izin dari kolom pertama atau kolom spesifik
       const jenisCount = {};
       data.forEach(row => {
-        // Coba cari kolom "Jenis Izin", "Nama Kapal", atau kolom pertama
         let jenis = row['Jenis Izin'] || row['Nama Kapal'] || Object.values(row)[0] || 'Lainnya';
         if (!jenis || jenis.trim() === '') jenis = 'Lainnya';
         jenisCount[jenis] = (jenisCount[jenis] || 0) + 1;
       });
       
-      // Ambil 5 kategori teratas
       const sorted = Object.entries(jenisCount)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
@@ -372,7 +408,6 @@
       const labels = sorted.map(x => x[0]);
       const values = sorted.map(x => x[1]);
       
-      // Warna
       const colors = ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff'];
       
       charts.perizinanDetail = new Chart(ctx, {
@@ -407,9 +442,7 @@
       const grouped = {};
       
       data.forEach(row => {
-        // Coba ambil nama alat tangkap dari kolom pertama atau "Alat Tangkap"
         const alat = row['Alat Tangkap'] || row['alat'] || Object.values(row)[0] || '';
-        // Coba ambil GT dari kolom "GT" atau "GT Kapal"
         const gtStr = row['GT'] || row['GT Kapal'] || Object.values(row)[1] || '0';
         const gt = parseFloat(gtStr) || 0;
         
@@ -418,7 +451,6 @@
         }
       });
       
-      // Urutkan dan ambil 10 teratas
       const sorted = Object.entries(grouped)
         .filter(([k, v]) => v > 0 && k.trim() !== '')
         .sort((a, b) => b[1] - a[1])
@@ -427,7 +459,6 @@
       const labels = sorted.map(x => x[0]);
       const values = sorted.map(x => x[1]);
       
-      // Gunakan data dummy jika tidak ada data
       if (labels.length === 0) {
         labels = ['Purse Seine', 'Gillnet', 'Pancing', 'Jaring Insang', 'Bubu'];
         values = [1500, 1200, 800, 600, 450];
@@ -462,16 +493,13 @@
       const values = [];
       
       data.forEach(row => {
-        // Coba ambil bulan dari kolom "Bulan" atau "Month"
         const bulan = row['Bulan'] || row['Month'] || row['bulan'] || 'Bulan';
-        // Coba ambil jumlah dari kolom "Jumlah", "Total", "SKKP"
         const jumlah = parseInt(row['Jumlah'] || row['Total'] || row['SKKP'] || 0);
         
         labels.push(bulan);
         values.push(jumlah);
       });
       
-      // Gunakan data dummy jika tidak ada data
       if (labels.length === 0) {
         labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
         values = [85, 92, 88, 95, 100, 98];
@@ -509,7 +537,6 @@
         return;
       }
       
-      // Ambil 10 data pertama
       data.slice(0, 10).forEach(row => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -565,6 +592,8 @@
       let debugInfo = '<strong>DEBUG - Struktur Data yang Terdeteksi:</strong><br><br>';
       
       try {
+        console.log('Memulai fetch data...');
+        
         // Fetch semua data secara paralel
         const [
           aktivitasData,
