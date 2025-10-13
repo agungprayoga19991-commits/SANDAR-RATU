@@ -323,7 +323,47 @@
         charts.aktivitas.destroy();
       }
       
-      // Cari kolom yang tepat (case insensitive)
+      // Debug: lihat struktur data
+      console.log('Aktivitas Data Sample:', data[0]);
+      
+      if (data.length === 0) {
+        // Jika tidak ada data, gunakan data dummy
+        charts.aktivitas = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
+            datasets: [
+              {
+                label: 'Kapal Masuk',
+                data: [45, 52, 48, 55, 60, 58],
+                backgroundColor: '#36a2eb',
+                borderColor: '#2589d6',
+                borderWidth: 1
+              },
+              {
+                label: 'Kapal Keluar',
+                data: [42, 50, 46, 53, 58, 56],
+                backgroundColor: '#ff6384',
+                borderColor: '#e5506e',
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+        return;
+      }
+      
+      // Cari kolom yang tepat (case insensitive dan flexible)
       const findColumn = (row, names) => {
         for (let name of names) {
           for (let key in row) {
@@ -335,11 +375,33 @@
         return null;
       };
       
-      const labels = data.map(row => findColumn(row, ['bulan', 'month']) || '').filter(x => x);
-      const masuk = data.map(row => parseInt(findColumn(row, ['masuk', 'in']) || 0));
-      const keluar = data.map(row => parseInt(findColumn(row, ['keluar', 'out']) || 0));
+      // Ambil data dengan berbagai kemungkinan nama kolom
+      const labels = [];
+      const masuk = [];
+      const keluar = [];
       
-      console.log('Aktivitas Chart - Labels:', labels, 'Masuk:', masuk, 'Keluar:', keluar);
+      data.forEach(row => {
+        // Cari bulan/tanggal
+        const bulan = findColumn(row, ['bulan', 'month', 'periode', 'tanggal', 'tgl']);
+        if (bulan && bulan.trim() !== '') {
+          labels.push(bulan);
+        }
+        
+        // Cari data masuk
+        const valueMasuk = findColumn(row, ['masuk', 'in', 'datang', 'arrival']);
+        masuk.push(parseInt(valueMasuk) || 0);
+        
+        // Cari data keluar
+        const valueKeluar = findColumn(row, ['keluar', 'out', 'berangkat', 'departure']);
+        keluar.push(parseInt(valueKeluar) || 0);
+      });
+      
+      console.log('Aktivitas Chart - Labels:', labels);
+      console.log('Aktivitas Chart - Masuk:', masuk);
+      console.log('Aktivitas Chart - Keluar:', keluar);
+      
+      // Cek apakah ada data valid
+      const hasValidData = masuk.some(v => v > 0) || keluar.some(v => v > 0);
       
       charts.aktivitas = new Chart(ctx, {
         type: 'bar',
@@ -348,14 +410,14 @@
           datasets: [
             {
               label: 'Kapal Masuk',
-              data: masuk.length > 0 ? masuk : [45, 52, 48, 55, 60, 58],
+              data: hasValidData ? masuk : [45, 52, 48, 55, 60, 58],
               backgroundColor: '#36a2eb',
               borderColor: '#2589d6',
               borderWidth: 1
             },
             {
               label: 'Kapal Keluar',
-              data: keluar.length > 0 ? keluar : [42, 50, 46, 53, 58, 56],
+              data: hasValidData ? keluar : [42, 50, 46, 53, 58, 56],
               backgroundColor: '#ff6384',
               borderColor: '#e5506e',
               borderWidth: 1
