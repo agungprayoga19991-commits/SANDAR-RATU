@@ -235,7 +235,7 @@
   </div>
 
   <script>
-    // ✅ MAPPING GID YANG BENAR SESUAI PERMINTAAN AWAL
+    // ✅ MAPPING GID YANG BENAR
     const SPREADSHEET_ID = '1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254';
     const SHEETS = {
       aktivitas: '1397215787',     // STBLKK → Aktivitas Kapal
@@ -248,10 +248,9 @@
 
     let charts = {};
 
-    // Fungsi untuk mengambil data dari Google Sheets via gviz (lebih reliable)
+    // Fungsi untuk mengambil data dari Google Sheets via gviz
     async function fetchSheetData(gid) {
       try {
-        // Gunakan format gviz untuk parsing JSON langsung
         const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
         const response = await fetch(url);
         const text = await response.text();
@@ -278,45 +277,41 @@
       }
     }
 
-    // Helper: cari nilai berdasarkan keyword (case-insensitive)
-    function findValue(row, keywords) {
-      for (let key in row) {
-        if (keywords.some(kw => key.toLowerCase().includes(kw.toLowerCase()))) {
-          return row[key];
-        }
-      }
-      return '';
-    }
-
     // === 1. Aktivitas Kapal (STBLKK) ===
     function createAktivitasChart(data) {
       const ctx = document.getElementById('chart-aktivitas-kapal').getContext('2d');
       if (charts.aktivitas) charts.aktivitas.destroy();
       
+      // Gunakan nama kolom eksplisit berdasarkan screenshot
       const labels = [];
       const masuk = [];
       const keluar = [];
       
       data.forEach(row => {
-        const bulan = findValue(row, ['bulan', 'month', 'periode']);
-        labels.push(bulan || 'Bulan');
-        masuk.push(parseInt(findValue(row, ['masuk', 'in', 'datang']) || 0));
-        keluar.push(parseInt(findValue(row, ['keluar', 'out', 'berangkat']) || 0));
+        // Coba ambil dari kolom yang mungkin ada
+        const bulan = row['Bulan'] || row['bulan'] || row['Month'] || row['month'] || 'Bulan';
+        const masukVal = parseInt(row['Kapal Masuk'] || row['masuk'] || row['In'] || 0);
+        const keluarVal = parseInt(row['Kapal Keluar'] || row['keluar'] || row['Out'] || 0);
+        
+        labels.push(bulan);
+        masuk.push(masukVal);
+        keluar.push(keluarVal);
       });
       
-      // Gunakan data dummy jika tidak ada data valid
-      const hasData = masuk.some(v => v > 0) || keluar.some(v => v > 0);
-      const finalLabels = labels.length && hasData ? labels : ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
-      const finalMasuk = hasData ? masuk : [45, 52, 48, 55, 60, 58];
-      const finalKeluar = hasData ? keluar : [42, 50, 46, 53, 58, 56];
+      // Jika tidak ada data, gunakan dummy
+      if (labels.length === 0) {
+        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
+        masuk = [45, 52, 48, 55, 60, 58];
+        keluar = [42, 50, 46, 53, 58, 56];
+      }
       
       charts.aktivitas = new Chart(ctx, {
         type: 'bar',
-        data: {
-          labels: finalLabels,
+         {
+          labels: labels,
           datasets: [
-            { label: 'Kapal Masuk', data: finalMasuk, backgroundColor: '#36a2eb' },
-            { label: 'Kapal Keluar', data: finalKeluar, backgroundColor: '#ff6384' }
+            { label: 'Kapal Masuk',  masuk, backgroundColor: '#36a2eb' },
+            { label: 'Kapal Keluar',  keluar, backgroundColor: '#ff6384' }
           ]
         },
         options: {
@@ -341,7 +336,7 @@
         data: {
           labels: ['Izin Daerah', 'Izin Pusat'],
           datasets: [{
-            data: [daerahCount, pusatCount],
+             [daerahCount, pusatCount],
             backgroundColor: ['#4bc0c0', '#ff9f40'],
             borderColor: '#fff',
             borderWidth: 2
@@ -360,26 +355,32 @@
       const ctx = document.getElementById('chart-perizinan-detail').getContext('2d');
       if (charts.perizinanDetail) charts.perizinanDetail.destroy();
       
+      // Ambil jenis izin dari kolom pertama atau kolom spesifik
       const jenisCount = {};
       data.forEach(row => {
-        // Cari kolom jenis izin (biasanya kolom pertama atau 'Jenis Izin')
-        const jenis = findValue(row, ['jenis', 'kategori', 'type']) || 
-                     Object.values(row)[0] || 'Lainnya';
+        // Coba cari kolom "Jenis Izin", "Nama Kapal", atau kolom pertama
+        let jenis = row['Jenis Izin'] || row['Nama Kapal'] || Object.values(row)[0] || 'Lainnya';
+        if (!jenis || jenis.trim() === '') jenis = 'Lainnya';
         jenisCount[jenis] = (jenisCount[jenis] || 0) + 1;
       });
       
-      const labels = Object.keys(jenisCount).slice(0, 5); // Ambil 5 teratas
-      const values = Object.values(jenisCount).slice(0, 5);
+      // Ambil 5 kategori teratas
+      const sorted = Object.entries(jenisCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
       
-      // Warna untuk maksimal 5 kategori
+      const labels = sorted.map(x => x[0]);
+      const values = sorted.map(x => x[1]);
+      
+      // Warna
       const colors = ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff'];
       
       charts.perizinanDetail = new Chart(ctx, {
         type: 'doughnut',
-        data: {
+         {
           labels: labels,
           datasets: [{
-            data: values,
+             values,
             backgroundColor: colors.slice(0, labels.length),
             borderColor: '#fff',
             borderWidth: 2
@@ -404,11 +405,12 @@
       if (charts.alatTangkap) charts.alatTangkap.destroy();
       
       const grouped = {};
+      
       data.forEach(row => {
-        // Cari nama alat tangkap (kolom pertama biasanya nama)
-        const alat = findValue(row, ['alat', 'tangkap']) || Object.values(row)[0] || '';
-        // Cari GT (biasanya kolom kedua atau 'GT')
-        const gtStr = findValue(row, ['gt']) || (Object.values(row)[1] || '0');
+        // Coba ambil nama alat tangkap dari kolom pertama atau "Alat Tangkap"
+        const alat = row['Alat Tangkap'] || row['alat'] || Object.values(row)[0] || '';
+        // Coba ambil GT dari kolom "GT" atau "GT Kapal"
+        const gtStr = row['GT'] || row['GT Kapal'] || Object.values(row)[1] || '0';
         const gt = parseFloat(gtStr) || 0;
         
         if (alat && gt > 0) {
@@ -426,16 +428,18 @@
       const values = sorted.map(x => x[1]);
       
       // Gunakan data dummy jika tidak ada data
-      const finalLabels = labels.length ? labels : ['Purse Seine', 'Gillnet', 'Pancing', 'Jaring Insang', 'Bubu'];
-      const finalValues = values.length ? values : [1500, 1200, 800, 600, 450];
+      if (labels.length === 0) {
+        labels = ['Purse Seine', 'Gillnet', 'Pancing', 'Jaring Insang', 'Bubu'];
+        values = [1500, 1200, 800, 600, 450];
+      }
       
       charts.alatTangkap = new Chart(ctx, {
         type: 'bar',
-        data: {
-          labels: finalLabels,
+         {
+          labels: labels,
           datasets: [{
             label: 'Total GT',
-            data: finalValues,
+            data: values,
             backgroundColor: '#9966ff'
           }]
         },
@@ -458,25 +462,28 @@
       const values = [];
       
       data.forEach(row => {
-        const bulan = findValue(row, ['bulan', 'month']);
-        const jumlah = parseInt(findValue(row, ['jumlah', 'total', 'skkp', 'count']) || 0);
-        if (bulan && jumlah > 0) {
-          labels.push(bulan);
-          values.push(jumlah);
-        }
+        // Coba ambil bulan dari kolom "Bulan" atau "Month"
+        const bulan = row['Bulan'] || row['Month'] || row['bulan'] || 'Bulan';
+        // Coba ambil jumlah dari kolom "Jumlah", "Total", "SKKP"
+        const jumlah = parseInt(row['Jumlah'] || row['Total'] || row['SKKP'] || 0);
+        
+        labels.push(bulan);
+        values.push(jumlah);
       });
       
       // Gunakan data dummy jika tidak ada data
-      const finalLabels = labels.length ? labels : ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
-      const finalValues = values.length ? values : [85, 92, 88, 95, 100, 98];
+      if (labels.length === 0) {
+        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
+        values = [85, 92, 88, 95, 100, 98];
+      }
       
       charts.skkp = new Chart(ctx, {
         type: 'line',
-        data: {
-          labels: finalLabels,
+         {
+          labels: labels,
           datasets: [{
             label: 'SKKP Diterbitkan',
-            data: finalValues,
+             values,
             borderColor: '#ff6384',
             backgroundColor: 'rgba(255,99,132,0.2)',
             fill: true,
@@ -506,9 +513,9 @@
       data.slice(0, 10).forEach(row => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${findValue(row, ['nama kapal', 'kapal', 'nama']) || '-'}</td>
-          <td>${findValue(row, ['nomor izin', 'izin', 'no']) || '-'}</td>
-          <td>${findValue(row, ['tanggal akhir', 'akhir', 'expired', 'berakhir']) || '-'}</td>
+          <td>${row['NAMA KAPAL'] || row['Nama Kapal'] || '-'}</td>
+          <td>${row['NOMOR IZIN'] || row['Nomor Izin'] || '-'}</td>
+          <td>${row['TANGGAL AKHIR'] || row['Tanggal Akhir'] || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -528,14 +535,14 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${i+1}</td>
-          <td>${findValue(row, ['nomor pkl', 'no pkl']) || '-'}</td>
-          <td>${findValue(row, ['tanggal pkl', 'tgl pkl']) || '-'}</td>
-          <td>${findValue(row, ['nama kapal']) || '-'}</td>
-          <td>${findValue(row, ['gt']) || '-'}</td>
-          <td>${findValue(row, ['nama pemilik', 'pemilik']) || '-'}</td>
-          <td>${findValue(row, ['nama awak', 'awak']) || '-'}</td>
-          <td>${findValue(row, ['jabatan']) || '-'}</td>
-          <td>${findValue(row, ['jenis pengupahan', 'pengupahan']) || '-'}</td>
+          <td>${row['NOMOR PKL'] || row['Nomor PKL'] || '-'}</td>
+          <td>${row['TANGGAL PKL'] || row['Tanggal PKL'] || '-'}</td>
+          <td>${row['NAMA KAPAL'] || row['Nama Kapal'] || '-'}</td>
+          <td>${row['GT'] || '-'}</td>
+          <td>${row['NAMA PEMILIK'] || row['Nama Pemilik'] || '-'}</td>
+          <td>${row['NAMA AWAK'] || row['Nama Awak'] || '-'}</td>
+          <td>${row['JABATAN'] || row['Jabatan'] || '-'}</td>
+          <td>${row['JENIS PENGUPAHAN'] || row['Jenis Pengupahan'] || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -616,7 +623,7 @@
       } catch (error) {
         console.error('Error:', error);
         loadingEl.style.display = 'none';
-        errorEl.textContent = 'Gagal memuat data: ' + (error.message || 'Kesalahan tidak dikenal');
+        errorEl.textContent = 'Gagal memuat  ' + (error.message || 'Kesalahan tidak dikenal');
         errorEl.style.display = 'block';
       } finally {
         btn.disabled = false;
