@@ -235,38 +235,35 @@
   </div>
 
   <script>
-    // ✅ MAPPING GID YANG BENAR
     const SPREADSHEET_ID = '1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254';
     const SHEETS = {
-      aktivitas: '1397215787',     // STBLKK → Aktivitas Kapal
-      perizinanDaerah: '583377591', // Perizinan Kapal (Daerah)
-      perizinanPusat: '264793408',  // Perizinan Kapal (Pusat)
-      alatTangkap: '566117585',     // SHTI → Top 10 Alat Tangkap
-      skkp: '1309011826',           // SKKP → Jumlah SKKP Diterbitkan
-      pkl: '2099648587'             // PKL → Masa Berlaku Izin & Tabel PKL
+      aktivitas: '1397215787',
+      perizinan: '698992828',
+      alatTangkap: '1309011826',
+      skkp: '566117585',
+      izinHabis: '583377591',
+      pkl: '264793408',
+      perizinanDetail: '2099648587'
     };
 
     let charts = {};
 
-    // Fungsi untuk mengambil data dari Google Sheets via CORS proxy
+    // Fungsi untuk mengambil data dari Google Sheets dengan proxy CORS
     async function fetchSheetData(gid) {
       try {
-        // Gunakan CORS proxy untuk development
-        const baseUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(baseUrl)}`;
-        
-        const response = await fetch(proxyUrl);
+        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
+        const response = await fetch(url);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const csv = await response.text();
-        console.log(`CSV dari GID ${gid}:`, csv.substring(0, 200));
+        console.log(`Data dari GID ${gid}:`, csv.substring(0, 200)); // Debug
         return parseCSV(csv);
       } catch (error) {
         console.error(`Error fetching GID ${gid}:`, error);
-        return [];
+        throw error;
       }
     }
 
@@ -291,7 +288,7 @@
         }
       }
       
-      console.log('Parsed data:', data.slice(0, 3));
+      console.log('Parsed data:', data.slice(0, 3)); // Debug
       return data;
     }
 
@@ -318,107 +315,209 @@
       return result;
     }
 
-    // === 1. Aktivitas Kapal (STBLKK) ===
+    // Fungsi untuk membuat chart Aktivitas Kapal
     function createAktivitasChart(data) {
       const ctx = document.getElementById('chart-aktivitas-kapal').getContext('2d');
-      if (charts.aktivitas) charts.aktivitas.destroy();
       
+      if (charts.aktivitas) {
+        charts.aktivitas.destroy();
+      }
+      
+      // Debug: lihat struktur data
+      console.log('Aktivitas Data Sample:', data[0]);
+      
+      if (data.length === 0) {
+        // Jika tidak ada data, gunakan data dummy
+        charts.aktivitas = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
+            datasets: [
+              {
+                label: 'Kapal Masuk',
+                data: [45, 52, 48, 55, 60, 58],
+                backgroundColor: '#36a2eb',
+                borderColor: '#2589d6',
+                borderWidth: 1
+              },
+              {
+                label: 'Kapal Keluar',
+                data: [42, 50, 46, 53, 58, 56],
+                backgroundColor: '#ff6384',
+                borderColor: '#e5506e',
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+        return;
+      }
+      
+      // Cari kolom yang tepat (case insensitive dan flexible)
+      const findColumn = (row, names) => {
+        for (let name of names) {
+          for (let key in row) {
+            if (key.toLowerCase().includes(name.toLowerCase())) {
+              return row[key];
+            }
+          }
+        }
+        return null;
+      };
+      
+      // Ambil data dengan berbagai kemungkinan nama kolom
       const labels = [];
       const masuk = [];
       const keluar = [];
       
       data.forEach(row => {
-        const bulan = row['Bulan'] || row['bulan'] || row['Month'] || row['month'] || 'Bulan';
-        const masukVal = parseInt(row['Kapal Masuk'] || row['masuk'] || row['In'] || 0);
-        const keluarVal = parseInt(row['Kapal Keluar'] || row['keluar'] || row['Out'] || 0);
+        // Cari bulan/tanggal
+        const bulan = findColumn(row, ['bulan', 'month', 'periode', 'tanggal', 'tgl']);
+        if (bulan && bulan.trim() !== '') {
+          labels.push(bulan);
+        }
         
-        labels.push(bulan);
-        masuk.push(masukVal);
-        keluar.push(keluarVal);
+        // Cari data masuk
+        const valueMasuk = findColumn(row, ['masuk', 'in', 'datang', 'arrival']);
+        masuk.push(parseInt(valueMasuk) || 0);
+        
+        // Cari data keluar
+        const valueKeluar = findColumn(row, ['keluar', 'out', 'berangkat', 'departure']);
+        keluar.push(parseInt(valueKeluar) || 0);
       });
       
-      // Jika tidak ada data, gunakan dummy
-      if (labels.length === 0) {
-        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
-        masuk = [45, 52, 48, 55, 60, 58];
-        keluar = [42, 50, 46, 53, 58, 56];
-      }
+      console.log('Aktivitas Chart - Labels:', labels);
+      console.log('Aktivitas Chart - Masuk:', masuk);
+      console.log('Aktivitas Chart - Keluar:', keluar);
+      
+      // Cek apakah ada data valid
+      const hasValidData = masuk.some(v => v > 0) || keluar.some(v => v > 0);
       
       charts.aktivitas = new Chart(ctx, {
         type: 'bar',
-         {
-          labels: labels,
+        data: {
+          labels: labels.length > 0 ? labels : ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
           datasets: [
-            { label: 'Kapal Masuk',  masuk, backgroundColor: '#36a2eb' },
-            { label: 'Kapal Keluar',  keluar, backgroundColor: '#ff6384' }
+            {
+              label: 'Kapal Masuk',
+              data: hasValidData ? masuk : [45, 52, 48, 55, 60, 58],
+              backgroundColor: '#36a2eb',
+              borderColor: '#2589d6',
+              borderWidth: 1
+            },
+            {
+              label: 'Kapal Keluar',
+              data: hasValidData ? keluar : [42, 50, 46, 53, 58, 56],
+              backgroundColor: '#ff6384',
+              borderColor: '#e5506e',
+              borderWidth: 1
+            }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom' } },
-          scales: { y: { beginAtZero: true } }
+          plugins: {
+            legend: { position: 'bottom' }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
         }
       });
     }
 
-    // === 2. Perizinan Kapal (Daerah vs Pusat) ===
-    function createPerizinanChart(daerahData, pusatData) {
+    // Fungsi untuk membuat chart Perizinan Kapal
+    function createPerizinanChart(data) {
       const ctx = document.getElementById('chart-perizinan-kapal').getContext('2d');
-      if (charts.perizinan) charts.perizinan.destroy();
       
-      const daerahCount = daerahData.length;
-      const pusatCount = pusatData.length;
+      if (charts.perizinan) {
+        charts.perizinan.destroy();
+      }
+      
+      let daerah = 0;
+      let pusat = 0;
+      
+      data.forEach(row => {
+        const jenis = Object.values(row).join(' ').toLowerCase();
+        if (jenis.includes('daerah')) daerah++;
+        if (jenis.includes('pusat')) pusat++;
+      });
+      
+      // Data dummy jika kosong
+      if (daerah === 0 && pusat === 0) {
+        daerah = 150;
+        pusat = 250;
+      }
+      
+      console.log('Perizinan Chart - Daerah:', daerah, 'Pusat:', pusat);
       
       charts.perizinan = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels: ['Izin Daerah', 'Izin Pusat'],
           datasets: [{
-             [daerahCount, pusatCount],
+            data: [daerah, pusat],
             backgroundColor: ['#4bc0c0', '#ff9f40'],
-            borderColor: '#fff',
-            borderWidth: 2
+            borderWidth: 2,
+            borderColor: '#fff'
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: true,
-          plugins: { legend: { position: 'bottom' } }
+          plugins: {
+            legend: { position: 'bottom' }
+          }
         }
       });
     }
 
-    // === 3. Detail Perizinan Pusat ===
+    // Fungsi untuk membuat chart Detail Perizinan Pusat
     function createPerizinanDetailChart(data) {
       const ctx = document.getElementById('chart-perizinan-detail').getContext('2d');
-      if (charts.perizinanDetail) charts.perizinanDetail.destroy();
       
-      const jenisCount = {};
+      if (charts.perizinanDetail) {
+        charts.perizinanDetail.destroy();
+      }
+      
+      const counts = {};
+      
       data.forEach(row => {
-        let jenis = row['Jenis Izin'] || row['Nama Kapal'] || Object.values(row)[0] || 'Lainnya';
-        if (!jenis || jenis.trim() === '') jenis = 'Lainnya';
-        jenisCount[jenis] = (jenisCount[jenis] || 0) + 1;
+        const jenis = Object.values(row)[0] || 'Lainnya';
+        counts[jenis] = (counts[jenis] || 0) + 1;
       });
       
-      const sorted = Object.entries(jenisCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
+      let labels = Object.keys(counts);
+      let values = Object.values(counts);
       
-      const labels = sorted.map(x => x[0]);
-      const values = sorted.map(x => x[1]);
+      // Data dummy jika kosong
+      if (labels.length === 0) {
+        labels = ['SIUP', 'SIPI', 'SIKPI', 'Lainnya'];
+        values = [120, 80, 50, 30];
+      }
       
-      const colors = ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff'];
+      console.log('Perizinan Detail - Labels:', labels, 'Values:', values);
       
       charts.perizinanDetail = new Chart(ctx, {
         type: 'doughnut',
-         {
+        data: {
           labels: labels,
           datasets: [{
-             values,
-            backgroundColor: colors.slice(0, labels.length),
-            borderColor: '#fff',
-            borderWidth: 2
+            data: values,
+            backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff'],
+            borderWidth: 2,
+            borderColor: '#fff'
           }]
         },
         options: {
@@ -434,86 +533,139 @@
       });
     }
 
-    // === 4. Top 10 Alat Tangkap (SHTI) ===
+    // Fungsi untuk membuat chart Alat Tangkap
     function createAlatTangkapChart(data) {
       const ctx = document.getElementById('chart-alat-tangkap').getContext('2d');
-      if (charts.alatTangkap) charts.alatTangkap.destroy();
+      
+      if (charts.alatTangkap) {
+        charts.alatTangkap.destroy();
+      }
       
       const grouped = {};
       
+      // Cari kolom alat tangkap dan GT dengan lebih spesifik
       data.forEach(row => {
-        const alat = row['Alat Tangkap'] || row['alat'] || Object.values(row)[0] || '';
-        const gtStr = row['GT'] || row['GT Kapal'] || Object.values(row)[1] || '0';
-        const gt = parseFloat(gtStr) || 0;
+        const keys = Object.keys(row);
+        let alatTangkap = '';
+        let gt = 0;
         
-        if (alat && gt > 0) {
-          grouped[alat] = (grouped[alat] || 0) + gt;
+        // Cari kolom alat tangkap (biasanya kolom pertama atau kolom dengan nama 'alat')
+        for (let key of keys) {
+          if (key.toLowerCase().includes('alat') || key.toLowerCase().includes('tangkap') || keys.indexOf(key) === 0) {
+            alatTangkap = row[key];
+            break;
+          }
+        }
+        
+        // Cari kolom GT
+        for (let key of keys) {
+          if (key.toLowerCase().includes('gt') || !isNaN(parseFloat(row[key]))) {
+            const val = parseFloat(row[key]);
+            if (!isNaN(val) && val > 0) {
+              gt = val;
+              break;
+            }
+          }
+        }
+        
+        // Skip jika alat tangkap kosong atau angka
+        if (alatTangkap && alatTangkap.length > 0 && isNaN(alatTangkap)) {
+          grouped[alatTangkap] = (grouped[alatTangkap] || 0) + gt;
         }
       });
       
-      const sorted = Object.entries(grouped)
+      let sorted = Object.entries(grouped)
         .filter(([k, v]) => v > 0 && k.trim() !== '')
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
       
+      // Data dummy jika kosong
+      if (sorted.length === 0) {
+        sorted = [
+          ['Purse Seine', 1500],
+          ['Gillnet', 1200],
+          ['Pancing', 800],
+          ['Jaring Insang', 600],
+          ['Bubu', 450],
+          ['Payang', 400],
+          ['Trammel Net', 350],
+          ['Rawai', 300],
+          ['Bagan', 250],
+          ['Sero', 200]
+        ];
+      }
+      
       const labels = sorted.map(x => x[0]);
       const values = sorted.map(x => x[1]);
       
-      if (labels.length === 0) {
-        labels = ['Purse Seine', 'Gillnet', 'Pancing', 'Jaring Insang', 'Bubu'];
-        values = [1500, 1200, 800, 600, 450];
-      }
+      console.log('Alat Tangkap - Labels:', labels, 'Values:', values);
       
       charts.alatTangkap = new Chart(ctx, {
         type: 'bar',
-         {
+        data: {
           labels: labels,
           datasets: [{
             label: 'Total GT',
             data: values,
-            backgroundColor: '#9966ff'
+            backgroundColor: '#9966ff',
+            borderColor: '#8855ee',
+            borderWidth: 1
           }]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { x: { beginAtZero: true } }
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: { beginAtZero: true }
+          }
         }
       });
     }
 
-    // === 5. Jumlah SKKP Diterbitkan ===
+    // Fungsi untuk membuat chart SKKP
     function createSKKPChart(data) {
       const ctx = document.getElementById('chart-skkp').getContext('2d');
-      if (charts.skkp) charts.skkp.destroy();
       
-      const labels = [];
-      const values = [];
+      if (charts.skkp) {
+        charts.skkp.destroy();
+      }
       
-      data.forEach(row => {
-        const bulan = row['Bulan'] || row['Month'] || row['bulan'] || 'Bulan';
-        const jumlah = parseInt(row['Jumlah'] || row['Total'] || row['SKKP'] || 0);
-        
-        labels.push(bulan);
-        values.push(jumlah);
-      });
+      const findColumn = (row, names) => {
+        for (let name of names) {
+          for (let key in row) {
+            if (key.toLowerCase().includes(name.toLowerCase())) {
+              return row[key];
+            }
+          }
+        }
+        return null;
+      };
       
+      let labels = data.map(row => findColumn(row, ['bulan', 'month']) || '').filter(x => x);
+      let values = data.map(row => parseInt(findColumn(row, ['jumlah', 'total', 'count']) || 0));
+      
+      // Data dummy jika kosong
       if (labels.length === 0) {
         labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
         values = [85, 92, 88, 95, 100, 98];
       }
       
+      console.log('SKKP Chart - Labels:', labels, 'Values:', values);
+      
       charts.skkp = new Chart(ctx, {
         type: 'line',
-         {
+        data: {
           labels: labels,
           datasets: [{
             label: 'SKKP Diterbitkan',
-             values,
+            data: values,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
             borderColor: '#ff6384',
-            backgroundColor: 'rgba(255,99,132,0.2)',
+            borderWidth: 2,
             fill: true,
             tension: 0.4
           }]
@@ -521,13 +673,17 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom' } },
-          scales: { y: { beginAtZero: true } }
+          plugins: {
+            legend: { position: 'bottom' }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
         }
       });
     }
 
-    // === 6. Tabel Izin Habis (dari PKL) ===
+    // Fungsi untuk mengisi tabel Izin Habis
     function fillIzinHabisTable(data) {
       const tbody = document.querySelector('#table-izin-habis tbody');
       tbody.innerHTML = '';
@@ -537,18 +693,38 @@
         return;
       }
       
-      data.slice(0, 10).forEach(row => {
+      const displayData = data.slice(0, 10);
+      
+      displayData.forEach(row => {
+        const headers = Object.keys(row);
+        
+        // Cari kolom yang sesuai
+        const findValue = (keywords) => {
+          for (let keyword of keywords) {
+            for (let header of headers) {
+              if (header.toLowerCase().includes(keyword.toLowerCase())) {
+                return row[header] || '-';
+              }
+            }
+          }
+          return '-';
+        };
+        
+        const namaKapal = findValue(['nama kapal', 'kapal', 'nama']);
+        const nomorIzin = findValue(['nomor izin', 'izin', 'no', 'nomor']);
+        const tanggalAkhir = findValue(['tanggal akhir', 'akhir', 'expired', 'tanggal']);
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${row['NAMA KAPAL'] || row['Nama Kapal'] || '-'}</td>
-          <td>${row['NOMOR IZIN'] || row['Nomor Izin'] || '-'}</td>
-          <td>${row['TANGGAL AKHIR'] || row['Tanggal Akhir'] || '-'}</td>
+          <td>${namaKapal}</td>
+          <td>${nomorIzin}</td>
+          <td>${tanggalAkhir}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // === 7. Tabel PKL Lengkap ===
+    // Fungsi untuk mengisi tabel PKL
     function fillPKLTable(data) {
       const tbody = document.querySelector('#kb-table tbody');
       tbody.innerHTML = '';
@@ -558,24 +734,48 @@
         return;
       }
       
-      data.forEach((row, i) => {
+      data.forEach((row, idx) => {
+        // Mapping kolom sesuai header yang diharapkan
+        const headers = Object.keys(row);
+        
+        // Cari kolom yang sesuai (case insensitive)
+        const findValue = (keywords) => {
+          for (let keyword of keywords) {
+            for (let header of headers) {
+              if (header.toLowerCase().includes(keyword.toLowerCase())) {
+                return row[header] || '-';
+              }
+            }
+          }
+          return '-';
+        };
+        
+        const nomorPKL = findValue(['nomor pkl', 'nomor', 'no pkl']);
+        const tanggalPKL = findValue(['tanggal pkl', 'tanggal', 'tgl']);
+        const namaKapal = findValue(['nama kapal', 'kapal']);
+        const gt = findValue(['gt']);
+        const namaPemilik = findValue(['nama pemilik', 'pemilik']);
+        const namaAwak = findValue(['nama awak', 'awak']);
+        const jabatan = findValue(['jabatan']);
+        const jenisPengupahan = findValue(['jenis pengupahan', 'pengupahan', 'upah']);
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${i+1}</td>
-          <td>${row['NOMOR PKL'] || row['Nomor PKL'] || '-'}</td>
-          <td>${row['TANGGAL PKL'] || row['Tanggal PKL'] || '-'}</td>
-          <td>${row['NAMA KAPAL'] || row['Nama Kapal'] || '-'}</td>
-          <td>${row['GT'] || '-'}</td>
-          <td>${row['NAMA PEMILIK'] || row['Nama Pemilik'] || '-'}</td>
-          <td>${row['NAMA AWAK'] || row['Nama Awak'] || '-'}</td>
-          <td>${row['JABATAN'] || row['Jabatan'] || '-'}</td>
-          <td>${row['JENIS PENGUPAHAN'] || row['Jenis Pengupahan'] || '-'}</td>
+          <td>${idx + 1}</td>
+          <td>${nomorPKL}</td>
+          <td>${tanggalPKL}</td>
+          <td>${namaKapal}</td>
+          <td>${gt}</td>
+          <td>${namaPemilik}</td>
+          <td>${namaAwak}</td>
+          <td>${jabatan}</td>
+          <td>${jenisPengupahan}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // === Muat Semua Data ===
+    // Fungsi utama untuk memuat semua data
     async function loadAllData() {
       const loadingEl = document.getElementById('loading-indicator');
       const errorEl = document.getElementById('error-message');
@@ -594,76 +794,70 @@
       try {
         console.log('Memulai fetch data...');
         
-        // Fetch semua data secara paralel
-        const [
-          aktivitasData,
-          perizinanDaerahData,
-          perizinanPusatData,
-          alatTangkapData,
-          skkpData,
-          pklData
-        ] = await Promise.all([
+        // Ambil semua data secara paralel
+        const results = await Promise.allSettled([
           fetchSheetData(SHEETS.aktivitas),
-          fetchSheetData(SHEETS.perizinanDaerah),
-          fetchSheetData(SHEETS.perizinanPusat),
+          fetchSheetData(SHEETS.perizinan),
           fetchSheetData(SHEETS.alatTangkap),
           fetchSheetData(SHEETS.skkp),
-          fetchSheetData(SHEETS.pkl)
+          fetchSheetData(SHEETS.izinHabis),
+          fetchSheetData(SHEETS.pkl),
+          fetchSheetData(SHEETS.perizinanDetail)
         ]);
         
-        // Debug info
-        const sheetsInfo = [
-          { name: 'Aktivitas Kapal', data: aktivitasData },
-          { name: 'Perizinan Daerah', data: perizinanDaerahData },
-          { name: 'Perizinan Pusat', data: perizinanPusatData },
-          { name: 'Alat Tangkap', data: alatTangkapData },
-          { name: 'SKKP', data: skkpData },
-          { name: 'PKL', data: pklData }
-        ];
-        
-        sheetsInfo.forEach(sheet => {
-          if (sheet.data.length > 0) {
-            const headers = Object.keys(sheet.data[0]);
-            debugInfo += `<strong>${sheet.name}:</strong> ${headers.join(', ')}<br>`;
-            debugInfo += `Sample: ${JSON.stringify(sheet.data[0])}<br><br>`;
+        const sheetNames = ['Aktivitas Kapal', 'Perizinan', 'Alat Tangkap', 'SKKP', 'Izin Habis', 'PKL', 'Perizinan Detail'];
+        const [aktivitas, perizinan, alatTangkap, skkp, izinHabis, pkl, perizinanDetail] = results.map((r, idx) => {
+          if (r.status === 'fulfilled' && r.value.length > 0) {
+            const headers = Object.keys(r.value[0]);
+            debugInfo += `<strong>${sheetNames[idx]}:</strong> ${headers.join(', ')}<br>`;
+            debugInfo += `Sample: ${JSON.stringify(r.value[0])}<br><br>`;
+            return r.value;
           } else {
-            debugInfo += `<strong>${sheet.name}:</strong> <span style="color:red;">Tidak ada data</span><br><br>`;
+            debugInfo += `<strong>${sheetNames[idx]}:</strong> <span style="color:red;">No data or error</span><br><br>`;
+            return [];
           }
         });
         
+        // Tampilkan debug info
         debugEl.innerHTML = debugInfo;
         debugEl.style.display = 'block';
         
-        // Render semua komponen
-        createAktivitasChart(aktivitasData);
-        createPerizinanChart(perizinanDaerahData, perizinanPusatData);
-        createPerizinanDetailChart(perizinanPusatData);
-        createAlatTangkapChart(alatTangkapData);
-        createSKKPChart(skkpData);
-        fillIzinHabisTable(pklData);
-        fillPKLTable(pklData);
+        console.log('Data berhasil diambil');
+        
+        // Buat semua chart dan tabel
+        createAktivitasChart(aktivitas);
+        createPerizinanChart(perizinan);
+        createPerizinanDetailChart(perizinanDetail);
+        createAlatTangkapChart(alatTangkap);
+        createSKKPChart(skkp);
+        fillIzinHabisTable(izinHabis);
+        fillPKLTable(pkl);
         
         loadingEl.style.display = 'none';
-        successEl.textContent = `Data berhasil dimuat! Total: Aktivitas(${aktivitasData.length}), Perizinan Daerah(${perizinanDaerahData.length}), Pusat(${perizinanPusatData.length}), Alat Tangkap(${alatTangkapData.length}), SKKP(${skkpData.length}), PKL(${pklData.length})`;
+        successEl.textContent = 'Data berhasil dimuat! Lihat info debug di bawah untuk struktur kolom.';
         successEl.style.display = 'block';
         
-        setTimeout(() => successEl.style.display = 'none', 5000);
+        setTimeout(() => {
+          successEl.style.display = 'none';
+        }, 5000);
         
       } catch (error) {
         console.error('Error:', error);
         loadingEl.style.display = 'none';
-        errorEl.textContent = 'Gagal memuat  ' + (error.message || 'Kesalahan tidak dikenal');
+        errorEl.textContent = 'Gagal memuat data: ' + error.message;
         errorEl.style.display = 'block';
       } finally {
         btn.disabled = false;
       }
     }
 
-    // Event listener
+    // Event listener untuk tombol
     document.getElementById('btn-load-gsheets').addEventListener('click', loadAllData);
     
-    // Muat otomatis saat halaman dibuka
-    window.addEventListener('load', () => setTimeout(loadAllData, 500));
+    // Muat data otomatis saat halaman dibuka
+    window.addEventListener('load', () => {
+      setTimeout(loadAllData, 500);
+    });
   </script>
 </body>
 </html>
