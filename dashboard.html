@@ -38,6 +38,14 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .kb-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
     }
     .kb-controls button {
       background: #28a745;
@@ -58,6 +66,47 @@
       background: #ccc;
       cursor: not-allowed;
       transform: none;
+    }
+    .kb-controls button.btn-refresh {
+      background: #007bff;
+    }
+    .kb-controls button.btn-refresh:hover {
+      background: #0056b3;
+    }
+    .auto-refresh-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 15px;
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #155724;
+    }
+    .auto-refresh-status.active {
+      background: #d4edda;
+      border-color: #c3e6cb;
+    }
+    .auto-refresh-status.inactive {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #28a745;
+      animation: pulse 2s infinite;
+    }
+    .status-indicator.inactive {
+      background: #dc3545;
+      animation: none;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
     .loading, .error {
       padding: 15px;
@@ -139,6 +188,10 @@
       .grid-3 {
         grid-template-columns: 1fr;
       }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
@@ -147,7 +200,12 @@
     <div class="header">
       <h2>Sistem Informasi Pelayanan Kesyahbandaran PPS Kendar 2025</h2>
       <div class="kb-controls">
-        <button id="btn-load-gsheets">Muat Data dari Google Sheets</button>
+        <button id="btn-load-gsheets">Muat Data Manual</button>
+        <button id="btn-toggle-auto" class="btn-refresh">Auto-Refresh: ON</button>
+        <div class="auto-refresh-status active">
+          <span class="status-indicator"></span>
+          <span id="refresh-text">Auto-refresh setiap 30 detik</span>
+        </div>
       </div>
     </div>
 
@@ -246,19 +304,30 @@
     };
 
     let charts = {};
+    let autoRefreshInterval = null;
+    let isAutoRefreshEnabled = true;
+    const REFRESH_INTERVAL = 30000; // 30 detik
 
     // Fungsi untuk mengambil data dari Google Sheets
     async function fetchSheetData(gid) {
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
-        const response = await fetch(url);
+        // Tambahkan timestamp untuk menghindari cache
+        const timestamp = new Date().getTime();
+        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}&_=${timestamp}`;
+        const response = await fetch(url, {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const csv = await response.text();
-        console.log(`Data dari GID ${gid}:`, csv.substring(0, 200));
+        console.log(`Data dari GID ${gid} (${new Date().toLocaleTimeString()}):`, csv.substring(0, 200));
         return parseCSV(csv);
       } catch (error) {
         console.error(`Error fetching GID ${gid}:`, error);
@@ -351,7 +420,19 @@
               legend: { position: 'bottom' }
             },
             scales: {
-              y: { beginAtZero: true }
+              x: {
+                ticks: {
+                  maxRotation: 45,
+                  minRotation: 45,
+                  font: { size: 10 }
+                }
+              },
+              y: { 
+                beginAtZero: true,
+                ticks: {
+                  font: { size: 10 }
+                }
+              }
             }
           }
         });
@@ -363,16 +444,26 @@
       const keluar = [];
       
       data.forEach(row => {
-        const keys = Object.keys(row);
         const values = Object.values(row);
         
         if (values[0] && values[0].toString().trim() !== '') {
-          labels.push(values[0].toString());
+          // Format tanggal lebih ringkas
+          let labelText = values[0].toString().trim();
           
-          const masukVal = parseFloat(values[1]) || 0;
+          // Coba parse sebagai tanggal
+          const dateMatch = labelText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+          if (dateMatch) {
+            const [, day, month, year] = dateMatch;
+            labelText = `${day}/${month}/${year.substring(2)}`;
+          }
+          
+          labels.push(labelText);
+          
+          // Ambil nilai dan pastikan integer
+          const masukVal = Math.round(parseFloat(values[1]) || 0);
           masuk.push(masukVal);
           
-          const keluarVal = parseFloat(values[2]) || 0;
+          const keluarVal = Math.round(parseFloat(values[2]) || 0);
           keluar.push(keluarVal);
         }
       });
@@ -406,10 +497,35 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom' }
+            legend: { 
+              position: 'bottom',
+              labels: { font: { size: 11 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + context.parsed.y + ' kapal';
+                }
+              }
+            }
           },
           scales: {
-            y: { beginAtZero: true }
+            x: {
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45,
+                font: { size: 9 }
+              }
+            },
+            y: { 
+              beginAtZero: true,
+              ticks: {
+                font: { size: 10 },
+                callback: function(value) {
+                  return value;
+                }
+              }
+            }
           }
         }
       });
@@ -747,19 +863,22 @@
     }
 
     // Load semua data
-    async function loadAllData() {
+    async function loadAllData(isAutoRefresh = false) {
       const loadingEl = document.getElementById('loading-indicator');
       const errorEl = document.getElementById('error-message');
       const successEl = document.getElementById('success-message');
       const btn = document.getElementById('btn-load-gsheets');
       
-      loadingEl.style.display = 'block';
+      if (!isAutoRefresh) {
+        loadingEl.style.display = 'block';
+        btn.disabled = true;
+      }
+      
       errorEl.style.display = 'none';
       successEl.style.display = 'none';
-      btn.disabled = true;
       
       try {
-        console.log('Memulai fetch data...');
+        console.log('Memulai fetch data...', new Date().toLocaleTimeString());
         
         const results = await Promise.allSettled([
           fetchSheetData(SHEETS.aktivitas),
@@ -787,30 +906,98 @@
         fillIzinHabisTable(izinHabis);
         fillPKLTable(pkl);
         
-        loadingEl.style.display = 'none';
-        successEl.textContent = 'Data berhasil dimuat dari Google Sheets!';
-        successEl.style.display = 'block';
-        
-        setTimeout(() => {
-          successEl.style.display = 'none';
-        }, 5000);
+        if (!isAutoRefresh) {
+          loadingEl.style.display = 'none';
+          successEl.textContent = 'Data berhasil dimuat dari Google Sheets!';
+          successEl.style.display = 'block';
+          
+          setTimeout(() => {
+            successEl.style.display = 'none';
+          }, 3000);
+        } else {
+          console.log('Auto-refresh berhasil:', new Date().toLocaleTimeString());
+        }
         
       } catch (error) {
         console.error('Error:', error);
-        loadingEl.style.display = 'none';
-        errorEl.textContent = 'Gagal memuat data: ' + error.message;
-        errorEl.style.display = 'block';
+        if (!isAutoRefresh) {
+          loadingEl.style.display = 'none';
+          errorEl.textContent = 'Gagal memuat data: ' + error.message;
+          errorEl.style.display = 'block';
+        }
       } finally {
-        btn.disabled = false;
+        if (!isAutoRefresh) {
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Fungsi toggle auto-refresh
+    function toggleAutoRefresh() {
+      const btn = document.getElementById('btn-toggle-auto');
+      const statusEl = document.querySelector('.auto-refresh-status');
+      const statusIndicator = document.querySelector('.status-indicator');
+      const refreshText = document.getElementById('refresh-text');
+      
+      isAutoRefreshEnabled = !isAutoRefreshEnabled;
+      
+      if (isAutoRefreshEnabled) {
+        // Aktifkan auto-refresh
+        btn.textContent = 'Auto-Refresh: ON';
+        btn.style.background = '#007bff';
+        statusEl.classList.remove('inactive');
+        statusEl.classList.add('active');
+        statusIndicator.classList.remove('inactive');
+        refreshText.textContent = 'Auto-refresh setiap 30 detik';
+        
+        // Start interval
+        autoRefreshInterval = setInterval(() => {
+          loadAllData(true);
+        }, REFRESH_INTERVAL);
+        
+        console.log('Auto-refresh diaktifkan');
+      } else {
+        // Nonaktifkan auto-refresh
+        btn.textContent = 'Auto-Refresh: OFF';
+        btn.style.background = '#6c757d';
+        statusEl.classList.remove('active');
+        statusEl.classList.add('inactive');
+        statusIndicator.classList.add('inactive');
+        refreshText.textContent = 'Auto-refresh dinonaktifkan';
+        
+        // Clear interval
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+          autoRefreshInterval = null;
+        }
+        
+        console.log('Auto-refresh dinonaktifkan');
       }
     }
 
     // Event listener
-    document.getElementById('btn-load-gsheets').addEventListener('click', loadAllData);
+    document.getElementById('btn-load-gsheets').addEventListener('click', () => loadAllData(false));
+    document.getElementById('btn-toggle-auto').addEventListener('click', toggleAutoRefresh);
     
     // Auto load saat halaman dibuka
     window.addEventListener('load', () => {
-      setTimeout(loadAllData, 500);
+      setTimeout(() => {
+        loadAllData(false);
+        
+        // Start auto-refresh interval
+        if (isAutoRefreshEnabled) {
+          autoRefreshInterval = setInterval(() => {
+            loadAllData(true);
+          }, REFRESH_INTERVAL);
+        }
+      }, 500);
+    });
+    
+    // Cleanup saat halaman ditutup
+    window.addEventListener('beforeunload', () => {
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+      }
     });
   </script>
 </body>
