@@ -160,8 +160,8 @@
     <div class="grid-3">
       <!-- Aktivitas Kapal -->
       <div class="chart-container">
-        <div class="chart-title">Aktivitas Kapal</div>
-        <canvas id="chart-aktivitas-kapal" style="max-height:220px;"></canvas>
+        <div class="chart-title"> STBLKK </div>
+        <canvas id="chart-stblkk" style="max-height:220px;"></canvas>
       </div>
 
       <!-- Perizinan Kapal (Izin Daerah vs Pusat) -->
@@ -317,7 +317,7 @@
 
     // Fungsi untuk membuat chart Aktivitas Kapal
     function createAktivitasChart(data) {
-      const ctx = document.getElementById('chart-aktivitas-kapal').getContext('2d');
+      const ctx = document.getElementById('chart-stblkk').getContext('2d');
       
       if (charts.aktivitas) {
         charts.aktivitas.destroy();
