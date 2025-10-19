@@ -715,7 +715,7 @@
       });
     }
 
-    // Chart SKKP
+// Fungsi untuk chart SKKP
     function createSKKPChart(data) {
       const ctx = document.getElementById('chart-skkp').getContext('2d');
       
@@ -723,26 +723,22 @@
         charts.skkp.destroy();
       }
       
-      console.log('SKKP Data:', data);
-      
-      let labels = [];
-      let values = [];
-      
-      if (data.length === 0) {
-        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
-        values = [85, 92, 88, 95, 100, 98];
-      } else {
-        data.forEach(row => {
-          const rowValues = Object.values(row);
-          
-          if (rowValues[0] && rowValues[0].toString().trim() !== '') {
-            labels.push(rowValues[0].toString());
-            
-            const skkpVal = parseFloat(rowValues[1]) || 0;
-            values.push(skkpVal);
+      const findColumn = (row, names) => {
+        for (let name of names) {
+          for (let key in row) {
+            if (key.toLowerCase().includes(name.toLowerCase())) {
+              return row[key];
+            }
           }
-        });
-      }
+        }
+        return null;
+      };
+      
+      let labels = data.map(row => findColumn(row, ['bulan', 'month', 'periode']) || '').filter(x => x);
+      let values = data.map(row => {
+        const val = findColumn(row, ['jumlah', 'total', 'count', 'skkp']);
+        return parseInt(val) || 0;
+      });
       
       console.log('SKKP Chart - Labels:', labels, 'Values:', values);
       
@@ -753,21 +749,48 @@
           datasets: [{
             label: 'SKKP Diterbitkan',
             data: values,
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            backgroundColor: 'rgba(255, 99, 132, 0.3)',
             borderColor: '#ff6384',
-            borderWidth: 2,
+            borderWidth: 3,
             fill: true,
-            tension: 0.4
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#ff6384',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointHoverRadius: 6
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom' }
+            legend: { 
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+                padding: 15,
+                font: {
+                  size: 12
+                }
+              }
+            }
           },
           scales: {
-            y: { beginAtZero: true }
+            y: { 
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              },
+              ticks: {
+                stepSize: 10
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
           }
         }
       });
