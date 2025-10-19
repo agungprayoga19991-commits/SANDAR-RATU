@@ -179,6 +179,19 @@
     .kb-table tbody tr:hover {
       background: #e9ecef;
     }
+    .debug-info {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      color: #333;
+      margin-top: 10px;
+      max-height: 100px;
+      overflow-y: auto;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
     @media (max-width: 1200px) {
       .grid-3 {
         grid-template-columns: repeat(2, 1fr);
@@ -219,6 +232,7 @@
       <div class="chart-container">
         <div class="chart-title">Aktivitas Kapal</div>
         <canvas id="chart-aktivitas-kapal" style="max-height:220px;"></canvas>
+        <div class="debug-info" id="debug-aktivitas"></div>
       </div>
 
       <!-- Perizinan Kapal (Izin Daerah vs Pusat) -->
@@ -227,6 +241,7 @@
         <div style="position:relative; width:200px; height:200px; margin:0 auto;">
           <canvas id="chart-perizinan-kapal"></canvas>
         </div>
+        <div class="debug-info" id="debug-perizinan"></div>
       </div>
 
       <!-- Perizinan Kapal (Detail Izin Pusat) -->
@@ -235,6 +250,7 @@
         <div style="position:relative; width:200px; height:200px; margin:0 auto;">
           <canvas id="chart-perizinan-detail"></canvas>
         </div>
+        <div class="debug-info" id="debug-perizinan-detail"></div>
       </div>
     </div>
 
@@ -245,12 +261,14 @@
         <div class="chart-title">Top 10 Alat Tangkap</div>
         <div style="font-size:12px; color:#666; text-align:center; margin-bottom:8px;">Sebaran GT Kapal</div>
         <canvas id="chart-alat-tangkap" style="max-height:280px;"></canvas>
+        <div class="debug-info" id="debug-alat-tangkap"></div>
       </div>
 
       <!-- Jumlah SKKP Diterbitkan -->
       <div class="chart-container">
         <div class="chart-title">Jumlah SKKP Diterbitkan</div>
         <canvas id="chart-skkp" style="max-height:280px;"></canvas>
+        <div class="debug-info" id="debug-skkp"></div>
       </div>
 
       <!-- Masa Berlaku Izin Akan Habis -->
@@ -306,12 +324,52 @@
     let charts = {};
     let autoRefreshInterval = null;
     let isAutoRefreshEnabled = true;
-    const REFRESH_INTERVAL = 30000; // 30 detik
+    const REFRESH_INTERVAL = 30000;
 
-    // Fungsi untuk mengambil data dari Google Sheets
+    // Improved CSV Parser
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    function parseCSV(csv) {
+      const lines = csv.trim().split('\n').filter(line => line.trim());
+      if (lines.length === 0) return [];
+      
+      const headers = parseCSVLine(lines[0]);
+      const data = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        if (values.some(v => v !== '')) { // Only add rows with at least one non-empty value
+          const row = {};
+          headers.forEach((header, idx) => {
+            row[header] = values[idx] || '';
+          });
+          data.push(row);
+        }
+      }
+      
+      return data;
+    }
+
     async function fetchSheetData(gid) {
       try {
-        // Tambahkan timestamp untuk menghindari cache
         const timestamp = new Date().getTime();
         const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}&_=${timestamp}`;
         const response = await fetch(url, {
@@ -327,7 +385,6 @@
         }
         
         const csv = await response.text();
-        console.log(`Data dari GID ${gid} (${new Date().toLocaleTimeString()}):`, csv.substring(0, 200));
         return parseCSV(csv);
       } catch (error) {
         console.error(`Error fetching GID ${gid}:`, error);
@@ -335,50 +392,20 @@
       }
     }
 
-    // Parse CSV
-    function parseCSV(csv) {
-      const lines = csv.trim().split('\n').filter(line => line.trim());
-      if (lines.length === 0) return [];
-      
-      const headers = parseCSVLine(lines[0]);
-      const data = [];
-      
-      for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVLine(lines[i]);
-        if (values.length > 0) {
-          const row = {};
-          headers.forEach((header, idx) => {
-            row[header] = values[idx] || '';
-          });
-          data.push(row);
-        }
+    // Helper: Find column by name (case-insensitive, flexible match)
+    function findColumn(headers, keywords) {
+      for (let keyword of keywords) {
+        const found = headers.find(h => h.toLowerCase().includes(keyword.toLowerCase()));
+        if (found) return found;
       }
-      
-      console.log('Parsed data:', data.slice(0, 3));
-      return data;
+      return null;
     }
 
-    // Parse single CSV line
-    function parseCSVLine(line) {
-      const result = [];
-      let current = '';
-      let inQuotes = false;
-      
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          result.push(current.trim());
-          current = '';
-        } else {
-          current += char;
-        }
+    function updateDebugInfo(elementId, text) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.textContent = text;
       }
-      
-      result.push(current.trim());
-      return result;
     }
 
     // Chart Aktivitas Kapal
@@ -389,8 +416,6 @@
         charts.aktivitas.destroy();
       }
       
-      console.log('Aktivitas Data:', data);
-      
       if (data.length === 0) {
         charts.aktivitas = new Chart(ctx, {
           type: 'bar',
@@ -400,74 +425,42 @@
               {
                 label: 'Kapal Masuk',
                 data: [45, 52, 48, 55, 60, 58],
-                backgroundColor: '#36a2eb',
-                borderColor: '#2589d6',
-                borderWidth: 1
+                backgroundColor: '#36a2eb'
               },
               {
                 label: 'Kapal Keluar',
                 data: [42, 50, 46, 53, 58, 56],
-                backgroundColor: '#ff6384',
-                borderColor: '#e5506e',
-                borderWidth: 1
+                backgroundColor: '#ff6384'
               }
             ]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom' }
-            },
-            scales: {
-              x: {
-                ticks: {
-                  maxRotation: 45,
-                  minRotation: 45,
-                  font: { size: 10 }
-                }
-              },
-              y: { 
-                beginAtZero: true,
-                ticks: {
-                  font: { size: 10 }
-                }
-              }
-            }
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true } }
           }
         });
+        updateDebugInfo('debug-aktivitas', '⚠️ No data');
         return;
       }
+      
+      const headers = Object.keys(data[0]);
+      const tanggalCol = findColumn(headers, ['tanggal', 'tgl', 'date']);
+      const masukCol = findColumn(headers, ['masuk', 'kedatangan', 'arrival']);
+      const keluarCol = findColumn(headers, ['keluar', 'keberangkatan', 'departure']);
       
       const labels = [];
       const masuk = [];
       const keluar = [];
       
       data.forEach(row => {
-        const values = Object.values(row);
-        
-        if (values[0] && values[0].toString().trim() !== '') {
-          let labelText = values[0].toString().trim();
-          
-          const dateMatch = labelText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-          if (dateMatch) {
-            const [, day, month, year] = dateMatch;
-            labelText = `${day}/${month}/${year.substring(2)}`;
-          }
-          
-          labels.push(labelText);
-          
-          const masukVal = Math.round(parseFloat(values[1]) || 0);
-          masuk.push(masukVal);
-          
-          const keluarVal = Math.round(parseFloat(values[2]) || 0);
-          keluar.push(keluarVal);
+        if (tanggalCol && masukCol && keluarCol) {
+          labels.push(row[tanggalCol] || '');
+          masuk.push(Math.round(parseFloat(row[masukCol]) || 0));
+          keluar.push(Math.round(parseFloat(row[keluarCol]) || 0));
         }
       });
-      
-      console.log('Aktivitas Chart - Labels:', labels);
-      console.log('Aktivitas Chart - Masuk:', masuk);
-      console.log('Aktivitas Chart - Keluar:', keluar);
       
       charts.aktivitas = new Chart(ctx, {
         type: 'bar',
@@ -477,72 +470,37 @@
             {
               label: 'Kapal Masuk',
               data: masuk,
-              backgroundColor: '#36a2eb',
-              borderColor: '#2589d6',
-              borderWidth: 1
+              backgroundColor: '#36a2eb'
             },
             {
               label: 'Kapal Keluar',
               data: keluar,
-              backgroundColor: '#ff6384',
-              borderColor: '#e5506e',
-              borderWidth: 1
+              backgroundColor: '#ff6384'
             }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { 
-              position: 'bottom',
-              labels: { font: { size: 11 } }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return context.dataset.label + ': ' + context.parsed.y + ' kapal';
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              ticks: {
-                maxRotation: 45,
-                minRotation: 45,
-                font: { size: 9 }
-              }
-            },
-            y: { 
-              beginAtZero: true,
-              ticks: {
-                font: { size: 10 },
-                callback: function(value) {
-                  return value;
-                }
-              }
-            }
-          }
+          plugins: { legend: { position: 'bottom' } },
+          scales: { y: { beginAtZero: true } }
         }
       });
+      
+      updateDebugInfo('debug-aktivitas', `✅ ${data.length} rows | Tanggal: ${tanggalCol} | Masuk: ${masukCol} | Keluar: ${keluarCol}`);
     }
 
-    // Chart Perizinan Kapal
+    // Chart Perizinan
     function createPerizinanChart(data) {
       const ctx = document.getElementById('chart-perizinan-kapal').getContext('2d');
+      if (charts.perizinan) charts.perizinan.destroy();
       
-      if (charts.perizinan) {
-        charts.perizinan.destroy();
-      }
-      
-      let daerah = 0;
-      let pusat = 0;
+      let daerah = 0, pusat = 0;
       
       data.forEach(row => {
-        const jenis = Object.values(row).join(' ').toLowerCase();
-        if (jenis.includes('daerah')) daerah++;
-        if (jenis.includes('pusat')) pusat++;
+        const allValues = Object.values(row).join(' ').toLowerCase();
+        if (allValues.includes('daerah')) daerah++;
+        if (allValues.includes('pusat')) pusat++;
       });
       
       if (daerah === 0 && pusat === 0) {
@@ -550,39 +508,30 @@
         pusat = 250;
       }
       
-      console.log('Perizinan Chart - Daerah:', daerah, 'Pusat:', pusat);
-      
       charts.perizinan = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels: ['Izin Daerah', 'Izin Pusat'],
           datasets: [{
             data: [daerah, pusat],
-            backgroundColor: ['#4bc0c0', '#ff9f40'],
-            borderWidth: 2,
-            borderColor: '#fff'
+            backgroundColor: ['#4bc0c0', '#ff9f40']
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: { position: 'bottom' }
-          }
+          plugins: { legend: { position: 'bottom' } }
         }
       });
+      
+      updateDebugInfo('debug-perizinan', `✅ ${data.length} rows | Daerah: ${daerah} | Pusat: ${pusat}`);
     }
 
-    // Chart Detail Perizinan Pusat
+    // Chart Perizinan Detail
     function createPerizinanDetailChart(data) {
       const ctx = document.getElementById('chart-perizinan-detail').getContext('2d');
-      
-      if (charts.perizinanDetail) {
-        charts.perizinanDetail.destroy();
-      }
+      if (charts.perizinanDetail) charts.perizinanDetail.destroy();
       
       const counts = {};
-      
       data.forEach(row => {
         const jenis = Object.values(row)[0] || 'Lainnya';
         counts[jenis] = (counts[jenis] || 0) + 1;
@@ -596,84 +545,70 @@
         values = [120, 80, 50, 30];
       }
       
-      console.log('Perizinan Detail - Labels:', labels, 'Values:', values);
-      
       charts.perizinanDetail = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels: labels,
           datasets: [{
             data: values,
-            backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff'],
-            borderWidth: 2,
-            borderColor: '#fff'
+            backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff']
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: { 
-              position: 'bottom',
-              labels: { font: { size: 10 } }
-            }
-          }
+          plugins: { legend: { position: 'bottom' } }
         }
       });
+      
+      updateDebugInfo('debug-perizinan-detail', `✅ ${data.length} rows | Jenis: ${labels.length}`);
     }
 
-    // Chart Alat Tangkap - DIPERBARUI untuk menggunakan KEDUA data (perizinan + izinHabis)
+    // Chart Alat Tangkap - IMPROVED
     function createAlatTangkapChart(dataPerizinan, dataIzinHabis) {
       const ctx = document.getElementById('chart-alat-tangkap').getContext('2d');
-      
-      if (charts.alatTangkap) {
-        charts.alatTangkap.destroy();
-      }
-      
-      console.log('📊 Alat Tangkap - Data Perizinan:', dataPerizinan.length, 'baris');
-      console.log('📊 Alat Tangkap - Data Izin Habis:', dataIzinHabis.length, 'baris');
+      if (charts.alatTangkap) charts.alatTangkap.destroy();
       
       const grouped = {};
+      let processedCount = 0;
       
-      // Process data dari KEDUA sheet
-      const processData = (data, sourceLabel) => {
-        const headers = Object.keys(data[0] || {});
+      // Process Perizinan
+      if (dataPerizinan.length > 0) {
+        const headers = Object.keys(dataPerizinan[0]);
+        const alatCol = findColumn(headers, ['alat tangkap', 'alat', 'jenis alat']);
+        const gtCol = findColumn(headers, ['gt kapal', 'gt']);
         
-        let alatTangkapCol = null;
-        let gtCol = null;
-        
-        headers.forEach((header) => {
-          const lowerHeader = header.toLowerCase();
-          if (lowerHeader.includes('alat tangkap')) {
-            alatTangkapCol = header;
-          }
-          if (lowerHeader === 'gt kapal' || lowerHeader === 'gt') {
-            gtCol = header;
-          }
-        });
-        
-        let validDataCount = 0;
-        data.forEach(row => {
-          if (alatTangkapCol && gtCol) {
-            const alatTangkap = row[alatTangkapCol] ? row[alatTangkapCol].toString().trim() : '';
+        dataPerizinan.forEach(row => {
+          if (alatCol && gtCol) {
+            const alat = (row[alatCol] || '').toString().trim();
             const gt = parseFloat(row[gtCol]) || 0;
-            
-            if (alatTangkap && alatTangkap.length > 0 && gt > 0) {
-              grouped[alatTangkap] = (grouped[alatTangkap] || 0) + gt;
-              validDataCount++;
+            if (alat && gt > 0) {
+              grouped[alat] = (grouped[alat] || 0) + gt;
+              processedCount++;
             }
           }
         });
+        updateDebugInfo('debug-alat-tangkap', `Perizinan: ${processedCount} rows | Alat: ${alatCol} | GT: ${gtCol}\n`);
+      }
+      
+      // Process Izin Habis
+      if (dataIzinHabis.length > 0) {
+        const headers = Object.keys(dataIzinHabis[0]);
+        const alatCol = findColumn(headers, ['alat tangkap', 'alat', 'jenis alat']);
+        const gtCol = findColumn(headers, ['gt']);
         
-        console.log(`✅ ${sourceLabel}: ${validDataCount} data valid diproses`);
-        return validDataCount;
-      };
-      
-      const perizinanCount = processData(dataPerizinan, 'Sheet Perizinan (SPB)');
-      const izinHabisCount = processData(dataIzinHabis, 'Sheet Izin Habis');
-      
-      console.log('🔗 Total data dari kedua sheet:', perizinanCount + izinHabisCount);
-      console.log('📈 Grouped data:', grouped);
+        let izinHabisCount = 0;
+        dataIzinHabis.forEach(row => {
+          if (alatCol && gtCol) {
+            const alat = (row[alatCol] || '').toString().trim();
+            const gt = parseFloat(row[gtCol]) || 0;
+            if (alat && gt > 0) {
+              grouped[alat] = (grouped[alat] || 0) + gt;
+              izinHabisCount++;
+            }
+          }
+        });
+        updateDebugInfo('debug-alat-tangkap', document.getElementById('debug-alat-tangkap').textContent + `IzinHabis: ${izinHabisCount} rows\n`);
+      }
       
       const sorted = Object.entries(grouped)
         .filter(([k, v]) => v > 0)
@@ -683,16 +618,14 @@
       let labels = sorted.map(x => x[0]);
       let values = sorted.map(x => x[1]);
       
-      // Jika data kosong atau terlalu sedikit, tampilkan pesan dan gunakan dummy
       const isPlaceholder = labels.length === 0;
       if (isPlaceholder) {
-        console.warn('⚠️ Tidak ada data alat tangkap yang valid! Menampilkan data placeholder.');
         labels = ['Purse Seine', 'Gillnet', 'Pancing', 'Jaring Insang', 'Bubu', 'Payang', 'Trammel Net', 'Rawai', 'Bagan', 'Sero'];
         values = [1500, 1200, 800, 600, 450, 400, 350, 300, 250, 200];
+        updateDebugInfo('debug-alat-tangkap', document.getElementById('debug-alat-tangkap').textContent + `❌ NO DATA - Placeholder`);
+      } else {
+        updateDebugInfo('debug-alat-tangkap', document.getElementById('debug-alat-tangkap').textContent + `✅ ${labels.length} unique alat tangkap`);
       }
-      
-      console.log('📊 Alat Tangkap Chart - Labels:', labels, 'Values:', values);
-      console.log('📊 Status:', isPlaceholder ? '❌ PLACEHOLDER' : '✅ REAL DATA');
       
       charts.alatTangkap = new Chart(ctx, {
         type: 'bar',
@@ -701,103 +634,90 @@
           datasets: [{
             label: 'Total GT',
             data: values,
-            backgroundColor: isPlaceholder ? '#cccccc' : '#9966ff',
-            borderColor: isPlaceholder ? '#999999' : '#8855ee',
-            borderWidth: 1
+            backgroundColor: isPlaceholder ? '#cccccc' : '#9966ff'
           }]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                afterLabel: function(context) {
-                  if (isPlaceholder) {
-                    return '(Data Placeholder - Silakan isi data di kedua sheet)';
-                  }
-                  return `(${perizinanCount} dari Perizinan + ${izinHabisCount} dari Izin Habis)`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: { beginAtZero: true }
-          }
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true } }
         }
       });
     }
 
-    // Fungsi untuk chart SKKP
-    function createSKKPChart(data){
-      const ctx=document.getElementById('chart-skkp').getContext('2d');
-      if(charts.skkp)charts.skkp.destroy();
-      console.log('SKKP Data:',data);
+    // Chart SKKP
+    function createSKKPChart(data) {
+      const ctx = document.getElementById('chart-skkp').getContext('2d');
+      if (charts.skkp) charts.skkp.destroy();
       
-      let labels=[],values=[];
-      
-      const validData=data.filter(row=>{
-        const rowValues=Object.values(row);
-        return rowValues[0]&&rowValues[0].toString().trim()!==''&&parseFloat(rowValues[1])>0;
-      }).slice(0,6);
-      
-      if(validData.length===0){
-        labels=['Jan','Feb','Mar','Apr','Mei','Jun'];
-        values=[85,92,88,95,100,98];
-      }else{
-        validData.forEach(row=>{
-          const rowValues=Object.values(row);
-          labels.push(rowValues[0].toString().trim());
-          const skkpVal=parseFloat(rowValues[1])||0;
-          values.push(skkpVal);
+      if (data.length === 0) {
+        const labels = ['Jan','Feb','Mar','Apr','Mei','Jun'];
+        const values = [85,92,88,95,100,98];
+        charts.skkp = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'SKKP Diterbitkan',
+              data: values,
+              backgroundColor: 'rgba(255, 182, 193, 0.5)',
+              borderColor: '#ff6b9d',
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true } }
+          }
         });
+        updateDebugInfo('debug-skkp', '⚠️ No data');
+        return;
       }
       
-      console.log('SKKP Chart - Labels:',labels,'Values:',values);
-      charts.skkp=new Chart(ctx,{
-        type:'line',
-        data:{
-          labels:labels,
-          datasets:[{
-            label:'SKKP Diterbitkan',
-            data:values,
-            backgroundColor:'rgba(255, 182, 193, 0.5)',
-            borderColor:'#ff6b9d',
-            borderWidth:2,
-            fill:true,
-            tension:0.4,
-            pointBackgroundColor:'#ff6b9d',
-            pointBorderColor:'#fff',
-            pointBorderWidth:2,
-            pointRadius:5,
-            pointHoverRadius:7
-          }]
-        },
-        options:{
-          responsive:true,
-          maintainAspectRatio:false,
-          plugins:{
-            legend:{position:'bottom',labels:{font:{size:11},boxWidth:40,padding:10}},
-            tooltip:{callbacks:{label:function(context){return'SKKP Diterbitkan: '+context.parsed.y}}}
-          },
-          scales:{
-            x:{
-              grid:{display:true,color:'rgba(0, 0, 0, 0.05)'},
-              ticks:{font:{size:11},maxRotation:45,minRotation:0}
-            },
-            y:{
-              beginAtZero:true,
-              grid:{display:true,color:'rgba(0, 0, 0, 0.05)'},
-              ticks:{font:{size:11},stepSize:10}
-            }
-          }
+      const headers = Object.keys(data[0]);
+      const tanggalCol = findColumn(headers, ['tanggal', 'tgl', 'date']);
+      const jumlahCol = findColumn(headers, ['skkp', 'jumlah', 'berat', 'kg']);
+      
+      const labels = [];
+      const values = [];
+      
+      data.slice(0, 6).forEach(row => {
+        if (tanggalCol && jumlahCol) {
+          labels.push(row[tanggalCol] || '');
+          values.push(Math.round(parseFloat(row[jumlahCol]) || 0));
         }
       });
+      
+      charts.skkp = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'SKKP Diterbitkan',
+            data: values,
+            backgroundColor: 'rgba(255, 182, 193, 0.5)',
+            borderColor: '#ff6b9d',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+      
+      updateDebugInfo('debug-skkp', `✅ ${data.length} rows | Tanggal: ${tanggalCol} | Jumlah: ${jumlahCol}`);
     }
 
-    // Tabel Izin Habis
+    // Fill Tabel Izin Habis
     function fillIzinHabisTable(data) {
       const tbody = document.querySelector('#table-izin-habis tbody');
       tbody.innerHTML = '';
@@ -807,37 +727,23 @@
         return;
       }
       
-      const displayData = data.slice(0, 10);
-      
-      displayData.forEach(row => {
+      data.slice(0, 10).forEach(row => {
         const headers = Object.keys(row);
-        
-        const findValue = (keywords) => {
-          for (let keyword of keywords) {
-            for (let header of headers) {
-              if (header.toLowerCase().includes(keyword.toLowerCase())) {
-                return row[header] || '-';
-              }
-            }
-          }
-          return '-';
-        };
-        
-        const namaKapal = findValue(['nama kapal', 'kapal', 'nama']);
-        const nomorIzin = findValue(['nomor izin', 'izin', 'no', 'nomor']);
-        const tanggalAkhir = findValue(['tanggal akhir', 'akhir', 'expired', 'tanggal']);
+        const namaKapal = findColumn(headers, ['nama kapal', 'kapal']) || 'nama';
+        const nomorIzin = findColumn(headers, ['nomor izin', 'izin']) || 'nomor izin';
+        const tanggalAkhir = findColumn(headers, ['tanggal akhir', 'akhir', 'expired']) || 'tanggal akhir';
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${namaKapal}</td>
-          <td>${nomorIzin}</td>
-          <td>${tanggalAkhir}</td>
+          <td>${row[namaKapal] || '-'}</td>
+          <td>${row[nomorIzin] || '-'}</td>
+          <td>${row[tanggalAkhir] || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // Tabel PKL
+    // Fill Tabel PKL
     function fillPKLTable(data) {
       const tbody = document.querySelector('#kb-table tbody');
       tbody.innerHTML = '';
@@ -849,44 +755,32 @@
       
       data.forEach((row, idx) => {
         const headers = Object.keys(row);
-        
-        const findValue = (keywords) => {
-          for (let keyword of keywords) {
-            for (let header of headers) {
-              if (header.toLowerCase().includes(keyword.toLowerCase())) {
-                return row[header] || '-';
-              }
-            }
-          }
-          return '-';
-        };
-        
-        const nomorPKL = findValue(['nomor pkl', 'nomor', 'no pkl']);
-        const tanggalPKL = findValue(['tanggal pkl', 'tanggal', 'tgl']);
-        const namaKapal = findValue(['nama kapal', 'kapal']);
-        const gt = findValue(['gt']);
-        const namaPemilik = findValue(['nama pemilik', 'pemilik']);
-        const namaAwak = findValue(['nama awak', 'awak']);
-        const jabatan = findValue(['jabatan']);
-        const jenisPengupahan = findValue(['jenis pengupahan', 'pengupahan', 'upah']);
+        const nomorPKL = findColumn(headers, ['nomor pkl', 'nomor', 'no pkl']) || headers[0];
+        const tanggalPKL = findColumn(headers, ['tanggal pkl', 'tanggal', 'tgl']) || headers[1];
+        const namaKapal = findColumn(headers, ['nama kapal', 'kapal']) || headers[3];
+        const gt = findColumn(headers, ['gt']) || headers[4];
+        const namaPemilik = findColumn(headers, ['nama pemilik', 'pemilik']) || headers[5];
+        const namaAwak = findColumn(headers, ['nama awak', 'awak']) || headers[6];
+        const jabatan = findColumn(headers, ['jabatan']) || headers[7];
+        const jenisPengupahan = findColumn(headers, ['jenis pengupahan', 'pengupahan', 'upah']) || headers[8];
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${idx + 1}</td>
-          <td>${nomorPKL}</td>
-          <td>${tanggalPKL}</td>
-          <td>${namaKapal}</td>
-          <td>${gt}</td>
-          <td>${namaPemilik}</td>
-          <td>${namaAwak}</td>
-          <td>${jabatan}</td>
-          <td>${jenisPengupahan}</td>
+          <td>${row[nomorPKL] || '-'}</td>
+          <td>${row[tanggalPKL] || '-'}</td>
+          <td>${row[namaKapal] || '-'}</td>
+          <td>${row[gt] || '-'}</td>
+          <td>${row[namaPemilik] || '-'}</td>
+          <td>${row[namaAwak] || '-'}</td>
+          <td>${row[jabatan] || '-'}</td>
+          <td>${row[jenisPengupahan] || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // Load semua data
+    // Load all data
     async function loadAllData(isAutoRefresh = false) {
       const loadingEl = document.getElementById('loading-indicator');
       const errorEl = document.getElementById('error-message');
@@ -902,7 +796,7 @@
       successEl.style.display = 'none';
       
       try {
-        console.log('Memulai fetch data...', new Date().toLocaleTimeString());
+        console.log('🔄 Memulai fetch data...', new Date().toLocaleTimeString());
         
         const results = await Promise.allSettled([
           fetchSheetData(SHEETS.aktivitas),
@@ -922,10 +816,18 @@
           }
         });
         
+        console.log('📊 Data berhasil dimuat:');
+        console.log(`  • Aktivitas: ${aktivitas.length} rows`);
+        console.log(`  • Perizinan: ${perizinan.length} rows`);
+        console.log(`  • Alat Tangkap: ${alatTangkap.length} rows`);
+        console.log(`  • SKKP: ${skkp.length} rows`);
+        console.log(`  • Izin Habis: ${izinHabis.length} rows`);
+        console.log(`  • PKL: ${pkl.length} rows`);
+        console.log(`  • Perizinan Detail: ${perizinanDetail.length} rows`);
+        
         createAktivitasChart(aktivitas);
         createPerizinanChart(perizinan);
         createPerizinanDetailChart(perizinanDetail);
-        // PERUBAHAN: Gunakan KEDUA data perizinan + izinHabis untuk chart alat tangkap
         createAlatTangkapChart(perizinan, izinHabis);
         createSKKPChart(skkp);
         fillIzinHabisTable(izinHabis);
@@ -933,21 +835,21 @@
         
         if (!isAutoRefresh) {
           loadingEl.style.display = 'none';
-          successEl.textContent = 'Data berhasil dimuat dari Google Sheets!';
+          successEl.textContent = '✅ Data berhasil dimuat dari Google Sheets!';
           successEl.style.display = 'block';
           
           setTimeout(() => {
             successEl.style.display = 'none';
           }, 3000);
         } else {
-          console.log('Auto-refresh berhasil:', new Date().toLocaleTimeString());
+          console.log('🔄 Auto-refresh berhasil:', new Date().toLocaleTimeString());
         }
         
       } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error:', error);
         if (!isAutoRefresh) {
           loadingEl.style.display = 'none';
-          errorEl.textContent = 'Gagal memuat data: ' + error.message;
+          errorEl.textContent = '❌ Gagal memuat data: ' + error.message;
           errorEl.style.display = 'block';
         }
       } finally {
@@ -957,7 +859,7 @@
       }
     }
 
-    // Fungsi toggle auto-refresh
+    // Toggle auto-refresh
     function toggleAutoRefresh() {
       const btn = document.getElementById('btn-toggle-auto');
       const statusEl = document.querySelector('.auto-refresh-status');
@@ -967,7 +869,6 @@
       isAutoRefreshEnabled = !isAutoRefreshEnabled;
       
       if (isAutoRefreshEnabled) {
-        // Aktifkan auto-refresh
         btn.textContent = 'Auto-Refresh: ON';
         btn.style.background = '#007bff';
         statusEl.classList.remove('inactive');
@@ -975,14 +876,12 @@
         statusIndicator.classList.remove('inactive');
         refreshText.textContent = 'Auto-refresh setiap 30 detik';
         
-        // Start interval
         autoRefreshInterval = setInterval(() => {
           loadAllData(true);
         }, REFRESH_INTERVAL);
         
-        console.log('Auto-refresh diaktifkan');
+        console.log('✅ Auto-refresh diaktifkan');
       } else {
-        // Nonaktifkan auto-refresh
         btn.textContent = 'Auto-Refresh: OFF';
         btn.style.background = '#6c757d';
         statusEl.classList.remove('active');
@@ -990,26 +889,24 @@
         statusIndicator.classList.add('inactive');
         refreshText.textContent = 'Auto-refresh dinonaktifkan';
         
-        // Clear interval
         if (autoRefreshInterval) {
           clearInterval(autoRefreshInterval);
           autoRefreshInterval = null;
         }
         
-        console.log('Auto-refresh dinonaktifkan');
+        console.log('❌ Auto-refresh dinonaktifkan');
       }
     }
 
-    // Event listener
+    // Event listeners
     document.getElementById('btn-load-gsheets').addEventListener('click', () => loadAllData(false));
     document.getElementById('btn-toggle-auto').addEventListener('click', toggleAutoRefresh);
     
-    // Auto load saat halaman dibuka
+    // Auto load on page load
     window.addEventListener('load', () => {
       setTimeout(() => {
         loadAllData(false);
         
-        // Start auto-refresh interval
         if (isAutoRefreshEnabled) {
           autoRefreshInterval = setInterval(() => {
             loadAllData(true);
@@ -1018,7 +915,7 @@
       }, 500);
     });
     
-    // Cleanup saat halaman ditutup
+    // Cleanup on unload
     window.addEventListener('beforeunload', () => {
       if (autoRefreshInterval) {
         clearInterval(autoRefreshInterval);
