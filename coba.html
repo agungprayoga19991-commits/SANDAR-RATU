@@ -143,6 +143,47 @@
             position: relative;
             height: 300px;
         }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            margin-top: 30px;
+        }
+
+        .table-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        table thead tr {
+            background: #667eea;
+            color: white;
+        }
+
+        table th {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-weight: 600;
+        }
+
+        table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        table tbody tr:hover {
+            background: #f9f9f9;
+        }
         
         footer {
             text-align: center;
@@ -389,6 +430,25 @@
                 <div class="chart-wrapper" style="height: 400px;">
                     <canvas id="pklKapalChart"></canvas>
                 </div>
+            </div>
+
+            <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow-x: auto; margin-top: 30px;">
+                <h3 style="margin-bottom: 15px;">Data Lengkap PKL</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
+                    <thead>
+                        <tr style="background: #667eea; color: white;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">No.</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Nomor PKL</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Tanggal PKL</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Nama Kapal</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">GT</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Pemilik/Operator</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Pengupahan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pklTableBody">
+                    </tbody>
+                </table>
             </div>
         </div>
         
@@ -707,7 +767,69 @@
             });
         }
         
-        window.addEventListener('load', initCharts);
+        // Data PKL Lengkap
+        const pklData = [
+            {no: 1, nomor: '010/PPSK/PI/S-PKL/I/2025', tanggal: '03/01/2025', kapal: 'KMN. SULTRA INDAH', gt: 30, pemilik: 'R. BASUKI', upah: 'Bagi Hasil'},
+            {no: 2, nomor: '025/PPSK/S-PKL/I/2025', tanggal: '03/01/2025', kapal: 'KMN. ARMADA 3A', gt: 30, pemilik: 'JAFAR LAMBA. S', upah: 'Bagi Hasil'},
+            {no: 3, nomor: '032/PPSK/S-PKL/I/2025', tanggal: '03/01/2025', kapal: 'KMN. ERA BARU 05', gt: 30, pemilik: 'JAFAR LAMBA. S', upah: 'Bagi Hasil'},
+            {no: 4, nomor: '039/PPSK/S-PKL/I/2025', tanggal: '03/01/2025', kapal: 'KMN. ADI WIJAYA I', gt: 27, pemilik: 'JAFAR LAMBA. S', upah: 'Gaji Pokok'},
+            {no: 5, nomor: '046/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'TUNAS HARAPAN 79', gt: 29, pemilik: 'M. DARWIS. A', upah: 'Bagi Hasil'},
+            {no: 6, nomor: '048/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'CAHAYA PAINDO 23', gt: 5, pemilik: 'ABU', upah: 'Bagi Hasil'},
+            {no: 7, nomor: '049/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'AHMAD FAUZI 01', gt: 29, pemilik: 'ASKAR HS', upah: 'Bagi Hasil'},
+            {no: 8, nomor: '051/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'BERKAH SAMUDERA KENDARI 01', gt: 30, pemilik: 'SITTI AMINAH', upah: 'Bagi Hasil'},
+            {no: 9, nomor: '053/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'TAMBAH MANIS II', gt: 29, pemilik: 'TAHIR', upah: 'Bagi Hasil'},
+            {no: 10, nomor: '055/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'NUR MADINA 6', gt: 15, pemilik: 'H. KAMMAS', upah: 'Bagi Hasil'},
+            {no: 11, nomor: '057/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'SINAR TIWORO', gt: 53, pemilik: 'VITUS HORENS', upah: 'Bagi Hasil'},
+            {no: 12, nomor: '059/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'MUTIARA HAFZA 01', gt: 30, pemilik: 'MASFA', upah: 'Bagi Hasil'},
+            {no: 13, nomor: '061/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'RAHMAT ILAHI 22', gt: 28, pemilik: 'MUSTAFA', upah: 'Bagi Hasil'},
+            {no: 14, nomor: '063/PPSK/S-PKL/III/2025', tanggal: '05/03/2025', kapal: 'BUKIT SAFA', gt: 30, pemilik: 'MUHAMMADING', upah: 'Bagi Hasil'},
+            {no: 15, nomor: '065/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'JABAL RAHMA 5', gt: 30, pemilik: 'H. M. AMIN', upah: 'Bagi Hasil'},
+            {no: 16, nomor: '067/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'TUNAS HARAPAN 77', gt: 30, pemilik: 'NURDIN', upah: 'Bagi Hasil'},
+            {no: 17, nomor: '069/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'RENAND 01', gt: 30, pemilik: 'FADLY HARFANDY', upah: 'Bagi Hasil'},
+            {no: 18, nomor: '071/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'SINAR HAFZA', gt: 30, pemilik: 'MASFA', upah: 'Bagi Hasil'},
+            {no: 19, nomor: '073/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'SAMUDRA ALFATIH', gt: 28, pemilik: 'MUHAMMAD', upah: 'Bagi Hasil'},
+            {no: 20, nomor: '075/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'NUR ANISA 07', gt: 30, pemilik: 'NIAR', upah: 'Bagi Hasil'},
+            {no: 21, nomor: '077/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'CAHAYA ALAM 77', gt: 30, pemilik: 'SUDIRMAN USMAN', upah: 'Bagi Hasil'},
+            {no: 22, nomor: '079/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'HIKMA ILAHI 3', gt: 30, pemilik: 'SUPARMAN', upah: 'Bagi Hasil'},
+            {no: 23, nomor: '080/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'ARIFAN JAYA', gt: 30, pemilik: 'NASRUDIN', upah: 'Bagi Hasil'},
+            {no: 24, nomor: '082/PPSK/S-PKL/III/2025', tanggal: '06/03/2025', kapal: 'RESKY RAMAH 02', gt: 30, pemilik: 'AWALUDDIN', upah: 'Bagi Hasil'},
+            {no: 25, nomor: '083/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'KUDA LAUT II', gt: 30, pemilik: 'M. SUKRI', upah: 'Bagi Hasil'},
+            {no: 26, nomor: '085/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'NUR FALAH', gt: 29, pemilik: 'H. MUH. JAFAR', upah: 'Bagi Hasil'},
+            {no: 27, nomor: '087/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'RESKI AMALIA', gt: 29, pemilik: 'HASMA', upah: 'Bagi Hasil'},
+            {no: 28, nomor: '089/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'BHINEKA TUNGGAL IKA', gt: 30, pemilik: 'BARNEST MAWAHE', upah: 'Bagi Hasil'},
+            {no: 29, nomor: '091/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'CAHAYA ALAM', gt: 5, pemilik: 'NURDIN', upah: 'Bagi Hasil'},
+            {no: 30, nomor: '092/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'RISKI ANUGRAH', gt: 29, pemilik: 'SUKMAWATI', upah: 'Bagi Hasil'},
+            {no: 31, nomor: '094/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'GANDI SAPUTRA 02', gt: 30, pemilik: 'RAHMAN HIDAYAT', upah: 'Bagi Hasil'},
+            {no: 32, nomor: '096/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'AN NUR 01', gt: 30, pemilik: 'IRFAN A', upah: 'Bagi Hasil'},
+            {no: 33, nomor: '098/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'MEGA BUANA 99', gt: 29, pemilik: 'H. ILYAS MUSA', upah: 'Bagi Hasil'},
+            {no: 34, nomor: '100/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'BERBY BERLAYAR 02', gt: 30, pemilik: 'IRMA', upah: 'Bagi Hasil'},
+            {no: 35, nomor: '102/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'BABU RAHMA I', gt: 30, pemilik: 'TASDIR T', upah: 'Bagi Hasil'},
+            {no: 36, nomor: '103/PPSK/S-PKL/III/2025', tanggal: '07/03/2025', kapal: 'NUR ANNISA 05', gt: 29, pemilik: 'ACONG', upah: 'Bagi Hasil'}
+        ];
+
+        // Populate PKL Table
+        function populatePKLTable() {
+            const tbody = document.getElementById('pklTableBody');
+            pklData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.no}</td>
+                    <td>${row.nomor}</td>
+                    <td>${row.tanggal}</td>
+                    <td>${row.kapal}</td>
+                    <td>${row.gt}</td>
+                    <td>${row.pemilik}</td>
+                    <td>${row.upah}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            initCharts();
+            populatePKLTable();
+        });
+    </script>
     </script>
 </body>
 </html>
