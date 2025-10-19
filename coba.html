@@ -38,6 +38,14 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .kb-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
     }
     .kb-controls button {
       background: #28a745;
@@ -58,6 +66,47 @@
       background: #ccc;
       cursor: not-allowed;
       transform: none;
+    }
+    .kb-controls button.btn-refresh {
+      background: #007bff;
+    }
+    .kb-controls button.btn-refresh:hover {
+      background: #0056b3;
+    }
+    .auto-refresh-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 15px;
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #155724;
+    }
+    .auto-refresh-status.active {
+      background: #d4edda;
+      border-color: #c3e6cb;
+    }
+    .auto-refresh-status.inactive {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #28a745;
+      animation: pulse 2s infinite;
+    }
+    .status-indicator.inactive {
+      background: #dc3545;
+      animation: none;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
     .loading, .error {
       padding: 15px;
@@ -139,6 +188,10 @@
       .grid-3 {
         grid-template-columns: 1fr;
       }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
@@ -147,21 +200,25 @@
     <div class="header">
       <h2>Sistem Informasi Pelayanan Kesyahbandaran PPS Kendar 2025</h2>
       <div class="kb-controls">
-        <button id="btn-load-gsheets">Muat Data dari Google Sheets</button>
+        <button id="btn-load-gsheets">Muat Data Manual</button>
+        <button id="btn-toggle-auto" class="btn-refresh">Auto-Refresh: ON</button>
+        <div class="auto-refresh-status active">
+          <span class="status-indicator"></span>
+          <span id="refresh-text">Auto-refresh setiap 30 detik</span>
+        </div>
       </div>
     </div>
 
     <div id="loading-indicator" class="loading" style="display:none;">Memuat data dari Google Sheets...</div>
     <div id="error-message" class="error" style="display:none;"></div>
     <div id="success-message" class="success" style="display:none;"></div>
-    <div id="debug-info" style="display:none; background:#f0f0f0; padding:15px; border-radius:8px; margin:15px 0; font-size:12px; max-height:200px; overflow:auto;"></div>
 
     <!-- Grid Layout 3 kolom untuk baris pertama -->
     <div class="grid-3">
       <!-- Aktivitas Kapal -->
       <div class="chart-container">
-        <div class="chart-title"> STBLKK </div>
-        <canvas id="chart-stblkk" style="max-height:220px;"></canvas>
+        <div class="chart-title">Aktivitas Kapal</div>
+        <canvas id="chart-aktivitas-kapal" style="max-height:220px;"></canvas>
       </div>
 
       <!-- Perizinan Kapal (Izin Daerah vs Pusat) -->
@@ -247,19 +304,30 @@
     };
 
     let charts = {};
+    let autoRefreshInterval = null;
+    let isAutoRefreshEnabled = true;
+    const REFRESH_INTERVAL = 30000; // 30 detik
 
-    // Fungsi untuk mengambil data dari Google Sheets dengan proxy CORS
+    // Fungsi untuk mengambil data dari Google Sheets
     async function fetchSheetData(gid) {
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
-        const response = await fetch(url);
+        // Tambahkan timestamp untuk menghindari cache
+        const timestamp = new Date().getTime();
+        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}&_=${timestamp}`;
+        const response = await fetch(url, {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const csv = await response.text();
-        console.log(`Data dari GID ${gid}:`, csv.substring(0, 200)); // Debug
+        console.log(`Data dari GID ${gid} (${new Date().toLocaleTimeString()}):`, csv.substring(0, 200));
         return parseCSV(csv);
       } catch (error) {
         console.error(`Error fetching GID ${gid}:`, error);
@@ -267,16 +335,14 @@
       }
     }
 
-    // Parse CSV yang lebih robust
+    // Parse CSV
     function parseCSV(csv) {
       const lines = csv.trim().split('\n').filter(line => line.trim());
       if (lines.length === 0) return [];
       
-      // Parse header
       const headers = parseCSVLine(lines[0]);
       const data = [];
       
-      // Parse data rows
       for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);
         if (values.length > 0) {
@@ -288,11 +354,11 @@
         }
       }
       
-      console.log('Parsed data:', data.slice(0, 3)); // Debug
+      console.log('Parsed data:', data.slice(0, 3));
       return data;
     }
 
-    // Parse single CSV line (handle quotes)
+    // Parse single CSV line
     function parseCSVLine(line) {
       const result = [];
       let current = '';
@@ -315,19 +381,17 @@
       return result;
     }
 
-    // Fungsi untuk membuat chart Aktivitas Kapal
+    // Chart Aktivitas Kapal
     function createAktivitasChart(data) {
-      const ctx = document.getElementById('chart-stblkk').getContext('2d');
+      const ctx = document.getElementById('chart-aktivitas-kapal').getContext('2d');
       
       if (charts.aktivitas) {
         charts.aktivitas.destroy();
       }
       
-      // Debug: lihat struktur data
-      console.log('Aktivitas Data Sample:', data[0]);
+      console.log('Aktivitas Data:', data);
       
       if (data.length === 0) {
-        // Jika tidak ada data, gunakan data dummy
         charts.aktivitas = new Chart(ctx, {
           type: 'bar',
           data: {
@@ -356,68 +420,70 @@
               legend: { position: 'bottom' }
             },
             scales: {
-              y: { beginAtZero: true }
+              x: {
+                ticks: {
+                  maxRotation: 45,
+                  minRotation: 45,
+                  font: { size: 10 }
+                }
+              },
+              y: { 
+                beginAtZero: true,
+                ticks: {
+                  font: { size: 10 }
+                }
+              }
             }
           }
         });
         return;
       }
       
-      // Cari kolom yang tepat (case insensitive dan flexible)
-      const findColumn = (row, names) => {
-        for (let name of names) {
-          for (let key in row) {
-            if (key.toLowerCase().includes(name.toLowerCase())) {
-              return row[key];
-            }
-          }
-        }
-        return null;
-      };
-      
-      // Ambil data dengan berbagai kemungkinan nama kolom
       const labels = [];
       const masuk = [];
       const keluar = [];
       
       data.forEach(row => {
-        // Cari bulan/tanggal
-        const bulan = findColumn(row, ['bulan', 'month', 'periode', 'tanggal', 'tgl']);
-        if (bulan && bulan.trim() !== '') {
-          labels.push(bulan);
+        const values = Object.values(row);
+        
+        if (values[0] && values[0].toString().trim() !== '') {
+          let labelText = values[0].toString().trim();
+          
+          const dateMatch = labelText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+          if (dateMatch) {
+            const [, day, month, year] = dateMatch;
+            labelText = `${day}/${month}/${year.substring(2)}`;
+          }
+          
+          labels.push(labelText);
+          
+          const masukVal = Math.round(parseFloat(values[1]) || 0);
+          masuk.push(masukVal);
+          
+          const keluarVal = Math.round(parseFloat(values[2]) || 0);
+          keluar.push(keluarVal);
         }
-        
-        // Cari data masuk
-        const valueMasuk = findColumn(row, ['masuk', 'in', 'datang', 'arrival']);
-        masuk.push(parseInt(valueMasuk) || 0);
-        
-        // Cari data keluar
-        const valueKeluar = findColumn(row, ['keluar', 'out', 'berangkat', 'departure']);
-        keluar.push(parseInt(valueKeluar) || 0);
       });
       
       console.log('Aktivitas Chart - Labels:', labels);
       console.log('Aktivitas Chart - Masuk:', masuk);
       console.log('Aktivitas Chart - Keluar:', keluar);
       
-      // Cek apakah ada data valid
-      const hasValidData = masuk.some(v => v > 0) || keluar.some(v => v > 0);
-      
       charts.aktivitas = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: labels.length > 0 ? labels : ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
+          labels: labels,
           datasets: [
             {
               label: 'Kapal Masuk',
-              data: hasValidData ? masuk : [45, 52, 48, 55, 60, 58],
+              data: masuk,
               backgroundColor: '#36a2eb',
               borderColor: '#2589d6',
               borderWidth: 1
             },
             {
               label: 'Kapal Keluar',
-              data: hasValidData ? keluar : [42, 50, 46, 53, 58, 56],
+              data: keluar,
               backgroundColor: '#ff6384',
               borderColor: '#e5506e',
               borderWidth: 1
@@ -428,16 +494,41 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom' }
+            legend: { 
+              position: 'bottom',
+              labels: { font: { size: 11 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + context.parsed.y + ' kapal';
+                }
+              }
+            }
           },
           scales: {
-            y: { beginAtZero: true }
+            x: {
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45,
+                font: { size: 9 }
+              }
+            },
+            y: { 
+              beginAtZero: true,
+              ticks: {
+                font: { size: 10 },
+                callback: function(value) {
+                  return value;
+                }
+              }
+            }
           }
         }
       });
     }
 
-    // Fungsi untuk membuat chart Perizinan Kapal
+    // Chart Perizinan Kapal
     function createPerizinanChart(data) {
       const ctx = document.getElementById('chart-perizinan-kapal').getContext('2d');
       
@@ -454,7 +545,6 @@
         if (jenis.includes('pusat')) pusat++;
       });
       
-      // Data dummy jika kosong
       if (daerah === 0 && pusat === 0) {
         daerah = 150;
         pusat = 250;
@@ -483,7 +573,7 @@
       });
     }
 
-    // Fungsi untuk membuat chart Detail Perizinan Pusat
+    // Chart Detail Perizinan Pusat
     function createPerizinanDetailChart(data) {
       const ctx = document.getElementById('chart-perizinan-detail').getContext('2d');
       
@@ -501,7 +591,6 @@
       let labels = Object.keys(counts);
       let values = Object.values(counts);
       
-      // Data dummy jika kosong
       if (labels.length === 0) {
         labels = ['SIUP', 'SIPI', 'SIKPI', 'Lainnya'];
         values = [120, 80, 50, 30];
@@ -533,72 +622,77 @@
       });
     }
 
-    // Fungsi untuk membuat chart Alat Tangkap
-    function createAlatTangkapChart(data) {
+    // Chart Alat Tangkap - DIPERBARUI untuk menggunakan KEDUA data (perizinan + izinHabis)
+    function createAlatTangkapChart(dataPerizinan, dataIzinHabis) {
       const ctx = document.getElementById('chart-alat-tangkap').getContext('2d');
       
       if (charts.alatTangkap) {
         charts.alatTangkap.destroy();
       }
       
+      console.log('📊 Alat Tangkap - Data Perizinan:', dataPerizinan.length, 'baris');
+      console.log('📊 Alat Tangkap - Data Izin Habis:', dataIzinHabis.length, 'baris');
+      
       const grouped = {};
       
-      // Cari kolom alat tangkap dan GT dengan lebih spesifik
-      data.forEach(row => {
-        const keys = Object.keys(row);
-        let alatTangkap = '';
-        let gt = 0;
+      // Process data dari KEDUA sheet
+      const processData = (data, sourceLabel) => {
+        const headers = Object.keys(data[0] || {});
         
-        // Cari kolom alat tangkap (biasanya kolom pertama atau kolom dengan nama 'alat')
-        for (let key of keys) {
-          if (key.toLowerCase().includes('alat') || key.toLowerCase().includes('tangkap') || keys.indexOf(key) === 0) {
-            alatTangkap = row[key];
-            break;
+        let alatTangkapCol = null;
+        let gtCol = null;
+        
+        headers.forEach((header) => {
+          const lowerHeader = header.toLowerCase();
+          if (lowerHeader.includes('alat tangkap')) {
+            alatTangkapCol = header;
           }
-        }
+          if (lowerHeader === 'gt kapal' || lowerHeader === 'gt') {
+            gtCol = header;
+          }
+        });
         
-        // Cari kolom GT
-        for (let key of keys) {
-          if (key.toLowerCase().includes('gt') || !isNaN(parseFloat(row[key]))) {
-            const val = parseFloat(row[key]);
-            if (!isNaN(val) && val > 0) {
-              gt = val;
-              break;
+        let validDataCount = 0;
+        data.forEach(row => {
+          if (alatTangkapCol && gtCol) {
+            const alatTangkap = row[alatTangkapCol] ? row[alatTangkapCol].toString().trim() : '';
+            const gt = parseFloat(row[gtCol]) || 0;
+            
+            if (alatTangkap && alatTangkap.length > 0 && gt > 0) {
+              grouped[alatTangkap] = (grouped[alatTangkap] || 0) + gt;
+              validDataCount++;
             }
           }
-        }
+        });
         
-        // Skip jika alat tangkap kosong atau angka
-        if (alatTangkap && alatTangkap.length > 0 && isNaN(alatTangkap)) {
-          grouped[alatTangkap] = (grouped[alatTangkap] || 0) + gt;
-        }
-      });
+        console.log(`✅ ${sourceLabel}: ${validDataCount} data valid diproses`);
+        return validDataCount;
+      };
       
-      let sorted = Object.entries(grouped)
-        .filter(([k, v]) => v > 0 && k.trim() !== '')
+      const perizinanCount = processData(dataPerizinan, 'Sheet Perizinan (SPB)');
+      const izinHabisCount = processData(dataIzinHabis, 'Sheet Izin Habis');
+      
+      console.log('🔗 Total data dari kedua sheet:', perizinanCount + izinHabisCount);
+      console.log('📈 Grouped data:', grouped);
+      
+      const sorted = Object.entries(grouped)
+        .filter(([k, v]) => v > 0)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
       
-      // Data dummy jika kosong
-      if (sorted.length === 0) {
-        sorted = [
-          ['Purse Seine', 1500],
-          ['Gillnet', 1200],
-          ['Pancing', 800],
-          ['Jaring Insang', 600],
-          ['Bubu', 450],
-          ['Payang', 400],
-          ['Trammel Net', 350],
-          ['Rawai', 300],
-          ['Bagan', 250],
-          ['Sero', 200]
-        ];
+      let labels = sorted.map(x => x[0]);
+      let values = sorted.map(x => x[1]);
+      
+      // Jika data kosong atau terlalu sedikit, tampilkan pesan dan gunakan dummy
+      const isPlaceholder = labels.length === 0;
+      if (isPlaceholder) {
+        console.warn('⚠️ Tidak ada data alat tangkap yang valid! Menampilkan data placeholder.');
+        labels = ['Purse Seine', 'Gillnet', 'Pancing', 'Jaring Insang', 'Bubu', 'Payang', 'Trammel Net', 'Rawai', 'Bagan', 'Sero'];
+        values = [1500, 1200, 800, 600, 450, 400, 350, 300, 250, 200];
       }
       
-      const labels = sorted.map(x => x[0]);
-      const values = sorted.map(x => x[1]);
-      
-      console.log('Alat Tangkap - Labels:', labels, 'Values:', values);
+      console.log('📊 Alat Tangkap Chart - Labels:', labels, 'Values:', values);
+      console.log('📊 Status:', isPlaceholder ? '❌ PLACEHOLDER' : '✅ REAL DATA');
       
       charts.alatTangkap = new Chart(ctx, {
         type: 'bar',
@@ -607,8 +701,8 @@
           datasets: [{
             label: 'Total GT',
             data: values,
-            backgroundColor: '#9966ff',
-            borderColor: '#8855ee',
+            backgroundColor: isPlaceholder ? '#cccccc' : '#9966ff',
+            borderColor: isPlaceholder ? '#999999' : '#8855ee',
             borderWidth: 1
           }]
         },
@@ -617,7 +711,17 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: function(context) {
+                  if (isPlaceholder) {
+                    return '(Data Placeholder - Silakan isi data di kedua sheet)';
+                  }
+                  return `(${perizinanCount} dari Perizinan + ${izinHabisCount} dari Izin Habis)`;
+                }
+              }
+            }
           },
           scales: {
             x: { beginAtZero: true }
@@ -626,64 +730,74 @@
       });
     }
 
-    // Fungsi untuk membuat chart SKKP
-    function createSKKPChart(data) {
-      const ctx = document.getElementById('chart-skkp').getContext('2d');
+    // Fungsi untuk chart SKKP
+    function createSKKPChart(data){
+      const ctx=document.getElementById('chart-skkp').getContext('2d');
+      if(charts.skkp)charts.skkp.destroy();
+      console.log('SKKP Data:',data);
       
-      if (charts.skkp) {
-        charts.skkp.destroy();
+      let labels=[],values=[];
+      
+      const validData=data.filter(row=>{
+        const rowValues=Object.values(row);
+        return rowValues[0]&&rowValues[0].toString().trim()!==''&&parseFloat(rowValues[1])>0;
+      }).slice(0,6);
+      
+      if(validData.length===0){
+        labels=['Jan','Feb','Mar','Apr','Mei','Jun'];
+        values=[85,92,88,95,100,98];
+      }else{
+        validData.forEach(row=>{
+          const rowValues=Object.values(row);
+          labels.push(rowValues[0].toString().trim());
+          const skkpVal=parseFloat(rowValues[1])||0;
+          values.push(skkpVal);
+        });
       }
       
-      const findColumn = (row, names) => {
-        for (let name of names) {
-          for (let key in row) {
-            if (key.toLowerCase().includes(name.toLowerCase())) {
-              return row[key];
-            }
-          }
-        }
-        return null;
-      };
-      
-      let labels = data.map(row => findColumn(row, ['bulan', 'month']) || '').filter(x => x);
-      let values = data.map(row => parseInt(findColumn(row, ['jumlah', 'total', 'count']) || 0));
-      
-      // Data dummy jika kosong
-      if (labels.length === 0) {
-        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
-        values = [85, 92, 88, 95, 100, 98];
-      }
-      
-      console.log('SKKP Chart - Labels:', labels, 'Values:', values);
-      
-      charts.skkp = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'SKKP Diterbitkan',
-            data: values,
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: '#ff6384',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4
+      console.log('SKKP Chart - Labels:',labels,'Values:',values);
+      charts.skkp=new Chart(ctx,{
+        type:'line',
+        data:{
+          labels:labels,
+          datasets:[{
+            label:'SKKP Diterbitkan',
+            data:values,
+            backgroundColor:'rgba(255, 182, 193, 0.5)',
+            borderColor:'#ff6b9d',
+            borderWidth:2,
+            fill:true,
+            tension:0.4,
+            pointBackgroundColor:'#ff6b9d',
+            pointBorderColor:'#fff',
+            pointBorderWidth:2,
+            pointRadius:5,
+            pointHoverRadius:7
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom' }
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{position:'bottom',labels:{font:{size:11},boxWidth:40,padding:10}},
+            tooltip:{callbacks:{label:function(context){return'SKKP Diterbitkan: '+context.parsed.y}}}
           },
-          scales: {
-            y: { beginAtZero: true }
+          scales:{
+            x:{
+              grid:{display:true,color:'rgba(0, 0, 0, 0.05)'},
+              ticks:{font:{size:11},maxRotation:45,minRotation:0}
+            },
+            y:{
+              beginAtZero:true,
+              grid:{display:true,color:'rgba(0, 0, 0, 0.05)'},
+              ticks:{font:{size:11},stepSize:10}
+            }
           }
         }
       });
     }
 
-    // Fungsi untuk mengisi tabel Izin Habis
+    // Tabel Izin Habis
     function fillIzinHabisTable(data) {
       const tbody = document.querySelector('#table-izin-habis tbody');
       tbody.innerHTML = '';
@@ -698,7 +812,6 @@
       displayData.forEach(row => {
         const headers = Object.keys(row);
         
-        // Cari kolom yang sesuai
         const findValue = (keywords) => {
           for (let keyword of keywords) {
             for (let header of headers) {
@@ -724,7 +837,7 @@
       });
     }
 
-    // Fungsi untuk mengisi tabel PKL
+    // Tabel PKL
     function fillPKLTable(data) {
       const tbody = document.querySelector('#kb-table tbody');
       tbody.innerHTML = '';
@@ -735,10 +848,8 @@
       }
       
       data.forEach((row, idx) => {
-        // Mapping kolom sesuai header yang diharapkan
         const headers = Object.keys(row);
         
-        // Cari kolom yang sesuai (case insensitive)
         const findValue = (keywords) => {
           for (let keyword of keywords) {
             for (let header of headers) {
@@ -775,26 +886,24 @@
       });
     }
 
-    // Fungsi utama untuk memuat semua data
-    async function loadAllData() {
+    // Load semua data
+    async function loadAllData(isAutoRefresh = false) {
       const loadingEl = document.getElementById('loading-indicator');
       const errorEl = document.getElementById('error-message');
       const successEl = document.getElementById('success-message');
-      const debugEl = document.getElementById('debug-info');
       const btn = document.getElementById('btn-load-gsheets');
       
-      loadingEl.style.display = 'block';
+      if (!isAutoRefresh) {
+        loadingEl.style.display = 'block';
+        btn.disabled = true;
+      }
+      
       errorEl.style.display = 'none';
       successEl.style.display = 'none';
-      debugEl.style.display = 'none';
-      btn.disabled = true;
-      
-      let debugInfo = '<strong>DEBUG - Struktur Data yang Terdeteksi:</strong><br><br>';
       
       try {
-        console.log('Memulai fetch data...');
+        console.log('Memulai fetch data...', new Date().toLocaleTimeString());
         
-        // Ambil semua data secara paralel
         const results = await Promise.allSettled([
           fetchSheetData(SHEETS.aktivitas),
           fetchSheetData(SHEETS.perizinan),
@@ -805,58 +914,115 @@
           fetchSheetData(SHEETS.perizinanDetail)
         ]);
         
-        const sheetNames = ['Aktivitas Kapal', 'Perizinan', 'Alat Tangkap', 'SKKP', 'Izin Habis', 'PKL', 'Perizinan Detail'];
-        const [aktivitas, perizinan, alatTangkap, skkp, izinHabis, pkl, perizinanDetail] = results.map((r, idx) => {
+        const [aktivitas, perizinan, alatTangkap, skkp, izinHabis, pkl, perizinanDetail] = results.map((r) => {
           if (r.status === 'fulfilled' && r.value.length > 0) {
-            const headers = Object.keys(r.value[0]);
-            debugInfo += `<strong>${sheetNames[idx]}:</strong> ${headers.join(', ')}<br>`;
-            debugInfo += `Sample: ${JSON.stringify(r.value[0])}<br><br>`;
             return r.value;
           } else {
-            debugInfo += `<strong>${sheetNames[idx]}:</strong> <span style="color:red;">No data or error</span><br><br>`;
             return [];
           }
         });
         
-        // // Tampilkan debug info
-        // debugEl.innerHTML = debugInfo;
-        // debugEl.style.display = 'block';
-        
-        // console.log('Data berhasil diambil');
-        
-        // Buat semua chart dan tabel
         createAktivitasChart(aktivitas);
         createPerizinanChart(perizinan);
         createPerizinanDetailChart(perizinanDetail);
-        createAlatTangkapChart(alatTangkap);
+        // PERUBAHAN: Gunakan KEDUA data perizinan + izinHabis untuk chart alat tangkap
+        createAlatTangkapChart(perizinan, izinHabis);
         createSKKPChart(skkp);
         fillIzinHabisTable(izinHabis);
         fillPKLTable(pkl);
         
-        loadingEl.style.display = 'none';
-        // successEl.textContent = 'Data berhasil dimuat! Lihat info debug di bawah untuk struktur kolom.';
-        // successEl.style.display = 'block';
-        
-        setTimeout(() => {
-          successEl.style.display = 'none';
-        }, 5000);
+        if (!isAutoRefresh) {
+          loadingEl.style.display = 'none';
+          successEl.textContent = 'Data berhasil dimuat dari Google Sheets!';
+          successEl.style.display = 'block';
+          
+          setTimeout(() => {
+            successEl.style.display = 'none';
+          }, 3000);
+        } else {
+          console.log('Auto-refresh berhasil:', new Date().toLocaleTimeString());
+        }
         
       } catch (error) {
         console.error('Error:', error);
-        loadingEl.style.display = 'none';
-        errorEl.textContent = 'Gagal memuat data: ' + error.message;
-        errorEl.style.display = 'block';
+        if (!isAutoRefresh) {
+          loadingEl.style.display = 'none';
+          errorEl.textContent = 'Gagal memuat data: ' + error.message;
+          errorEl.style.display = 'block';
+        }
       } finally {
-        btn.disabled = false;
+        if (!isAutoRefresh) {
+          btn.disabled = false;
+        }
       }
     }
 
-    // Event listener untuk tombol
-    document.getElementById('btn-load-gsheets').addEventListener('click', loadAllData);
+    // Fungsi toggle auto-refresh
+    function toggleAutoRefresh() {
+      const btn = document.getElementById('btn-toggle-auto');
+      const statusEl = document.querySelector('.auto-refresh-status');
+      const statusIndicator = document.querySelector('.status-indicator');
+      const refreshText = document.getElementById('refresh-text');
+      
+      isAutoRefreshEnabled = !isAutoRefreshEnabled;
+      
+      if (isAutoRefreshEnabled) {
+        // Aktifkan auto-refresh
+        btn.textContent = 'Auto-Refresh: ON';
+        btn.style.background = '#007bff';
+        statusEl.classList.remove('inactive');
+        statusEl.classList.add('active');
+        statusIndicator.classList.remove('inactive');
+        refreshText.textContent = 'Auto-refresh setiap 30 detik';
+        
+        // Start interval
+        autoRefreshInterval = setInterval(() => {
+          loadAllData(true);
+        }, REFRESH_INTERVAL);
+        
+        console.log('Auto-refresh diaktifkan');
+      } else {
+        // Nonaktifkan auto-refresh
+        btn.textContent = 'Auto-Refresh: OFF';
+        btn.style.background = '#6c757d';
+        statusEl.classList.remove('active');
+        statusEl.classList.add('inactive');
+        statusIndicator.classList.add('inactive');
+        refreshText.textContent = 'Auto-refresh dinonaktifkan';
+        
+        // Clear interval
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+          autoRefreshInterval = null;
+        }
+        
+        console.log('Auto-refresh dinonaktifkan');
+      }
+    }
+
+    // Event listener
+    document.getElementById('btn-load-gsheets').addEventListener('click', () => loadAllData(false));
+    document.getElementById('btn-toggle-auto').addEventListener('click', toggleAutoRefresh);
     
-    // Muat data otomatis saat halaman dibuka
+    // Auto load saat halaman dibuka
     window.addEventListener('load', () => {
-      setTimeout(loadAllData, 500);
+      setTimeout(() => {
+        loadAllData(false);
+        
+        // Start auto-refresh interval
+        if (isAutoRefreshEnabled) {
+          autoRefreshInterval = setInterval(() => {
+            loadAllData(true);
+          }, REFRESH_INTERVAL);
+        }
+      }, 500);
+    });
+    
+    // Cleanup saat halaman ditutup
+    window.addEventListener('beforeunload', () => {
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+      }
     });
   </script>
 </body>
