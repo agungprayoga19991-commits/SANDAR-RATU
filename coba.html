@@ -144,37 +144,6 @@
             height: 300px;
         }
         
-        .table-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9em;
-        }
-        
-        th {
-            background: #667eea;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-        }
-        
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        tr:hover {
-            background: #f9f9f9;
-        }
-        
         footer {
             text-align: center;
             color: white;
@@ -203,20 +172,20 @@
         <div id="stblkk" class="tab-content active">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>Total Kapal</h3>
-                    <div class="value" id="stblkk-total">150</div>
+                    <h3>Total Laporan STBLKK</h3>
+                    <div class="value">100</div>
                 </div>
                 <div class="stat-card">
-                    <h3>GT Kapal Rata-rata</h3>
-                    <div class="value" id="stblkk-gt">22.5</div>
+                    <h3>GT Rata-rata</h3>
+                    <div class="value">22.4</div>
                 </div>
                 <div class="stat-card">
                     <h3>Panjang Rata-rata</h3>
-                    <div class="value" id="stblkk-panjang">21.8m</div>
+                    <div class="value">21.5m</div>
                 </div>
                 <div class="stat-card">
                     <h3>Jenis Alat Tangkap</h3>
-                    <div class="value" id="stblkk-alat">12</div>
+                    <div class="value">6</div>
                 </div>
             </div>
             
@@ -228,7 +197,7 @@
                     </div>
                 </div>
                 <div class="chart-container">
-                    <h3>Sebaran Rencana Kegiatan</h3>
+                    <h3>Rencana Kegiatan</h3>
                     <div class="chart-wrapper">
                         <canvas id="stblkkKegiatanChart"></canvas>
                     </div>
@@ -248,23 +217,29 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total SPB</h3>
-                    <div class="value" id="spb-total">45</div>
+                    <div class="value">99</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Status Aktif</h3>
-                    <div class="value" id="spb-aktif">42</div>
+                    <h3>GT Rata-rata</h3>
+                    <div class="value">24.2</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Pelanggan Baru</h3>
-                    <div class="value" id="spb-baru">8</div>
+                    <h3>Tanggal Terbit</h3>
+                    <div class="value">Jan 2025</div>
                 </div>
             </div>
             
             <div class="charts-grid">
                 <div class="chart-container">
-                    <h3>Status SPB</h3>
+                    <h3>Distribusi Alat Tangkap SPB</h3>
                     <div class="chart-wrapper">
-                        <canvas id="spbStatusChart"></canvas>
+                        <canvas id="spbAlatChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>Sebaran Tanggal Terbit</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="spbTanggalChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -275,24 +250,31 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total SKKP</h3>
-                    <div class="value" id="skkp-total">78</div>
+                    <div class="value">98</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Berlaku</h3>
-                    <div class="value" id="skkp-berlaku">75</div>
+                    <h3>GT Rata-rata</h3>
+                    <div class="value">20.3</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Kadaluarsa</h3>
-                    <div class="value" id="skkp-kadaluarsa">3</div>
+                    <h3>Jenis API</h3>
+                    <div class="value">12</div>
                 </div>
             </div>
             
             <div class="charts-grid">
                 <div class="chart-container">
-                    <h3>Status Sertifikat SKKP</h3>
+                    <h3>Top 10 Alat Penangkap Ikan (API)</h3>
                     <div class="chart-wrapper">
-                        <canvas id="skkpStatusChart"></canvas>
+                        <canvas id="skkpApiChart"></canvas>
                     </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Sebaran Pelabuhan Cek Fisik</h3>
+                <div class="chart-wrapper" style="height: 400px;">
+                    <canvas id="skkpPelabuhanChart"></canvas>
                 </div>
             </div>
         </div>
@@ -301,43 +283,49 @@
         <div id="shti" class="tab-content">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>Total SHTI</h3>
-                    <div class="value" id="shti-total">62</div>
+                    <h3>Total Laporan SHTI</h3>
+                    <div class="value">58</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Terverifikasi</h3>
-                    <div class="value" id="shti-verifikasi">58</div>
+                    <h3>Total Berat Tangkapan</h3>
+                    <div class="value">450K+ kg</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Belum Verifikasi</h3>
-                    <div class="value" id="shti-belum">4</div>
+                    <h3>Jenis Ikan</h3>
+                    <div class="value">2</div>
                 </div>
             </div>
             
             <div class="charts-grid">
                 <div class="chart-container">
-                    <h3>Status Verifikasi SHTI</h3>
+                    <h3>Jenis Ikan Tertangkap</h3>
                     <div class="chart-wrapper">
-                        <canvas id="shtiStatusChart"></canvas>
+                        <canvas id="shtiJenisChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>Tren Berat Tangkapan (Per Kapal)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="shtiBeratChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Tab Perizinan -->
         <div id="perizinan" class="tab-content">
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total Perizinan Pusat</h3>
-                    <div class="value" id="perizinan-pusat">156</div>
+                    <div class="value">100</div>
                 </div>
                 <div class="stat-card">
                     <h3>Total Perizinan Daerah</h3>
-                    <div class="value" id="perizinan-daerah">248</div>
+                    <div class="value">100</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Persetujuan Bulan Ini</h3>
-                    <div class="value" id="perizinan-setuju">32</div>
+                    <h3>Total Keseluruhan</h3>
+                    <div class="value">200</div>
                 </div>
             </div>
             
@@ -349,43 +337,63 @@
                     </div>
                 </div>
                 <div class="chart-container">
-                    <h3>Tren Perizinan Bulanan</h3>
+                    <h3>Alat Tangkap Perizinan Pusat</h3>
                     <div class="chart-wrapper">
-                        <canvas id="perizinantrenChart"></canvas>
+                        <canvas id="perizinanalatChart"></canvas>
                     </div>
                 </div>
             </div>
+
+            <div class="chart-container">
+                <h3>Status Tanggal Akhir Izin (Daerah)</h3>
+                <div class="chart-wrapper" style="height: 400px;">
+                    <canvas id="perizinandateChart"></canvas>
+                </div>
+            </div>
         </div>
-        
+
         <!-- Tab PKL -->
         <div id="pkl" class="tab-content">
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total PKL</h3>
-                    <div class="value" id="pkl-total">89</div>
+                    <div class="value">36</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Aktif Beroperasi</h3>
-                    <div class="value" id="pkl-aktif">85</div>
+                    <h3>Total Kapal</h3>
+                    <div class="value">36</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Non-aktif</h3>
-                    <div class="value" id="pkl-nonaktif">4</div>
+                    <h3>Jenis Pengupahan</h3>
+                    <div class="value">2</div>
                 </div>
             </div>
             
             <div class="charts-grid">
                 <div class="chart-container">
-                    <h3>Status PKL</h3>
+                    <h3>Jenis Pengupahan PKL</h3>
                     <div class="chart-wrapper">
-                        <canvas id="pklStatusChart"></canvas>
+                        <canvas id="pklUpahChart"></canvas>
                     </div>
+                </div>
+                <div class="chart-container">
+                    <h3>Distribusi GT Kapal PKL</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="pklGtChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Top 15 Kapal PKL Berdasarkan GT</h3>
+                <div class="chart-wrapper" style="height: 400px;">
+                    <canvas id="pklKapalChart"></canvas>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>© 2025 Sistem Informasi Laporan Kesyahbandaran | Data diperbarui otomatis dari Google Sheets</p>
+            <p>© 2025 Sistem Informasi Laporan Kesyahbandaran | Data dari Google Sheets</p>
         </footer>
     </div>
     
@@ -393,19 +401,15 @@
         let charts = {};
         
         function showTab(tabName) {
-            // Sembunyikan semua tab
             const contents = document.querySelectorAll('.tab-content');
             contents.forEach(el => el.classList.remove('active'));
             
-            // Hapus active dari semua tombol
             const buttons = document.querySelectorAll('.nav-tab');
             buttons.forEach(btn => btn.classList.remove('active'));
             
-            // Tampilkan tab yang dipilih
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
             
-            // Render ulang chart jika sudah dibuat
             setTimeout(() => {
                 Object.values(charts).forEach(chart => {
                     if (chart) chart.resize();
@@ -419,10 +423,10 @@
             charts.stblkkAlat = new Chart(stblkkAlatCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Pukat Cincin', 'Pancing Ulur', 'Pengangkut', 'Bagan', 'Lainnya'],
+                    labels: ['Pukat Cincin Pel. Besar', 'Pukat Cincin Pel. Kecil', 'Pancing Ulur', 'Pengangkut', 'Bagan', 'Huhate'],
                     datasets: [{
-                        data: [45, 28, 15, 8, 4],
-                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe']
+                        data: [42, 28, 18, 7, 3, 2],
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#ffa502']
                     }]
                 },
                 options: {
@@ -435,11 +439,11 @@
             // STBLKK - Kegiatan
             const stblkkKegiatanCtx = document.getElementById('stblkkKegiatanChart').getContext('2d');
             charts.stblkkKegiatan = new Chart(stblkkKegiatanCtx, {
-                type: 'doughnut',
+                type: 'pie',
                 data: {
                     labels: ['Bongkar', 'Isi Perbekalan', 'Hubungan Maritim'],
                     datasets: [{
-                        data: [120, 20, 10],
+                        data: [82, 16, 2],
                         backgroundColor: ['#667eea', '#764ba2', '#f093fb']
                     }]
                 },
@@ -450,7 +454,7 @@
                 }
             });
             
-            // STBLKK - Tren
+            // STBLKK - Tren Harian
             const stblkkTrenCtx = document.getElementById('stblkkTrenChart').getContext('2d');
             charts.stblkkTren = new Chart(stblkkTrenCtx, {
                 type: 'line',
@@ -458,11 +462,12 @@
                     labels: ['Jan 1', 'Jan 2', 'Jan 3', 'Jan 4', 'Jan 5', 'Jan 6', 'Jan 7', 'Jan 8', 'Jan 9', 'Jan 10', 'Jan 11'],
                     datasets: [{
                         label: 'Jumlah Kapal Masuk',
-                        data: [6, 15, 8, 6, 8, 6, 14, 8, 6, 12, 19],
+                        data: [6, 15, 8, 6, 8, 6, 14, 8, 6, 12, 5],
                         borderColor: '#667eea',
                         backgroundColor: 'rgba(102, 126, 234, 0.1)',
                         tension: 0.3,
-                        fill: true
+                        fill: true,
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -472,51 +477,15 @@
                 }
             });
             
-            // SPB Status
-            const spbStatusCtx = document.getElementById('spbStatusChart').getContext('2d');
-            charts.spbStatus = new Chart(spbStatusCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Aktif', 'Non-Aktif', 'Pending'],
-                    datasets: [{
-                        data: [42, 2, 1],
-                        backgroundColor: ['#667eea', '#f093fb', '#ffa502']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-            
-            // SKKP Status
-            const skkpStatusCtx = document.getElementById('skkpStatusChart').getContext('2d');
-            charts.skkpStatus = new Chart(skkpStatusCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Berlaku', 'Kadaluarsa'],
-                    datasets: [{
-                        data: [75, 3],
-                        backgroundColor: ['#667eea', '#ff6b6b']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-            
-            // SHTI Status
-            const shtiStatusCtx = document.getElementById('shtiStatusChart').getContext('2d');
-            charts.shtiStatus = new Chart(shtiStatusCtx, {
+            // SPB - Alat Tangkap
+            const spbAlatCtx = document.getElementById('spbAlatChart').getContext('2d');
+            charts.spbAlat = new Chart(spbAlatCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Terverifikasi', 'Belum Verifikasi'],
+                    labels: ['Pukat Cincin Pel. Kecil', 'Pancing Ulur', 'Pukat Cincin Pel. Besar', 'Pengangkut', 'Huhate'],
                     datasets: [{
-                        data: [58, 4],
-                        backgroundColor: ['#667eea', '#ffa502']
+                        data: [58, 18, 16, 4, 3],
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#ffa502']
                     }]
                 },
                 options: {
@@ -526,58 +495,132 @@
                 }
             });
             
-            // Perizinan Type
-            const perizinantypeCtx = document.getElementById('perizinantypeChart').getContext('2d');
-            charts.perizinanttype = new Chart(perizinantypeCtx, {
+            // SPB - Tanggal Terbit
+            const spbTanggalCtx = document.getElementById('spbTanggalChart').getContext('2d');
+            charts.spbTanggal = new Chart(spbTanggalCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Pusat', 'Daerah'],
+                    labels: ['2 Jan', '3 Jan', '4 Jan', '6 Jan', '7 Jan'],
                     datasets: [{
-                        label: 'Jumlah Perizinan',
-                        data: [156, 248],
+                        label: 'Jumlah SPB',
+                        data: [8, 12, 23, 37, 19],
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } }
+                }
+            });
+            
+            // SKKP - API (Top 10)
+            const skkpApiCtx = document.getElementById('skkpApiChart').getContext('2d');
+            charts.skkpApi = new Chart(skkpApiCtx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: ['Pukat Cincin Pel. Kecil', 'Pancing Ulur', 'Pukat Cincin Pel. Besar', 'Jaring Tarik Berkantong', 'Pengangkut', 'Huhate', 'Rawai Dasar', 'Panah', 'Bagan Perahu', 'Tonda'],
+                    datasets: [{
+                        label: 'Jumlah Kapal',
+                        data: [28, 18, 16, 10, 8, 5, 1, 2, 9, 1],
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } }
+                }
+            });
+
+            // SKKP - Pelabuhan
+            const skkpPelabuhanCtx = document.getElementById('skkpPelabuhanChart').getContext('2d');
+            charts.skkpPelabuhan = new Chart(skkpPelabuhanCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['PP. Kendari', 'PP. Lappa', 'PP. Beba', 'PP. Paotere', 'PP. Lonrae', 'PP. Wameo', 'PP. Tarakan', 'PP. Barombong', 'PP. Rumbia', 'PP. Sebatik'],
+                    datasets: [{
+                        label: 'Jumlah Inspeksi',
+                        data: [18, 16, 11, 7, 12, 6, 2, 6, 1, 1],
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } }
+                }
+            });
+            
+            // SHTI - Jenis Ikan
+            const shtiJenisCtx = document.getElementById('shtiJenisChart').getContext('2d');
+            charts.shtiJenis = new Chart(shtiJenisCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Skipjack Tuna', 'Yellowfin Tuna'],
+                    datasets: [{
+                        data: [55, 45],
+                        backgroundColor: ['#667eea', '#f093fb']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+            
+            // SHTI - Berat Tangkapan Per Kapal
+            const shtiBeratCtx = document.getElementById('shtiBeratChart').getContext('2d');
+            charts.shtiBerat = new Chart(shtiBeratCtx, {
+                type: 'line',
+                data: {
+                    labels: ['RATU MANDAR 03', 'KUDA LAUT 11', 'L A GONA', 'MANDALA DUA', 'FAUZIYYAH 01', 'ANUGRAH 57', 'BERBY BERLAYAR', 'MACCINI BAJI 02'],
+                    datasets: [{
+                        label: 'Total Berat (Kg)',
+                        data: [38850, 30000, 102000, 35450, 24886, 19403, 20669, 32173],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } }
+                }
+            });
+
+            // Perizinan - Perbandingan Pusat vs Daerah
+            const perizinantypeCtx = document.getElementById('perizinantypeChart').getContext('2d');
+            charts.perizinanttype = new Chart(perizinantypeCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Perizinan Pusat', 'Perizinan Daerah'],
+                    datasets: [{
+                        data: [100, 100],
                         backgroundColor: ['#667eea', '#764ba2']
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: true } }
+                    plugins: { legend: { position: 'bottom' } }
                 }
             });
-            
-            // Perizinan Trend
-            const perizinantrenCtx = document.getElementById('perizinantrenChart').getContext('2d');
-            charts.perizinantren = new Chart(perizinantrenCtx, {
-                type: 'line',
-                data: {
-                    labels: ['November', 'Desember', 'Januari'],
-                    datasets: [{
-                        label: 'Pusat',
-                        data: [120, 135, 156],
-                        borderColor: '#667eea'
-                    },
-                    {
-                        label: 'Daerah',
-                        data: [200, 220, 248],
-                        borderColor: '#764ba2'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: true } }
-                }
-            });
-            
-            // PKL Status
-            const pklStatusCtx = document.getElementById('pklStatusChart').getContext('2d');
-            charts.pklStatus = new Chart(pklStatusCtx, {
+
+            // Perizinan - Alat Tangkap Pusat
+            const perizinanalatCtx = document.getElementById('perizinanalatChart').getContext('2d');
+            charts.perizinanalat = new Chart(perizinanalatCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Aktif', 'Non-Aktif'],
+                    labels: ['Pukat Cincin Pel. Kecil', 'Pancing Ulur', 'Pengangkut', 'Bagan Berperahu', 'Lainnya'],
                     datasets: [{
-                        data: [85, 4],
-                        backgroundColor: ['#667eea', '#ff6b6b']
+                        data: [72, 12, 8, 5, 3],
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe']
                     }]
                 },
                 options: {
@@ -586,9 +629,84 @@
                     plugins: { legend: { position: 'bottom' } }
                 }
             });
+
+            // Perizinan - Tanggal Akhir Izin Daerah
+            const perizinandateCtx = document.getElementById('perizinandateChart').getContext('2d');
+            charts.perizinantdate = new Chart(perizinandateCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Semua Kapal', 'Berakhir 31 Des 2025'],
+                    datasets: [{
+                        label: 'Jumlah Kapal',
+                        data: [100, 100],
+                        backgroundColor: ['#667eea', '#f093fb']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } }
+                }
+            });
+
+            // PKL - Jenis Pengupahan
+            const pklUpahCtx = document.getElementById('pklUpahChart').getContext('2d');
+            charts.pklUpah = new Chart(pklUpahCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Bagi Hasil', 'Gaji Pokok'],
+                    datasets: [{
+                        data: [32, 4],
+                        backgroundColor: ['#667eea', '#f093fb']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // PKL - Distribusi GT
+            const pklGtCtx = document.getElementById('pklGtChart').getContext('2d');
+            charts.pklGt = new Chart(pklGtCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['GT 5', 'GT 15', 'GT 27-30', 'GT 53'],
+                    datasets: [{
+                        label: 'Jumlah Kapal',
+                        data: [2, 2, 30, 2],
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } }
+                }
+            });
+
+            // PKL - Top Kapal
+            const pklKapalCtx = document.getElementById('pklKapalChart').getContext('2d');
+            charts.pklKapal = new Chart(pklKapalCtx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: ['SINAR TIWORO (53)', 'MUTIARA HAFZA 01 (30)', 'KMN. SULTRA INDAH (30)', 'KMN. ARMADA 3A (30)', 'KMN. ERA BARU 05 (30)', 'BUKIT SAFA (30)', 'JABAL RAHMA 5 (30)', 'TUNAS HARAPAN 77 (30)', 'RENAND 01 (30)', 'SINAR HAFZA (30)', 'SAMUDRA ALFATIH (28)', 'HIKMA ILAHI 3 (30)', 'ARIFAN JAYA (30)', 'KUDA LAUT II (30)', 'NUR FALAH (29)'],
+                    datasets: [{
+                        label: 'GT',
+                        data: [53, 30, 30, 30, 30, 30, 30, 30, 30, 30, 28, 30, 30, 30, 29],
+                        backgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } }
+                }
+            });
         }
         
-        // Initialize saat halaman dimuat
         window.addEventListener('load', initCharts);
     </script>
 </body>
