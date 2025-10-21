@@ -1,1015 +1,617 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SINPELKES-PPSK 2025</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 20px;
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 15px;
-      padding: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    }
-    h2 {
-      color: white;
-      background: #0d5f8a;
-      padding: 12px 24px;
-      border-radius: 10px;
-      margin: 0;
-      display: inline-block;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    .kb-controls {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .kb-controls button {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s;
-    }
-    .kb-controls button:hover {
-      background: #218838;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(40,167,69,0.4);
-    }
-    .kb-controls button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .kb-controls button.btn-refresh {
-      background: #007bff;
-    }
-    .kb-controls button.btn-refresh:hover {
-      background: #0056b3;
-    }
-    .auto-refresh-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 15px;
-      background: #d4edda;
-      border: 1px solid #c3e6cb;
-      border-radius: 8px;
-      font-size: 13px;
-      color: #155724;
-    }
-    .auto-refresh-status.active {
-      background: #d4edda;
-      border-color: #c3e6cb;
-    }
-    .auto-refresh-status.inactive {
-      background: #f8d7da;
-      border-color: #f5c6cb;
-      color: #721c24;
-    }
-    .status-indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #28a745;
-      animation: pulse 2s infinite;
-    }
-    .status-indicator.inactive {
-      background: #dc3545;
-      animation: none;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    .loading, .error {
-      padding: 15px;
-      border-radius: 8px;
-      margin: 15px 0;
-      text-align: center;
-      font-weight: 600;
-    }
-    .loading {
-      background: #d1ecf1;
-      color: #0c5460;
-      border: 1px solid #bee5eb;
-    }
-    .error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-    .success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-      padding: 15px;
-      border-radius: 8px;
-      margin: 15px 0;
-      text-align: center;
-      font-weight: 600;
-    }
-    .chart-container {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border: 1px solid #e0e0e0;
-    }
-    .chart-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #333;
-      margin-bottom: 15px;
-      text-align: center;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #0d5f8a;
-    }
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-    .kb-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-    }
-    .kb-table thead {
-      background: #0d5f8a;
-      color: white;
-      position: sticky;
-      top: 0;
-    }
-    .kb-table th, .kb-table td {
-      padding: 8px;
-      text-align: left;
-      border: 1px solid #ddd;
-    }
-    .kb-table tbody tr:nth-child(even) {
-      background: #f8f9fa;
-    }
-    .kb-table tbody tr:hover {
-      background: #e9ecef;
-    }
-    @media (max-width: 1200px) {
-      .grid-3 {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    @media (max-width: 768px) {
-      .grid-3 {
-        grid-template-columns: 1fr;
-      }
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Laporan Kesyahbandaran 2025</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .update-info {
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            display: inline-block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: #ff5252;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .config-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .config-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .config-section input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+
+        .config-section button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .config-section button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .config-section button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        .nav-tab {
+            padding: 10px 20px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.95em;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab:hover {
+            background: #ddd;
+        }
+        
+        .nav-tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 5px solid #667eea;
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            color: #667eea;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            margin-top: 30px;
+        }
+
+        .table-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        table thead tr {
+            background: #667eea;
+            color: white;
+        }
+
+        table th {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-weight: 600;
+        }
+
+        table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        table tbody tr:hover {
+            background: #f9f9f9;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h2>Sistem Informasi Pelayanan Kesyahbandaran PPS Kendar 2025</h2>
-      <div class="kb-controls">
-        <button id="btn-load-gsheets">Muat Data Manual</button>
-        <button id="btn-toggle-auto" class="btn-refresh">Auto-Refresh: ON</button>
-        <div class="auto-refresh-status active">
-          <span class="status-indicator"></span>
-          <span id="refresh-text">Auto-refresh setiap 30 detik</span>
+    <div class="container">
+        <header>
+            <h1>📊 Dashboard Laporan Kesyahbandaran</h1>
+            <p>Sistem Informasi Laporan Kapal dan Kegiatan Pelabuhan 2025</p>
+            <div class="update-info" id="updateInfo">Memuat data...</div>
+        </header>
+
+        <div class="config-section">
+            <h3>⚙️ Konfigurasi Google Sheets</h3>
+            <p style="color: #666; margin-bottom: 15px;">Masukkan URL Google Sheets yang sudah dipublikasikan sebagai CSV</p>
+            <input type="text" id="sheetsUrl" placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=...">
+            <button onclick="loadDataFromSheets()">🔄 Muat Data</button>
+            <button onclick="autoRefresh()" id="autoRefreshBtn">⏱️ Auto Refresh (5 menit)</button>
         </div>
-      </div>
-    </div>
 
-    <div id="loading-indicator" class="loading" style="display:none;">Memuat data dari Google Sheets...</div>
-    <div id="error-message" class="error" style="display:none;"></div>
-    <div id="success-message" class="success" style="display:none;"></div>
-
-    <!-- Grid Layout 3 kolom untuk baris pertama -->
-    <div class="grid-3">
-      <!-- Aktivitas Kapal -->
-      <div class="chart-container">
-        <div class="chart-title">Aktivitas Kapal</div>
-        <canvas id="chart-aktivitas-kapal" style="max-height:220px;"></canvas>
-      </div>
-
-      <!-- Perizinan Kapal (Izin Daerah vs Pusat) -->
-      <div class="chart-container">
-        <div class="chart-title">Perizinan Kapal (Daerah vs Pusat)</div>
-        <div style="position:relative; width:200px; height:200px; margin:0 auto;">
-          <canvas id="chart-perizinan-kapal"></canvas>
+        <div id="loadingMessage" class="loading" style="display: none;">
+            Memuat data dari Google Sheets...
         </div>
-      </div>
 
-      <!-- Perizinan Kapal (Detail Izin Pusat) -->
-      <div class="chart-container">
-        <div class="chart-title">Detail Perizinan Pusat</div>
-        <div style="position:relative; width:200px; height:200px; margin:0 auto;">
-          <canvas id="chart-perizinan-detail"></canvas>
+        <div id="errorMessage" class="error" style="display: none;"></div>
+        
+        <div id="mainContent" style="display: none;">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('stblkk')">STBLKK</button>
+                <button class="nav-tab" onclick="showTab('spb')">SPB</button>
+                <button class="nav-tab" onclick="showTab('skkp')">SKKP</button>
+                <button class="nav-tab" onclick="showTab('shti')">SHTI</button>
+                <button class="nav-tab" onclick="showTab('perizinan')">Perizinan</button>
+                <button class="nav-tab" onclick="showTab('pkl')">PKL</button>
+            </div>
+            
+            <!-- Tab STBLKK -->
+            <div id="stblkk" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Laporan STBLKK</h3>
+                        <div class="value" id="stblkkTotal">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>GT Rata-rata</h3>
+                        <div class="value" id="stblkkGT">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Update Terakhir</h3>
+                        <div class="value" id="stblkkUpdate" style="font-size: 1.2em;">-</div>
+                    </div>
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Distribusi Alat Tangkap</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="stblkkAlatChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Tren Harian</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="stblkkTrenChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3>Data Terbaru</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Tanggal</th>
+                                <th>Nama Kapal</th>
+                                <th>GT</th>
+                                <th>Alat Tangkap</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stblkkTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tabs lainnya akan mengikuti pola yang sama -->
+            <div id="spb" class="tab-content">
+                <h2 style="color: white; text-align: center;">Data SPB akan ditampilkan setelah data dimuat</h2>
+            </div>
+            
+            <div id="skkp" class="tab-content">
+                <h2 style="color: white; text-align: center;">Data SKKP akan ditampilkan setelah data dimuat</h2>
+            </div>
+            
+            <div id="shti" class="tab-content">
+                <h2 style="color: white; text-align: center;">Data SHTI akan ditampilkan setelah data dimuat</h2>
+            </div>
+
+            <div id="perizinan" class="tab-content">
+                <h2 style="color: white; text-align: center;">Data Perizinan akan ditampilkan setelah data dimuat</h2>
+            </div>
+
+            <div id="pkl" class="tab-content">
+                <h2 style="color: white; text-align: center;">Data PKL akan ditampilkan setelah data dimuat</h2>
+            </div>
         </div>
-      </div>
+        
+        <footer>
+            <p>© 2025 Sistem Informasi Laporan Kesyahbandaran | Data Real-time dari Google Sheets</p>
+        </footer>
     </div>
-
-    <!-- Grid Layout 3 kolom untuk baris kedua -->
-    <div class="grid-3">
-      <!-- Top 10 Alat Tangkap -->
-      <div class="chart-container">
-        <div class="chart-title">Top 10 Alat Tangkap</div>
-        <div style="font-size:12px; color:#666; text-align:center; margin-bottom:8px;">Sebaran GT Kapal</div>
-        <canvas id="chart-alat-tangkap" style="max-height:280px;"></canvas>
-      </div>
-
-      <!-- Jumlah SKKP Diterbitkan -->
-      <div class="chart-container">
-        <div class="chart-title">Jumlah SKKP Diterbitkan</div>
-        <canvas id="chart-skkp" style="max-height:280px;"></canvas>
-      </div>
-
-      <!-- Masa Berlaku Izin Akan Habis -->
-      <div class="chart-container">
-        <div class="chart-title">Masa Berlaku Izin Akan Habis</div>
-        <div style="max-height:280px; overflow-y:auto;">
-          <table class="kb-table" id="table-izin-habis">
-            <thead>
-              <tr>
-                <th>Nama Kapal</th>
-                <th>Nomor Izin</th>
-                <th>Tanggal Akhir</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="3" style="text-align:center; color:#999;">Belum ada data</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tabel Detail PKL (Full width di bawah) -->
-    <div class="chart-container" style="margin-top:16px;">
-      <div class="chart-title">Tabel Data PKL</div>
-      <div style="max-height:360px; overflow:auto;">
-        <table class="kb-table" id="kb-table">
-          <thead>
-            <tr>
-              <th>No.</th><th>NOMOR PKL</th><th>TANGGAL PKL</th><th>NAMA KAPAL</th><th>GT</th><th>NAMA PEMILIK</th><th>NAMA AWAK</th><th>JABATAN</th><th>JENIS PENGUPAHAN</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="9" style="text-align:center; color:#999;">Belum ada data</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const SPREADSHEET_ID = '1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254';
-    const SHEETS = {
-      aktivitas: '1397215787',
-      perizinan: '698992828',
-      alatTangkap: '1309011826',
-      skkp: '566117585',
-      izinHabis: '583377591',
-      pkl: '264793408',
-      perizinanDetail: '2099648587'
-    };
-
-    let charts = {};
-    let autoRefreshInterval = null;
-    let isAutoRefreshEnabled = true;
-    const REFRESH_INTERVAL = 30000; // 30 detik
-
-    // Fungsi untuk mengambil data dari Google Sheets
-    async function fetchSheetData(gid) {
-      try {
-        // Tambahkan timestamp untuk menghindari cache
-        const timestamp = new Date().getTime();
-        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}&_=${timestamp}`;
-        const response = await fetch(url, {
-          cache: 'no-cache',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const csv = await response.text();
-        console.log(`Data dari GID ${gid} (${new Date().toLocaleTimeString()}):`, csv.substring(0, 200));
-        return parseCSV(csv);
-      } catch (error) {
-        console.error(`Error fetching GID ${gid}:`, error);
-        throw error;
-      }
-    }
-
-    // Parse CSV
-    function parseCSV(csv) {
-      const lines = csv.trim().split('\n').filter(line => line.trim());
-      if (lines.length === 0) return [];
-      
-      const headers = parseCSVLine(lines[0]);
-      const data = [];
-      
-      for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVLine(lines[i]);
-        if (values.length > 0) {
-          const row = {};
-          headers.forEach((header, idx) => {
-            row[header] = values[idx] || '';
-          });
-          data.push(row);
-        }
-      }
-      
-      console.log('Parsed data:', data.slice(0, 3));
-      return data;
-    }
-
-    // Parse single CSV line
-    function parseCSVLine(line) {
-      const result = [];
-      let current = '';
-      let inQuotes = false;
-      
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          result.push(current.trim());
-          current = '';
-        } else {
-          current += char;
-        }
-      }
-      
-      result.push(current.trim());
-      return result;
-    }
-
-    // Chart Aktivitas Kapal
-    function createAktivitasChart(data) {
-      const ctx = document.getElementById('chart-aktivitas-kapal').getContext('2d');
-      
-      if (charts.aktivitas) {
-        charts.aktivitas.destroy();
-      }
-      
-      console.log('Aktivitas Data:', data);
-      
-      if (data.length === 0) {
-        charts.aktivitas = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-            datasets: [
-              {
-                label: 'Kapal Masuk',
-                data: [45, 52, 48, 55, 60, 58],
-                backgroundColor: '#36a2eb',
-                borderColor: '#2589d6',
-                borderWidth: 1
-              },
-              {
-                label: 'Kapal Keluar',
-                data: [42, 50, 46, 53, 58, 56],
-                backgroundColor: '#ff6384',
-                borderColor: '#e5506e',
-                borderWidth: 1
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom' }
-            },
-            scales: {
-              x: {
-                ticks: {
-                  maxRotation: 45,
-                  minRotation: 45,
-                  font: { size: 10 }
-                }
-              },
-              y: { 
-                beginAtZero: true,
-                ticks: {
-                  font: { size: 10 }
-                }
-              }
-            }
-          }
-        });
-        return;
-      }
-      
-      const labels = [];
-      const masuk = [];
-      const keluar = [];
-      
-      data.forEach(row => {
-        const values = Object.values(row);
-        
-        if (values[0] && values[0].toString().trim() !== '') {
-          // Format tanggal lebih ringkas
-          let labelText = values[0].toString().trim();
-          
-          // Coba parse sebagai tanggal
-          const dateMatch = labelText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-          if (dateMatch) {
-            const [, day, month, year] = dateMatch;
-            labelText = `${day}/${month}/${year.substring(2)}`;
-          }
-          
-          labels.push(labelText);
-          
-          // Ambil nilai dan pastikan integer
-          const masukVal = Math.round(parseFloat(values[1]) || 0);
-          masuk.push(masukVal);
-          
-          const keluarVal = Math.round(parseFloat(values[2]) || 0);
-          keluar.push(keluarVal);
-        }
-      });
-      
-      console.log('Aktivitas Chart - Labels:', labels);
-      console.log('Aktivitas Chart - Masuk:', masuk);
-      console.log('Aktivitas Chart - Keluar:', keluar);
-      
-      charts.aktivitas = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Kapal Masuk',
-              data: masuk,
-              backgroundColor: '#36a2eb',
-              borderColor: '#2589d6',
-              borderWidth: 1
-            },
-            {
-              label: 'Kapal Keluar',
-              data: keluar,
-              backgroundColor: '#ff6384',
-              borderColor: '#e5506e',
-              borderWidth: 1
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { 
-              position: 'bottom',
-              labels: { font: { size: 11 } }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return context.dataset.label + ': ' + context.parsed.y + ' kapal';
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              ticks: {
-                maxRotation: 45,
-                minRotation: 45,
-                font: { size: 9 }
-              }
-            },
-            y: { 
-              beginAtZero: true,
-              ticks: {
-                font: { size: 10 },
-                callback: function(value) {
-                  return value;
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-
-    // Chart Perizinan Kapal
-    function createPerizinanChart(data) {
-      const ctx = document.getElementById('chart-perizinan-kapal').getContext('2d');
-      
-      if (charts.perizinan) {
-        charts.perizinan.destroy();
-      }
-      
-      let daerah = 0;
-      let pusat = 0;
-      
-      data.forEach(row => {
-        const jenis = Object.values(row).join(' ').toLowerCase();
-        if (jenis.includes('daerah')) daerah++;
-        if (jenis.includes('pusat')) pusat++;
-      });
-      
-      if (daerah === 0 && pusat === 0) {
-        daerah = 150;
-        pusat = 250;
-      }
-      
-      console.log('Perizinan Chart - Daerah:', daerah, 'Pusat:', pusat);
-      
-      charts.perizinan = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Izin Daerah', 'Izin Pusat'],
-          datasets: [{
-            data: [daerah, pusat],
-            backgroundColor: ['#4bc0c0', '#ff9f40'],
-            borderWidth: 2,
-            borderColor: '#fff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: { position: 'bottom' }
-          }
-        }
-      });
-    }
-
-    // Chart Detail Perizinan Pusat
-    function createPerizinanDetailChart(data) {
-      const ctx = document.getElementById('chart-perizinan-detail').getContext('2d');
-      
-      if (charts.perizinanDetail) {
-        charts.perizinanDetail.destroy();
-      }
-      
-      const counts = {};
-      
-      data.forEach(row => {
-        const jenis = Object.values(row)[0] || 'Lainnya';
-        counts[jenis] = (counts[jenis] || 0) + 1;
-      });
-      
-      let labels = Object.keys(counts);
-      let values = Object.values(counts);
-      
-      if (labels.length === 0) {
-        labels = ['SIUP', 'SIPI', 'SIKPI', 'Lainnya'];
-        values = [120, 80, 50, 30];
-      }
-      
-      console.log('Perizinan Detail - Labels:', labels, 'Values:', values);
-      
-      charts.perizinanDetail = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: values,
-            backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff'],
-            borderWidth: 2,
-            borderColor: '#fff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: { 
-              position: 'bottom',
-              labels: { font: { size: 10 } }
-            }
-          }
-        }
-      });
-    }
-
-    // Chart Alat Tangkap
-    function createAlatTangkapChart(data) {
-      const ctx = document.getElementById('chart-alat-tangkap').getContext('2d');
-      
-      if (charts.alatTangkap) {
-        charts.alatTangkap.destroy();
-      }
-      
-      console.log('Alat Tangkap Data:', data);
-      
-      if (data.length === 0) {
-        const labels = ['Purse Seine', 'Gillnet', 'Pancing', 'Jaring Insang', 'Bubu', 'Payang', 'Trammel Net', 'Rawai', 'Bagan', 'Sero'];
-        const values = [1500, 1200, 800, 600, 450, 400, 350, 300, 250, 200];
-        
-        charts.alatTangkap = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Total GT',
-              data: values,
-              backgroundColor: '#9966ff',
-              borderColor: '#8855ee',
-              borderWidth: 1
-            }]
-          },
-          options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false }
-            },
-            scales: {
-              x: { beginAtZero: true }
-            }
-          }
-        });
-        return;
-      }
-      
-      const grouped = {};
-      
-      data.forEach(row => {
-        const values = Object.values(row);
-        
-        const alatTangkap = values[0] ? values[0].toString().trim() : '';
-        const gt = parseFloat(values[1]) || 0;
-        
-        if (alatTangkap && alatTangkap.length > 0 && !alatTangkap.match(/^\d+$/)) {
-          grouped[alatTangkap] = (grouped[alatTangkap] || 0) + gt;
-        }
-      });
-      
-      const sorted = Object.entries(grouped)
-        .filter(([k, v]) => v > 0)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
-      
-      const labels = sorted.map(x => x[0]);
-      const values = sorted.map(x => x[1]);
-      
-      console.log('Alat Tangkap Chart - Labels:', labels, 'Values:', values);
-      
-      charts.alatTangkap = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Total GT',
-            data: values,
-            backgroundColor: '#9966ff',
-            borderColor: '#8855ee',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: { beginAtZero: true }
-          }
-        }
-      });
-    }
-
-// Fungsi untuk chart SKKP
-        function createSKKPChart(data){
-      const ctx=document.getElementById('chart-skkp').getContext('2d');
-      if(charts.skkp)charts.skkp.destroy();
-      console.log('SKKP Data:',data);
-      
-      let labels=[],values=[];
-      
-      // Filter data yang valid dan limit ke 6 bulan
-      const validData=data.filter(row=>{
-        const rowValues=Object.values(row);
-        return rowValues[0]&&rowValues[0].toString().trim()!==''&&parseFloat(rowValues[1])>0;
-      }).slice(0,6);
-      
-      if(validData.length===0){
-        labels=['Jan','Feb','Mar','Apr','Mei','Jun'];
-        values=[85,92,88,95,100,98];
-      }else{
-        validData.forEach(row=>{
-          const rowValues=Object.values(row);
-          labels.push(rowValues[0].toString().trim());
-          const skkpVal=parseFloat(rowValues[1])||0;
-          values.push(skkpVal);
-        });
-      }
-      
-      console.log('SKKP Chart - Labels:',labels,'Values:',values);
-      charts.skkp=new Chart(ctx,{
-        type:'line',
-        data:{
-          labels:labels,
-          datasets:[{
-            label:'SKKP Diterbitkan',
-            data:values,
-            backgroundColor:'rgba(255, 182, 193, 0.5)',
-            borderColor:'#ff6b9d',
-            borderWidth:2,
-            fill:true,
-            tension:0.4,
-            pointBackgroundColor:'#ff6b9d',
-            pointBorderColor:'#fff',
-            pointBorderWidth:2,
-            pointRadius:5,
-            pointHoverRadius:7
-          }]
-        },
-        options:{
-          responsive:true,
-          maintainAspectRatio:false,
-          plugins:{
-            legend:{position:'bottom',labels:{font:{size:11},boxWidth:40,padding:10}},
-            tooltip:{callbacks:{label:function(context){return'SKKP Diterbitkan: '+context.parsed.y}}}
-          },
-          scales:{
-            x:{
-              grid:{display:true,color:'rgba(0, 0, 0, 0.05)'},
-              ticks:{font:{size:11},maxRotation:45,minRotation:0}
-            },
-            y:{
-              beginAtZero:true,
-              grid:{display:true,color:'rgba(0, 0, 0, 0.05)'},
-              ticks:{font:{size:11},stepSize:10}
-            }
-          }
-        }
-      });
-    }
     
-
-    // Tabel Izin Habis
-    function fillIzinHabisTable(data) {
-      const tbody = document.querySelector('#table-izin-habis tbody');
-      tbody.innerHTML = '';
-      
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#999;">Tidak ada data</td></tr>';
-        return;
-      }
-      
-      const displayData = data.slice(0, 10);
-      
-      displayData.forEach(row => {
-        const headers = Object.keys(row);
+    <script>
+        let charts = {};
+        let allData = {};
+        let refreshInterval = null;
         
-        const findValue = (keywords) => {
-          for (let keyword of keywords) {
-            for (let header of headers) {
-              if (header.toLowerCase().includes(keyword.toLowerCase())) {
-                return row[header] || '-';
-              }
+        function showTab(tabName) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(el => el.classList.remove('active'));
+            
+            const buttons = document.querySelectorAll('.nav-tab');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            setTimeout(() => {
+                Object.values(charts).forEach(chart => {
+                    if (chart) chart.resize();
+                });
+            }, 100);
+        }
+
+        function showLoading() {
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('loadingMessage').style.display = 'none';
+        }
+
+        function showContent() {
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        async function loadDataFromSheets() {
+            const url = document.getElementById('sheetsUrl').value.trim();
+            
+            if (!url) {
+                showError('⚠️ Silakan masukkan URL Google Sheets terlebih dahulu');
+                return;
             }
-          }
-          return '-';
-        };
-        
-        const namaKapal = findValue(['nama kapal', 'kapal', 'nama']);
-        const nomorIzin = findValue(['nomor izin', 'izin', 'no', 'nomor']);
-        const tanggalAkhir = findValue(['tanggal akhir', 'akhir', 'expired', 'tanggal']);
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${namaKapal}</td>
-          <td>${nomorIzin}</td>
-          <td>${tanggalAkhir}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
 
-    // Tabel PKL
-    function fillPKLTable(data) {
-      const tbody = document.querySelector('#kb-table tbody');
-      tbody.innerHTML = '';
-      
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#999;">Tidak ada data</td></tr>';
-        return;
-      }
-      
-      data.forEach((row, idx) => {
-        const headers = Object.keys(row);
-        
-        const findValue = (keywords) => {
-          for (let keyword of keywords) {
-            for (let header of headers) {
-              if (header.toLowerCase().includes(keyword.toLowerCase())) {
-                return row[header] || '-';
-              }
+            showLoading();
+
+            try {
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Gagal mengambil data. Pastikan Google Sheets sudah dipublikasikan dan URL benar.');
+                }
+
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        if (results.data.length === 0) {
+                            showError('⚠️ Tidak ada data yang ditemukan dalam file');
+                            return;
+                        }
+
+                        allData = results.data;
+                        processData(allData);
+                        showContent();
+                        updateTimestamp();
+                    },
+                    error: function(error) {
+                        showError('❌ Error parsing CSV: ' + error.message);
+                    }
+                });
+
+            } catch (error) {
+                showError('❌ Error: ' + error.message);
             }
-          }
-          return '-';
-        };
-        
-        const nomorPKL = findValue(['nomor pkl', 'nomor', 'no pkl']);
-        const tanggalPKL = findValue(['tanggal pkl', 'tanggal', 'tgl']);
-        const namaKapal = findValue(['nama kapal', 'kapal']);
-        const gt = findValue(['gt']);
-        const namaPemilik = findValue(['nama pemilik', 'pemilik']);
-        const namaAwak = findValue(['nama awak', 'awak']);
-        const jabatan = findValue(['jabatan']);
-        const jenisPengupahan = findValue(['jenis pengupahan', 'pengupahan', 'upah']);
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${nomorPKL}</td>
-          <td>${tanggalPKL}</td>
-          <td>${namaKapal}</td>
-          <td>${gt}</td>
-          <td>${namaPemilik}</td>
-          <td>${namaAwak}</td>
-          <td>${jabatan}</td>
-          <td>${jenisPengupahan}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+        }
 
-    // Load semua data
-    async function loadAllData(isAutoRefresh = false) {
-      const loadingEl = document.getElementById('loading-indicator');
-      const errorEl = document.getElementById('error-message');
-      const successEl = document.getElementById('success-message');
-      const btn = document.getElementById('btn-load-gsheets');
-      
-      if (!isAutoRefresh) {
-        loadingEl.style.display = 'block';
-        btn.disabled = true;
-      }
-      
-      errorEl.style.display = 'none';
-      successEl.style.display = 'none';
-      
-      try {
-        console.log('Memulai fetch data...', new Date().toLocaleTimeString());
-        
-        const results = await Promise.allSettled([
-          fetchSheetData(SHEETS.aktivitas),
-          fetchSheetData(SHEETS.perizinan),
-          fetchSheetData(SHEETS.alatTangkap),
-          fetchSheetData(SHEETS.skkp),
-          fetchSheetData(SHEETS.izinHabis),
-          fetchSheetData(SHEETS.pkl),
-          fetchSheetData(SHEETS.perizinanDetail)
-        ]);
-        
-        const [aktivitas, perizinan, alatTangkap, skkp, izinHabis, pkl, perizinanDetail] = results.map((r) => {
-          if (r.status === 'fulfilled' && r.value.length > 0) {
-            return r.value;
-          } else {
-            return [];
-          }
+        function processData(data) {
+            // Contoh processing untuk STBLKK
+            const stblkkData = data.filter(row => row.Jenis === 'STBLKK' || !row.Jenis);
+            
+            // Update statistik
+            document.getElementById('stblkkTotal').textContent = stblkkData.length;
+            
+            const avgGT = stblkkData.reduce((sum, row) => sum + (parseFloat(row.GT) || 0), 0) / stblkkData.length;
+            document.getElementById('stblkkGT').textContent = avgGT.toFixed(1);
+
+            // Hitung distribusi alat tangkap
+            const alatTangkap = {};
+            stblkkData.forEach(row => {
+                const alat = row['Alat Tangkap'] || 'Lainnya';
+                alatTangkap[alat] = (alatTangkap[alat] || 0) + 1;
+            });
+
+            // Update chart alat tangkap
+            updateAlatTangkapChart(alatTangkap);
+
+            // Hitung tren harian
+            const trenHarian = {};
+            stblkkData.forEach(row => {
+                const tanggal = row.Tanggal || 'Unknown';
+                trenHarian[tanggal] = (trenHarian[tanggal] || 0) + 1;
+            });
+
+            updateTrenChart(trenHarian);
+
+            // Update tabel
+            updateTable(stblkkData);
+        }
+
+        function updateAlatTangkapChart(data) {
+            const ctx = document.getElementById('stblkkAlatChart');
+            if (!ctx) return;
+
+            if (charts.stblkkAlat) {
+                charts.stblkkAlat.destroy();
+            }
+
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+
+            charts.stblkkAlat = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#ffa502', '#43e97b', '#fa709a']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        function updateTrenChart(data) {
+            const ctx = document.getElementById('stblkkTrenChart');
+            if (!ctx) return;
+
+            if (charts.stblkkTren) {
+                charts.stblkkTren.destroy();
+            }
+
+            const sortedDates = Object.keys(data).sort();
+            const values = sortedDates.map(date => data[date]);
+
+            charts.stblkkTren = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: 'Jumlah Kapal',
+                        data: values,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } }
+                }
+            });
+        }
+
+        function updateTable(data) {
+            const tbody = document.getElementById('stblkkTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            
+            // Tampilkan 10 data terbaru
+            const recentData = data.slice(-10).reverse();
+            
+            recentData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${row.Tanggal || '-'}</td>
+                    <td>${row['Nama Kapal'] || row.Kapal || '-'}</td>
+                    <td>${row.GT || '-'}</td>
+                    <td>${row['Alat Tangkap'] || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('id-ID', { 
+                day: '2-digit', 
+                month: 'short', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('updateInfo').textContent = `✅ Update: ${dateStr}`;
+            document.getElementById('stblkkUpdate').textContent = now.toLocaleDateString('id-ID');
+        }
+
+        function autoRefresh() {
+            const btn = document.getElementById('autoRefreshBtn');
+            
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+                btn.textContent = '⏱️ Auto Refresh (5 menit)';
+                btn.style.background = '#667eea';
+            } else {
+                refreshInterval = setInterval(() => {
+                    loadDataFromSheets();
+                }, 300000); // 5 menit
+                btn.textContent = '⏸️ Stop Auto Refresh';
+                btn.style.background = '#4caf50';
+                alert('Auto refresh diaktifkan. Data akan dimuat ulang setiap 5 menit.');
+            }
+        }
+
+        // Load contoh data saat halaman dimuat
+        window.addEventListener('load', () => {
+            // Set contoh URL (ganti dengan URL sheets Anda)
+            const exampleUrl = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=0';
+            // document.getElementById('sheetsUrl').value = exampleUrl;
         });
-        
-        createAktivitasChart(aktivitas);
-        createPerizinanChart(perizinan);
-        createPerizinanDetailChart(perizinanDetail);
-        createAlatTangkapChart(alatTangkap);
-        createSKKPChart(skkp);
-        fillIzinHabisTable(izinHabis);
-        fillPKLTable(pkl);
-        
-        if (!isAutoRefresh) {
-          loadingEl.style.display = 'none';
-          successEl.textContent = 'Data berhasil dimuat dari Google Sheets!';
-          successEl.style.display = 'block';
-          
-          setTimeout(() => {
-            successEl.style.display = 'none';
-          }, 3000);
-        } else {
-          console.log('Auto-refresh berhasil:', new Date().toLocaleTimeString());
-        }
-        
-      } catch (error) {
-        console.error('Error:', error);
-        if (!isAutoRefresh) {
-          loadingEl.style.display = 'none';
-          errorEl.textContent = 'Gagal memuat data: ' + error.message;
-          errorEl.style.display = 'block';
-        }
-      } finally {
-        if (!isAutoRefresh) {
-          btn.disabled = false;
-        }
-      }
-    }
-
-    // Fungsi toggle auto-refresh
-    function toggleAutoRefresh() {
-      const btn = document.getElementById('btn-toggle-auto');
-      const statusEl = document.querySelector('.auto-refresh-status');
-      const statusIndicator = document.querySelector('.status-indicator');
-      const refreshText = document.getElementById('refresh-text');
-      
-      isAutoRefreshEnabled = !isAutoRefreshEnabled;
-      
-      if (isAutoRefreshEnabled) {
-        // Aktifkan auto-refresh
-        btn.textContent = 'Auto-Refresh: ON';
-        btn.style.background = '#007bff';
-        statusEl.classList.remove('inactive');
-        statusEl.classList.add('active');
-        statusIndicator.classList.remove('inactive');
-        refreshText.textContent = 'Auto-refresh setiap 30 detik';
-        
-        // Start interval
-        autoRefreshInterval = setInterval(() => {
-          loadAllData(true);
-        }, REFRESH_INTERVAL);
-        
-        console.log('Auto-refresh diaktifkan');
-      } else {
-        // Nonaktifkan auto-refresh
-        btn.textContent = 'Auto-Refresh: OFF';
-        btn.style.background = '#6c757d';
-        statusEl.classList.remove('active');
-        statusEl.classList.add('inactive');
-        statusIndicator.classList.add('inactive');
-        refreshText.textContent = 'Auto-refresh dinonaktifkan';
-        
-        // Clear interval
-        if (autoRefreshInterval) {
-          clearInterval(autoRefreshInterval);
-          autoRefreshInterval = null;
-        }
-        
-        console.log('Auto-refresh dinonaktifkan');
-      }
-    }
-
-    // Event listener
-    document.getElementById('btn-load-gsheets').addEventListener('click', () => loadAllData(false));
-    document.getElementById('btn-toggle-auto').addEventListener('click', toggleAutoRefresh);
-    
-    // Auto load saat halaman dibuka
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        loadAllData(false);
-        
-        // Start auto-refresh interval
-        if (isAutoRefreshEnabled) {
-          autoRefreshInterval = setInterval(() => {
-            loadAllData(true);
-          }, REFRESH_INTERVAL);
-        }
-      }, 500);
-    });
-    
-    // Cleanup saat halaman ditutup
-    window.addEventListener('beforeunload', () => {
-      if (autoRefreshInterval) {
-        clearInterval(autoRefreshInterval);
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
