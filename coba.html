@@ -219,7 +219,7 @@
         </div>
         
         <div id="stblkk" class="content-section active">
-            <h2>STBLKK (Surat Tanda Bukti Lapor Kedatangan dan Keberangkatan Kapal)</h2>
+            <h2>STBLKK (Surat Tanda Bukti Lapor Kegiatan Konstruksi)</h2>
             <div class="loading">Memuat data...</div>
             <div class="stats-grid" id="stats-stblkk"></div>
             <div class="chart-container">
@@ -229,7 +229,7 @@
         </div>
         
         <div id="spb" class="content-section">
-            <h2>SPB (Surat Persetujuan Berlayar)</h2>
+            <h2>SPB (Surat Pernyataan Badan)</h2>
             <div class="loading">Memuat data...</div>
             <div class="stats-grid" id="stats-spb"></div>
             <div class="chart-container">
@@ -239,7 +239,7 @@
         </div>
         
         <div id="skkp" class="content-section">
-            <h2>SKKP (Sertifikat Kelaikan Kapal Perikanan)</h2>
+            <h2>SKKP (Surat Keterangan Kompetensi Profesi)</h2>
             <div class="loading">Memuat data...</div>
             <div class="stats-grid" id="stats-skkp"></div>
             <div class="chart-container">
@@ -249,7 +249,7 @@
         </div>
         
         <div id="shti" class="content-section">
-            <h2>SHTI (Sertifikat Hasil Tangkapan Ikan)</h2>
+            <h2>SHTI (Surat Hak Tanah dan Izin)</h2>
             <div class="loading">Memuat data...</div>
             <div class="stats-grid" id="stats-shti"></div>
             <div class="chart-container">
@@ -259,7 +259,7 @@
         </div>
         
         <div id="perizinan-pusat" class="content-section">
-            <h2>Perizinan Daerah</h2>
+            <h2>Perizinan Pusat</h2>
             <div class="loading">Memuat data...</div>
             <div class="stats-grid" id="stats-perizinan-pusat"></div>
             <div class="chart-container">
@@ -269,7 +269,7 @@
         </div>
         
         <div id="perizinan-daerah" class="content-section">
-            <h2>Perizinan Pusat</h2>
+            <h2>Perizinan Daerah</h2>
             <div class="loading">Memuat data...</div>
             <div class="stats-grid" id="stats-perizinan-daerah"></div>
             <div class="chart-container">
@@ -279,7 +279,7 @@
         </div>
         
         <div id="pkl" class="content-section">
-            <h2>PKL (Perjanjian Kerja Laut)</h2>
+            <h2>PKL (Praktik Kerja Lapangan)</h2>
             <div class="loading">Memuat data...</div>
             <div class="stats-grid" id="stats-pkl"></div>
             <div class="chart-container">
@@ -406,6 +406,54 @@
             `;
         }
         
+        function parseDate(dateStr) {
+            if (!dateStr || dateStr.trim() === '') return null;
+            
+            const str = dateStr.trim();
+            let day, month, year;
+            
+            // Format: DD/MM/YYYY atau DD-MM-YYYY
+            let match = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+            if (match) {
+                day = parseInt(match[1]);
+                month = parseInt(match[2]);
+                year = parseInt(match[3]);
+                if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                    return new Date(year, month - 1, day);
+                }
+            }
+            
+            // Format: YYYY/MM/DD atau YYYY-MM-DD
+            match = str.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+            if (match) {
+                year = parseInt(match[1]);
+                month = parseInt(match[2]);
+                day = parseInt(match[3]);
+                if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                    return new Date(year, month - 1, day);
+                }
+            }
+            
+            // Format: MM/DD/YYYY (format Amerika)
+            match = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+            if (match) {
+                month = parseInt(match[1]);
+                day = parseInt(match[2]);
+                year = parseInt(match[3]);
+                if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                    return new Date(year, month - 1, day);
+                }
+            }
+            
+            // Coba parse langsung dengan Date
+            const date = new Date(str);
+            if (!isNaN(date.getTime())) {
+                return date;
+            }
+            
+            return null;
+        }
+        
         function createChart(sheetName, data) {
             const canvas = document.getElementById(`chart-${sheetName}`);
             const ctx = canvas.getContext('2d');
@@ -415,38 +463,100 @@
                 charts[sheetName].destroy();
             }
             
-            // Get first numeric or date column for x-axis
+            // Get column names
             const columns = Object.keys(data[0]);
-            const xColumn = columns[0] || 'Index';
-            const yColumns = columns.slice(1, 4); // Use up to 3 columns for visualization
             
-            // Prepare data for chart
-            const labels = data.map((row, idx) => row[xColumn] || `Row ${idx + 1}`);
-            const datasets = yColumns.map((col, idx) => {
-                const colors = [
-                    'rgba(102, 126, 234, 0.8)',
-                    'rgba(118, 75, 162, 0.8)',
-                    'rgba(237, 100, 166, 0.8)'
-                ];
+            console.log('Columns available:', columns);
+            
+            // Find date column - cari kolom yang berisi kata 'tgl' atau 'tanggal'
+            let dateColumn = null;
+            
+            // Prioritas pencarian berdasarkan nama sheet
+            const searchPatterns = {
+                'stblkk': ['stblkk', 'tgl'],
+                'spb': ['spb', 'tgl'],
+                'skkp': ['skkp', 'tgl'],
+                'shti': ['shti', 'tgl'],
+                'perizinan-pusat': ['akhir', 'tanggal', 'tgl'],
+                'perizinan-daerah': ['akhir', 'tanggal', 'tgl'],
+                'pkl': ['tanggal', 'tgl', 'mulai', 'selesai']
+            };
+            
+            const patterns = searchPatterns[sheetName] || ['tgl', 'tanggal'];
+            
+            // Cari kolom yang cocok dengan pattern
+            for (const pattern of patterns) {
+                dateColumn = columns.find(col => 
+                    col.toLowerCase().includes(pattern.toLowerCase())
+                );
+                if (dateColumn) break;
+            }
+            
+            // Jika tidak ada, ambil kolom pertama yang mungkin tanggal
+            if (!dateColumn) {
+                dateColumn = columns[0];
+            }
+            
+            console.log('Date column selected:', dateColumn);
+            console.log('Sample date values:', data.slice(0, 3).map(row => row[dateColumn]));
+            
+            // Group data by month
+            const monthlyData = {};
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            
+            let validDates = 0;
+            let invalidDates = 0;
+            
+            data.forEach(row => {
+                const dateValue = row[dateColumn];
+                const dateObj = parseDate(dateValue);
                 
-                return {
-                    label: col,
-                    data: data.map(row => {
-                        const value = row[col];
-                        return isNaN(value) ? 0 : parseFloat(value);
-                    }),
-                    backgroundColor: colors[idx],
-                    borderColor: colors[idx].replace('0.8', '1'),
-                    borderWidth: 2,
-                    tension: 0.4
-                };
+                if (dateObj) {
+                    validDates++;
+                    const monthKey = `${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+                    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+                } else if (dateValue && dateValue.trim() !== '') {
+                    invalidDates++;
+                }
             });
             
+            console.log(`Valid dates: ${validDates}, Invalid dates: ${invalidDates}`);
+            console.log('Monthly data:', monthlyData);
+            
+            if (Object.keys(monthlyData).length === 0) {
+                canvas.parentElement.innerHTML = `
+                    <div class="error">
+                        <strong>Tidak ada data tanggal yang valid ditemukan.</strong><br>
+                        Kolom yang digunakan: <strong>${dateColumn}</strong><br>
+                        Sample data: ${data.slice(0, 3).map(row => row[dateColumn]).join(', ')}<br>
+                        Format yang didukung: DD/MM/YYYY, YYYY-MM-DD, MM/DD/YYYY
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort months chronologically
+            const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
+                const [monthA, yearA] = a.split(' ');
+                const [monthB, yearB] = b.split(' ');
+                const dateA = new Date(yearA, monthNames.indexOf(monthA));
+                const dateB = new Date(yearB, monthNames.indexOf(monthB));
+                return dateA - dateB;
+            });
+            
+            const counts = sortedMonths.map(month => monthlyData[month]);
+            
             charts[sheetName] = new Chart(ctx, {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: labels,
-                    datasets: datasets
+                    labels: sortedMonths,
+                    datasets: [{
+                        label: 'Jumlah Data',
+                        data: counts,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2
+                    }]
                 },
                 options: {
                     responsive: true,
@@ -458,12 +568,21 @@
                         },
                         title: {
                             display: true,
-                            text: `Grafik Data ${sheetName.toUpperCase()}`
+                            text: `Grafik Jumlah per Bulan - ${sheetName.toUpperCase()}`
                         }
                     },
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
                         }
                     }
                 }
