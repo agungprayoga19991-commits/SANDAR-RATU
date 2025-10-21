@@ -291,7 +291,6 @@
     
     <script>
         // GANTI URL INI DENGAN CSV EXPORT URL DARI GOOGLE SHEETS ANDA
-        // Cara: File → Share → Publish to web → pilih sheet → format CSV
         const sheetUrls = {
             'stblkk': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=1397215787',
             'spb': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=698992828',
@@ -306,23 +305,17 @@
         const loadedData = {};
         
         function showTab(tabName) {
-            // Hide all sections
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
             
-            // Remove active class from all buttons
             document.querySelectorAll('.tab-button').forEach(button => {
                 button.classList.remove('active');
             });
             
-            // Show selected section
             document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked button
             event.target.classList.add('active');
             
-            // Load data if not already loaded
             if (!loadedData[tabName]) {
                 loadData(tabName);
             }
@@ -362,25 +355,17 @@
                 return;
             }
             
-            // Create statistics
             createStats(sheetName, data);
-            
-            // Create chart
             createChart(sheetName, data);
-            
-            // Create table
             createTable(sheetName, data);
         }
         
         function createStats(sheetName, data) {
             const statsContainer = document.getElementById(`stats-${sheetName}`);
             const totalRecords = data.length;
-            
-            // Get column names
             const columns = Object.keys(data[0]);
             const numColumns = columns.length;
             
-            // Count non-empty values
             let filledCells = 0;
             data.forEach(row => {
                 Object.values(row).forEach(value => {
@@ -412,7 +397,7 @@
             const str = dateStr.trim();
             let day, month, year;
             
-            // Format: DD/MM/YYYY atau DD-MM-YYYY
+            // Format: DD/MM/YYYY atau DD-MM-YYYY atau DD.MM.YYYY
             let match = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
             if (match) {
                 day = parseInt(match[1]);
@@ -458,17 +443,13 @@
             const canvas = document.getElementById(`chart-${sheetName}`);
             const ctx = canvas.getContext('2d');
             
-            // Destroy existing chart if exists
             if (charts[sheetName]) {
                 charts[sheetName].destroy();
             }
             
-            // Get column names
             const columns = Object.keys(data[0]);
-            
             console.log('Columns available:', columns);
             
-            // Find date column - cari kolom yang berisi kata 'tgl' atau 'tanggal'
             let dateColumn = null;
             
             // Prioritas pencarian berdasarkan nama sheet
@@ -498,7 +479,7 @@
             }
             
             console.log('Date column selected:', dateColumn);
-            console.log('Sample date values:', data.slice(0, 3).map(row => row[dateColumn]));
+            console.log('Sample date values:', data.slice(0, 5).map(row => row[dateColumn]));
             
             // Group data by month
             const monthlyData = {};
@@ -611,7 +592,6 @@
             tableContainer.innerHTML = tableHTML;
         }
         
-        // Load first tab data on page load
         window.onload = function() {
             loadData('stblkk');
         };
