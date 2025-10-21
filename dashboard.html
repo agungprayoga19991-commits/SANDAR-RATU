@@ -418,101 +418,97 @@
             // Get column names
             const columns = Object.keys(data[0]);
             
-            // Define columns to display based on sheet name
-            let dateColumns = [];
+            console.log('Columns available:', columns); // Debug
+            
+            // Find date column based on sheet type
+            let dateColumn = null;
             
             if (sheetName === 'stblkk') {
-                dateColumns = columns.filter(col => 
-                    col.toLowerCase().includes('no') || 
-                    col.toLowerCase().includes('tgl stblkk') ||
-                    col.toLowerCase().includes('tanggal') && col.toLowerCase().includes('stblkk')
-                );
+                dateColumn = columns.find(col => col.toLowerCase().includes('tgl') && col.toLowerCase().includes('stblkk'));
             } else if (sheetName === 'spb') {
-                dateColumns = columns.filter(col => 
-                    col.toLowerCase().includes('no') || 
-                    col.toLowerCase().includes('tgl spb') ||
-                    col.toLowerCase().includes('tanggal') && col.toLowerCase().includes('spb')
-                );
+                dateColumn = columns.find(col => col.toLowerCase().includes('tgl') && col.toLowerCase().includes('spb'));
             } else if (sheetName === 'skkp') {
-                dateColumns = columns.filter(col => 
-                    col.toLowerCase().includes('no') || 
-                    col.toLowerCase().includes('tgl skkp') ||
-                    col.toLowerCase().includes('tanggal') && col.toLowerCase().includes('skkp')
-                );
+                dateColumn = columns.find(col => col.toLowerCase().includes('tgl') && col.toLowerCase().includes('skkp'));
             } else if (sheetName === 'shti') {
-                dateColumns = columns.filter(col => 
-                    col.toLowerCase().includes('no') || 
-                    col.toLowerCase().includes('tgl shti') ||
-                    col.toLowerCase().includes('tanggal') && col.toLowerCase().includes('shti')
-                );
+                dateColumn = columns.find(col => col.toLowerCase().includes('tgl') && col.toLowerCase().includes('shti'));
             } else if (sheetName === 'perizinan-pusat' || sheetName === 'perizinan-daerah') {
-                dateColumns = columns.filter(col => 
-                    col.toLowerCase().includes('no') || 
-                    col.toLowerCase().includes('tanggal akhir izin') ||
-                    col.toLowerCase().includes('tgl') && col.toLowerCase().includes('akhir')
-                );
+                dateColumn = columns.find(col => 
+                    col.toLowerCase().includes('tanggal') && col.toLowerCase().includes('akhir')
+                ) || columns.find(col => col.toLowerCase().includes('akhir'));
             } else if (sheetName === 'pkl') {
-                dateColumns = columns.filter(col => 
-                    col.toLowerCase().includes('no') || 
-                    col.toLowerCase().includes('tgl') ||
+                dateColumn = columns.find(col => col.toLowerCase().includes('tanggal'));
+            }
+            
+            // Fallback: find any column with 'tgl' or 'tanggal'
+            if (!dateColumn) {
+                dateColumn = columns.find(col => 
+                    col.toLowerCase().includes('tgl') || 
                     col.toLowerCase().includes('tanggal')
                 );
             }
             
-            // Find NO column for labels
-            const noColumn = columns.find(col => 
-                col.toLowerCase() === 'no' || 
-                col.toLowerCase() === 'no.'
-            );
+            console.log('Date column found:', dateColumn); // Debug
             
-            if (!noColumn || dateColumns.length === 0) {
-                canvas.parentElement.innerHTML = '<div class="error">Kolom yang diperlukan tidak ditemukan dalam data.</div>';
+            if (!dateColumn) {
+                canvas.parentElement.innerHTML = '<div class="error">Kolom tanggal tidak ditemukan. Kolom tersedia: ' + columns.join(', ') + '</div>';
                 return;
             }
             
-            // Prepare data for chart - group by month
+            // Group data by month
             const monthlyData = {};
             
             data.forEach(row => {
-                dateColumns.forEach(col => {
-                    if (col.toLowerCase().includes('no')) return; // Skip NO column
+                const dateValue = row[dateColumn];
+                if (dateValue && dateValue.trim() !== '') {
+                    // Try to extract month from various date formats
+                    let month = 'Unknown';
                     
-                    const dateValue = row[col];
-                    if (dateValue && dateValue.trim() !== '') {
-                        // Extract month from date (assuming format like DD/MM/YYYY or similar)
-                        let month = 'Unknown';
-                        const dateMatch = dateValue.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-                        if (dateMatch) {
-                            const monthNum = parseInt(dateMatch[2]);
-                            const year = dateMatch[3];
-                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                    // Format: DD/MM/YYYY or DD-MM-YYYY
+                    let dateMatch = dateValue.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                    if (dateMatch) {
+                        const monthNum = parseInt(dateMatch[2]);
+                        const year = dateMatch[3];
+                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                        if (monthNum >= 1 && monthNum <= 12) {
                             month = `${monthNames[monthNum - 1]} ${year}`;
                         }
-                        
-                        if (!monthlyData[month]) {
-                            monthlyData[month] = 0;
+                    } else {
+                        // Format: YYYY-MM-DD
+                        dateMatch = dateValue.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+                        if (dateMatch) {
+                            const year = dateMatch[1];
+                            const monthNum = parseInt(dateMatch[2]);
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                            if (monthNum >= 1 && monthNum <= 12) {
+                                month = `${monthNames[monthNum - 1]} ${year}`;
+                            }
                         }
-                        monthlyData[month]++;
                     }
-                });
+                    
+                    if (!monthlyData[month]) {
+                        monthlyData[month] = 0;
+                    }
+                    monthlyData[month]++;
+                }
             });
             
-            // Sort months chronologically
-            const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
-                if (a === 'Unknown') return 1;
-                if (b === 'Unknown') return -1;
-                return new Date(a) - new Date(b);
-            });
+            console.log('Monthly data:', monthlyData); // Debug
             
-            const labels = sortedMonths;
+            // Sort months
+            const sortedMonths = Object.keys(monthlyData).sort();
             const counts = sortedMonths.map(month => monthlyData[month]);
+            
+            if (sortedMonths.length === 0) {
+                canvas.parentElement.innerHTML = '<div class="error">Tidak ada data tanggal yang valid ditemukan.</div>';
+                return;
+            }
             
             charts[sheetName] = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: sortedMonths,
                     datasets: [{
-                        label: 'Jumlah',
+                        label: 'Jumlah Data',
                         data: counts,
                         backgroundColor: 'rgba(102, 126, 234, 0.8)',
                         borderColor: 'rgba(102, 126, 234, 1)',
