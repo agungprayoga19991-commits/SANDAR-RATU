@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Grafik Data</title>
+    <title>Dashboard Data Google Sheets</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
@@ -12,650 +12,490 @@
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
+        
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
-
-        header {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
+        
+        .header {
             text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
         }
-
-        h1 {
-            color: #667eea;
+        
+        .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
         }
-
-        .subtitle {
-            color: #666;
-            font-size: 1.1em;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            background: white;
-            border-radius: 15px;
-            margin: 20px 0;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
+        
         .tabs {
             display: flex;
             gap: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
             justify-content: center;
         }
-
-        .tab {
+        
+        .tab-button {
             padding: 12px 24px;
-            background: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            color: #667eea;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .tab:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
         }
-
-        .chart-container {
+        
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .content-section {
             display: none;
             background: white;
-            padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
-
-        .chart-container.active {
+        
+        .content-section.active {
             display: block;
             animation: fadeIn 0.5s ease;
         }
-
+        
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .chart-wrapper {
+        
+        .chart-container {
             position: relative;
             height: 400px;
-            margin-top: 20px;
+            margin: 20px 0;
         }
-
-        .chart-title {
-            font-size: 1.8em;
-            color: #333;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #667eea;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            border-radius: 10px;
-            color: white;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .stat-label {
-            font-size: 1em;
-            opacity: 0.9;
-        }
-
-        .instructions {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-        }
-
-        .instructions h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.5em;
-        }
-
-        .instructions ol {
-            margin-left: 20px;
-            color: #666;
-            line-height: 2;
-            font-size: 1.05em;
-        }
-
-        .instructions code {
-            background: #f5f5f5;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: monospace;
-            color: #667eea;
-        }
-
-        .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            border-left: 4px solid #c33;
-        }
-
+        
         .data-table {
             width: 100%;
-            margin-top: 20px;
+            border-collapse: collapse;
+            margin-top: 30px;
             overflow-x: auto;
+            display: block;
         }
-
+        
         .data-table table {
             width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9em;
+            min-width: 600px;
         }
-
+        
         .data-table th,
         .data-table td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #e0e0e0;
         }
-
+        
         .data-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #667eea;
-        }
-
-        .data-table tr:hover {
-            background: #f8f9fa;
-        }
-
-        .refresh-btn {
-            padding: 10px 20px;
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            margin: 10px 0;
-            transition: all 0.3s ease;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
         }
-
-        .refresh-btn:hover {
-            background: #764ba2;
-            transform: translateY(-2px);
+        
+        .data-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 5px 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📊 Dashboard Grafik Data</h1>
-            <p class="subtitle">Visualisasi Data STBLKK, SPB, SKKP, SHTI, Perizinan & PKL</p>
-            <button class="refresh-btn" onclick="loadAllData()">🔄 Refresh Data</button>
-        </header>
-
+        <div class="header">
+            <h1>📊 Dashboard Data Analitik</h1>
+            <p>Visualisasi Data dari Google Sheets</p>
+        </div>
+        
         <div class="instructions">
-            <h3>📋 Cara Menggunakan Dashboard ini dengan Google Sheets:</h3>
+            <h3>⚠️ Panduan Penggunaan</h3>
             <ol>
                 <li>Buka Google Sheets Anda</li>
-                <li>Klik <strong>File</strong> → <strong>Share</strong> → <strong>Publish to web</strong></li>
-                <li>Pilih sheet yang ingin dipublikasikan (contoh: STBLKK)</li>
-                <li>Pilih format: <code>Comma-separated values (.csv)</code></li>
-                <li>Klik <strong>Publish</strong> dan copy URL yang diberikan</li>
-                <li>Paste URL tersebut di bagian script (lihat kode di bawah pada bagian <code>sheetUrls</code>)</li>
-                <li>Ulangi untuk setiap sheet lainnya</li>
+                <li>Klik <strong>File → Share → Publish to web</strong></li>
+                <li>Pilih sheet yang ingin dipublikasikan</li>
+                <li>Format: <strong>Comma-separated values (.csv)</strong></li>
+                <li>Klik <strong>Publish</strong> dan salin link CSV</li>
+                <li>Ganti link di kode JavaScript bagian <code>sheetUrls</code></li>
             </ol>
-            <p style="margin-top: 15px; color: #999; font-size: 0.95em;">
-                💡 <strong>Catatan:</strong> Saat ini menggunakan data contoh. Ganti URL di script dengan URL published CSV dari Google Sheets Anda.
-            </p>
         </div>
-
-        <div id="loadingIndicator" class="loading" style="display: none;">
-            <div class="loading-spinner"></div>
-            <p>Memuat data dari Google Sheets...</p>
-        </div>
-
+        
         <div class="tabs">
-            <button class="tab active" onclick="showChart('stblkk')">STBLKK</button>
-            <button class="tab" onclick="showChart('spb')">SPB</button>
-            <button class="tab" onclick="showChart('skkp')">SKKP</button>
-            <button class="tab" onclick="showChart('shti')">SHTI</button>
-            <button class="tab" onclick="showChart('perizinan')">Perizinan</button>
-            <button class="tab" onclick="showChart('pkl')">PKL</button>
+            <button class="tab-button active" onclick="showTab('stblkk')">STBLKK</button>
+            <button class="tab-button" onclick="showTab('spb')">SPB</button>
+            <button class="tab-button" onclick="showTab('skkp')">SKKP</button>
+            <button class="tab-button" onclick="showTab('shti')">SHTI</button>
+            <button class="tab-button" onclick="showTab('perizinan-pusat')">Perizinan Pusat</button>
+            <button class="tab-button" onclick="showTab('perizinan-daerah')">Perizinan Daerah</button>
+            <button class="tab-button" onclick="showTab('pkl')">PKL</button>
         </div>
-
-        <div id="stblkk" class="chart-container active">
-            <h2 class="chart-title">Data STBLKK (Surat Tanda Bukti Lapor Ketenagakerjaan)</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartSTBLKK"></canvas>
+        
+        <div id="stblkk" class="content-section active">
+            <h2>STBLKK (Surat Tanda Bukti Lapor Kegiatan Konstruksi)</h2>
+            <div class="loading">Memuat data...</div>
+            <div class="stats-grid" id="stats-stblkk"></div>
+            <div class="chart-container">
+                <canvas id="chart-stblkk"></canvas>
             </div>
-            <div class="stats-grid" id="statsSTBLKK"></div>
-            <div class="data-table" id="tableSTBLKK"></div>
+            <div class="data-table" id="table-stblkk"></div>
         </div>
-
-        <div id="spb" class="chart-container">
-            <h2 class="chart-title">Data SPB (Surat Pemberitahuan)</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartSPB"></canvas>
+        
+        <div id="spb" class="content-section">
+            <h2>SPB (Surat Pernyataan Badan)</h2>
+            <div class="loading">Memuat data...</div>
+            <div class="stats-grid" id="stats-spb"></div>
+            <div class="chart-container">
+                <canvas id="chart-spb"></canvas>
             </div>
-            <div class="stats-grid" id="statsSPB"></div>
-            <div class="data-table" id="tableSPB"></div>
+            <div class="data-table" id="table-spb"></div>
         </div>
-
-        <div id="skkp" class="chart-container">
-            <h2 class="chart-title">Data SKKP</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartSKKP"></canvas>
+        
+        <div id="skkp" class="content-section">
+            <h2>SKKP (Surat Keterangan Kompetensi Profesi)</h2>
+            <div class="loading">Memuat data...</div>
+            <div class="stats-grid" id="stats-skkp"></div>
+            <div class="chart-container">
+                <canvas id="chart-skkp"></canvas>
             </div>
-            <div class="stats-grid" id="statsSKKP"></div>
-            <div class="data-table" id="tableSKKP"></div>
+            <div class="data-table" id="table-skkp"></div>
         </div>
-
-        <div id="shti" class="chart-container">
-            <h2 class="chart-title">Data SHTI</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartSHTI"></canvas>
+        
+        <div id="shti" class="content-section">
+            <h2>SHTI (Surat Hak Tanah dan Izin)</h2>
+            <div class="loading">Memuat data...</div>
+            <div class="stats-grid" id="stats-shti"></div>
+            <div class="chart-container">
+                <canvas id="chart-shti"></canvas>
             </div>
-            <div class="stats-grid" id="statsSHTI"></div>
-            <div class="data-table" id="tableSHTI"></div>
+            <div class="data-table" id="table-shti"></div>
         </div>
-
-        <div id="perizinan" class="chart-container">
-            <h2 class="chart-title">Data Perizinan Pusat dan Daerah</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartPerizinan"></canvas>
+        
+        <div id="perizinan-pusat" class="content-section">
+            <h2>Perizinan Pusat</h2>
+            <div class="loading">Memuat data...</div>
+            <div class="stats-grid" id="stats-perizinan-pusat"></div>
+            <div class="chart-container">
+                <canvas id="chart-perizinan-pusat"></canvas>
             </div>
-            <div class="stats-grid" id="statsPerizinan"></div>
-            <div class="data-table" id="tablePerizinan"></div>
+            <div class="data-table" id="table-perizinan-pusat"></div>
         </div>
-
-        <div id="pkl" class="chart-container">
-            <h2 class="chart-title">Data PKL (Praktik Kerja Lapangan)</h2>
-            <div class="chart-wrapper">
-                <canvas id="chartPKL"></canvas>
+        
+        <div id="perizinan-daerah" class="content-section">
+            <h2>Perizinan Daerah</h2>
+            <div class="loading">Memuat data...</div>
+            <div class="stats-grid" id="stats-perizinan-daerah"></div>
+            <div class="chart-container">
+                <canvas id="chart-perizinan-daerah"></canvas>
             </div>
-            <div class="stats-grid" id="statsPKL"></div>
-            <div class="data-table" id="tablePKL"></div>
+            <div class="data-table" id="table-perizinan-daerah"></div>
+        </div>
+        
+        <div id="pkl" class="content-section">
+            <h2>PKL (Praktik Kerja Lapangan)</h2>
+            <div class="loading">Memuat data...</div>
+            <div class="stats-grid" id="stats-pkl"></div>
+            <div class="chart-container">
+                <canvas id="chart-pkl"></canvas>
+            </div>
+            <div class="data-table" id="table-pkl"></div>
         </div>
     </div>
-
+    
     <script>
-        // KONFIGURASI URL GOOGLE SHEETS
-        // Ganti URL di bawah dengan URL published CSV dari Google Sheets Anda
+        // GANTI URL INI DENGAN CSV EXPORT URL DARI GOOGLE SHEETS ANDA
+        // Cara: File → Share → Publish to web → pilih sheet → format CSV
         const sheetUrls = {
-            stblkk: 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=1397215787',
-            spb: 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=698992828',
-            skkp: 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=1309011826',
-            shti: 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=566117585',
-            perizinan: 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=583377591',
-            pkl: 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=2099648587'
+            'stblkk': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=1397215787',
+            'spb': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=698992828',
+            'skkp': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=1309011826',
+            'shti': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=566117585',
+            'perizinan-pusat': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=583377591',
+            'perizinan-daerah': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=264793408',
+            'pkl': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=2099648587'
         };
-
-        let charts = {};
-        let dataStore = {};
-
-        // Fungsi untuk load data dari Google Sheets
-        function loadDataFromSheet(sheetName, url) {
-            return new Promise((resolve, reject) => {
-                Papa.parse(url, {
-                    download: true,
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        console.log(`Data loaded for ${sheetName}:`, results.data);
-                        dataStore[sheetName] = results.data;
-                        resolve(results.data);
-                    },
-                    error: function(error) {
-                        console.error(`Error loading ${sheetName}:`, error);
-                        reject(error);
-                    }
-                });
+        
+        const charts = {};
+        const loadedData = {};
+        
+        function showTab(tabName) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
             });
-        }
-
-        // Fungsi untuk membuat chart
-        function createChart(canvasId, data, sheetName) {
-            const ctx = document.getElementById(canvasId);
-            if (!ctx) {
-                console.error(`Canvas ${canvasId} not found`);
-                return;
-            }
             
-            // Destroy existing chart if exists
-            if (charts[canvasId]) {
-                charts[canvasId].destroy();
-            }
-
-            // Filter data yang valid (tidak null/undefined)
-            const validData = data.filter(row => row && typeof row === 'object');
-            
-            if (validData.length === 0) {
-                console.warn(`No valid data for ${sheetName}`);
-                return;
-            }
-
-            // Analisis data untuk menentukan tipe chart yang sesuai
-            const headers = Object.keys(validData[0] || {}).filter(h => h && h.trim() !== '');
-            console.log(`Headers for ${sheetName}:`, headers);
-
-            if (headers.length === 0) {
-                console.warn(`No headers found for ${sheetName}`);
-                return;
-            }
-
-            // Ambil 10 data pertama untuk chart
-            const limitedData = validData.slice(0, 10);
-            
-            // Cari kolom yang berisi label (biasanya kolom pertama atau kolom dengan nama/tanggal)
-            const labelColumn = headers[0];
-            const labels = limitedData.map((row, idx) => {
-                const label = row[labelColumn];
-                return label && label.toString().trim() !== '' ? label : `Data ${idx + 1}`;
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
             });
-
-            // Cari kolom numerik
-            const numericColumns = headers.filter(header => {
-                // Cek beberapa baris untuk memastikan kolom numerik
-                const sampleValues = validData.slice(0, 5).map(row => row[header]);
-                const hasNumeric = sampleValues.some(val => {
-                    const num = parseFloat(val);
-                    return !isNaN(num) && val !== '' && val !== null && val !== undefined;
-                });
-                return hasNumeric;
-            });
-
-            let datasets = [];
-            const colors = [
-                '#667eea',
-                '#764ba2',
-                '#f093fb',
-                '#4facfe',
-                '#43e97b',
-                '#fa709a'
-            ];
-
-            // Buat dataset untuk setiap kolom numerik
-            if (numericColumns.length > 0) {
-                numericColumns.slice(0, 3).forEach((column, index) => {
-                    datasets.push({
-                        label: column,
-                        data: limitedData.map(row => {
-                            const val = parseFloat(row[column]);
-                            return isNaN(val) ? 0 : val;
-                        }),
-                        borderColor: colors[index],
-                        backgroundColor: colors[index] + '33',
-                        tension: 0.4,
-                        fill: true
-                    });
-                });
-            } else {
-                // Jika tidak ada data numerik, gunakan count
-                datasets = [{
-                    label: 'Jumlah Data',
-                    data: limitedData.map((_, index) => index + 1),
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                    tension: 0.4,
-                    fill: true
-                }];
-            }
-
-            try {
-                charts[canvasId] = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: datasets
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error(`Error creating chart ${canvasId}:`, error);
+            
+            // Show selected section
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Load data if not already loaded
+            if (!loadedData[tabName]) {
+                loadData(tabName);
             }
         }
-
-        // Fungsi untuk membuat tabel
-        function createTable(containerId, data, limit = 10) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-
-            if (!data || data.length === 0) {
-                container.innerHTML = '<p>Tidak ada data untuk ditampilkan</p>';
-                return;
-            }
-
-            // Filter data yang valid
-            const validData = data.filter(row => row && typeof row === 'object');
+        
+        function loadData(sheetName) {
+            const url = sheetUrls[sheetName];
+            const section = document.getElementById(sheetName);
             
-            if (validData.length === 0) {
-                container.innerHTML = '<p>Tidak ada data valid untuk ditampilkan</p>';
-                return;
-            }
-
-            const headers = Object.keys(validData[0]).filter(h => h && h.trim() !== '');
-            const limitedData = validData.slice(0, limit);
-
-            let tableHTML = '<table><thead><tr>';
-            headers.forEach(header => {
-                tableHTML += `<th>${header}</th>`;
-            });
-            tableHTML += '</tr></thead><tbody>';
-
-            limitedData.forEach(row => {
-                tableHTML += '<tr>';
-                headers.forEach(header => {
-                    const value = row[header];
-                    tableHTML += `<td>${value !== null && value !== undefined && value !== '' ? value : '-'}</td>`;
-                });
-                tableHTML += '</tr>';
-            });
-
-            tableHTML += '</tbody></table>';
-            container.innerHTML = tableHTML;
-        }
-
-        // Fungsi untuk membuat statistik
-        function createStats(containerId, data) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-
-            if (!data || data.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-
-            // Filter data yang valid
-            const validData = data.filter(row => row && typeof row === 'object');
-            const totalData = validData.length;
-            
-            if (totalData === 0) {
-                container.innerHTML = '<div class="stat-card"><div class="stat-label">Tidak ada data</div></div>';
-                return;
-            }
-
-            const headers = Object.keys(validData[0]).filter(h => h && h.trim() !== '');
-            
-            // Cari kolom numerik untuk statistik
-            const numericColumns = headers.filter(header => {
-                const sampleValues = validData.slice(0, 5).map(row => row[header]);
-                return sampleValues.some(val => {
-                    const num = parseFloat(val);
-                    return !isNaN(num) && val !== '' && val !== null && val !== undefined;
-                });
-            });
-
-            let statsHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">Total Data</div>
-                    <div class="stat-number">${totalData}</div>
-                </div>
-            `;
-
-            // Tambahkan statistik untuk kolom numerik pertama jika ada
-            if (numericColumns.length > 0) {
-                const column = numericColumns[0];
-                const values = validData
-                    .map(row => parseFloat(row[column]))
-                    .filter(val => !isNaN(val));
-                
-                if (values.length > 0) {
-                    const sum = values.reduce((a, b) => a + b, 0);
-                    const avg = (sum / values.length).toFixed(2);
-                    const max = Math.max(...values);
-
-                    statsHTML += `
-                        <div class="stat-card">
-                            <div class="stat-label">Total ${column}</div>
-                            <div class="stat-number">${sum.toFixed(2)}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Rata-rata ${column}</div>
-                            <div class="stat-number">${avg}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Maksimum ${column}</div>
-                            <div class="stat-number">${max}</div>
+            Papa.parse(url, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    loadedData[sheetName] = results.data;
+                    displayData(sheetName, results.data);
+                },
+                error: function(error) {
+                    section.querySelector('.loading').innerHTML = `
+                        <div class="error">
+                            <strong>Error:</strong> Tidak dapat memuat data. 
+                            Pastikan Google Sheet sudah dipublikasikan ke web sebagai CSV.
+                            <br><br>
+                            <small>Error: ${error.message}</small>
                         </div>
                     `;
                 }
-            }
-
-            container.innerHTML = statsHTML;
+            });
         }
-
-        // Fungsi untuk load semua data
-        async function loadAllData() {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            loadingIndicator.style.display = 'block';
-
-            try {
-                // Load data untuk setiap sheet
-                for (const [key, url] of Object.entries(sheetUrls)) {
-                    try {
-                        const data = await loadDataFromSheet(key, url);
-                        
-                        // Update chart
-                        const chartId = 'chart' + key.toUpperCase().replace('_', '');
-                        createChart(chartId, data, key);
-                        
-                        // Update stats
-                        const statsId = 'stats' + key.toUpperCase().replace('_', '');
-                        createStats(statsId, data);
-                        
-                        // Update table
-                        const tableId = 'table' + key.toUpperCase().replace('_', '');
-                        createTable(tableId, data);
-                        
-                    } catch (error) {
-                        console.error(`Failed to load ${key}:`, error);
-                        const containerId = key.charAt(0).toUpperCase() + key.slice(1);
-                        document.getElementById('stats' + key.toUpperCase()).innerHTML = 
-                            `<div class="error-message">Gagal memuat data. Pastikan sheet sudah dipublikasikan sebagai CSV.</div>`;
+        
+        function displayData(sheetName, data) {
+            const section = document.getElementById(sheetName);
+            section.querySelector('.loading').style.display = 'none';
+            
+            if (data.length === 0) {
+                section.innerHTML += '<div class="error">Tidak ada data yang ditemukan.</div>';
+                return;
+            }
+            
+            // Create statistics
+            createStats(sheetName, data);
+            
+            // Create chart
+            createChart(sheetName, data);
+            
+            // Create table
+            createTable(sheetName, data);
+        }
+        
+        function createStats(sheetName, data) {
+            const statsContainer = document.getElementById(`stats-${sheetName}`);
+            const totalRecords = data.length;
+            
+            // Get column names
+            const columns = Object.keys(data[0]);
+            const numColumns = columns.length;
+            
+            // Count non-empty values
+            let filledCells = 0;
+            data.forEach(row => {
+                Object.values(row).forEach(value => {
+                    if (value && value.trim() !== '') filledCells++;
+                });
+            });
+            
+            const completeness = ((filledCells / (totalRecords * numColumns)) * 100).toFixed(1);
+            
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <h3>Total Records</h3>
+                    <div class="number">${totalRecords}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Kolom</h3>
+                    <div class="number">${numColumns}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Kelengkapan Data</h3>
+                    <div class="number">${completeness}%</div>
+                </div>
+            `;
+        }
+        
+        function createChart(sheetName, data) {
+            const canvas = document.getElementById(`chart-${sheetName}`);
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart if exists
+            if (charts[sheetName]) {
+                charts[sheetName].destroy();
+            }
+            
+            // Get first numeric or date column for x-axis
+            const columns = Object.keys(data[0]);
+            const xColumn = columns[0] || 'Index';
+            const yColumns = columns.slice(1, 4); // Use up to 3 columns for visualization
+            
+            // Prepare data for chart
+            const labels = data.map((row, idx) => row[xColumn] || `Row ${idx + 1}`);
+            const datasets = yColumns.map((col, idx) => {
+                const colors = [
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(118, 75, 162, 0.8)',
+                    'rgba(237, 100, 166, 0.8)'
+                ];
+                
+                return {
+                    label: col,
+                    data: data.map(row => {
+                        const value = row[col];
+                        return isNaN(value) ? 0 : parseFloat(value);
+                    }),
+                    backgroundColor: colors[idx],
+                    borderColor: colors[idx].replace('0.8', '1'),
+                    borderWidth: 2,
+                    tension: 0.4
+                };
+            });
+            
+            charts[sheetName] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: `Grafik Data ${sheetName.toUpperCase()}`
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            } finally {
-                loadingIndicator.style.display = 'none';
-            }
+            });
         }
-
-        // Fungsi untuk menampilkan chart
-        function showChart(chartId) {
-            document.querySelectorAll('.chart-container').forEach(container => {
-                container.classList.remove('active');
+        
+        function createTable(sheetName, data) {
+            const tableContainer = document.getElementById(`table-${sheetName}`);
+            const columns = Object.keys(data[0]);
+            
+            let tableHTML = '<table><thead><tr>';
+            columns.forEach(col => {
+                tableHTML += `<th>${col}</th>`;
+            });
+            tableHTML += '</tr></thead><tbody>';
+            
+            data.forEach(row => {
+                tableHTML += '<tr>';
+                columns.forEach(col => {
+                    tableHTML += `<td>${row[col] || ''}</td>`;
+                });
+                tableHTML += '</tr>';
             });
             
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            document.getElementById(chartId).classList.add('active');
-            event.target.classList.add('active');
+            tableHTML += '</tbody></table>';
+            tableContainer.innerHTML = tableHTML;
         }
-
-        // Load data saat halaman dimuat
-        window.addEventListener('load', function() {
-            loadAllData();
-        });
+        
+        // Load first tab data on page load
+        window.onload = function() {
+            loadData('stblkk');
+        };
     </script>
 </body>
 </html>
