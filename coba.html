@@ -460,29 +460,67 @@
             data.forEach(row => {
                 const dateValue = row[dateColumn];
                 if (dateValue && dateValue.trim() !== '') {
-                    // Try to extract month from various date formats
                     let month = 'Unknown';
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
                     
-                    // Format: DD/MM/YYYY or DD-MM-YYYY
-                    let dateMatch = dateValue.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                    // Remove any extra spaces
+                    const cleanDate = dateValue.trim();
+                    
+                    // Try multiple date formats
+                    let dateMatch;
+                    let day, monthNum, year;
+                    
+                    // Format 1: DD/MM/YYYY or DD-MM-YYYY
+                    dateMatch = cleanDate.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
                     if (dateMatch) {
-                        const monthNum = parseInt(dateMatch[2]);
-                        const year = dateMatch[3];
-                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                        if (monthNum >= 1 && monthNum <= 12) {
-                            month = `${monthNames[monthNum - 1]} ${year}`;
-                        }
-                    } else {
-                        // Format: YYYY-MM-DD
-                        dateMatch = dateValue.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+                        day = parseInt(dateMatch[1]);
+                        monthNum = parseInt(dateMatch[2]);
+                        year = dateMatch[3];
+                    }
+                    
+                    // Format 2: YYYY-MM-DD or YYYY/MM/DD
+                    if (!dateMatch) {
+                        dateMatch = cleanDate.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
                         if (dateMatch) {
-                            const year = dateMatch[1];
-                            const monthNum = parseInt(dateMatch[2]);
-                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                            if (monthNum >= 1 && monthNum <= 12) {
-                                month = `${monthNames[monthNum - 1]} ${year}`;
+                            year = dateMatch[1];
+                            monthNum = parseInt(dateMatch[2]);
+                            day = parseInt(dateMatch[3]);
+                        }
+                    }
+                    
+                    // Format 3: M/D/YYYY or MM/DD/YYYY (American format)
+                    if (!dateMatch) {
+                        dateMatch = cleanDate.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+                        if (dateMatch) {
+                            monthNum = parseInt(dateMatch[1]);
+                            day = parseInt(dateMatch[2]);
+                            year = dateMatch[3];
+                            // Check if this makes sense (month should be 1-12, day should be 1-31)
+                            if (monthNum > 12 && day <= 12) {
+                                // Swap them - it's likely DD/MM/YYYY
+                                const temp = monthNum;
+                                monthNum = day;
+                                day = temp;
                             }
                         }
+                    }
+                    
+                    // Format 4: Try to parse with Date object as last resort
+                    if (!dateMatch || !monthNum || monthNum < 1 || monthNum > 12) {
+                        try {
+                            const parsedDate = new Date(cleanDate);
+                            if (!isNaN(parsedDate.getTime())) {
+                                monthNum = parsedDate.getMonth() + 1;
+                                year = parsedDate.getFullYear();
+                            }
+                        } catch (e) {
+                            // Parsing failed, will remain Unknown
+                        }
+                    }
+                    
+                    // Set month if valid
+                    if (monthNum && monthNum >= 1 && monthNum <= 12 && year) {
+                        month = `${monthNames[monthNum - 1]} ${year}`;
                     }
                     
                     if (!monthlyData[month]) {
