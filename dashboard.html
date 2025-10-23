@@ -258,16 +258,6 @@
             <div class="data-table" id="table-shti"></div>
         </div>
         
-        <div id="perizinan-daerah" class="content-section">
-            <h2>Perizinan Daerah</h2>
-            <div class="loading">Memuat data...</div>
-            <div class="stats-grid" id="stats-perizinan-daerah"></div>
-            <div class="chart-container">
-                <canvas id="chart-perizinan-daerah"></canvas>
-            </div>
-            <div class="data-table" id="table-perizinan-daerah"></div>
-        </div>
-        
         <div id="perizinan-pusat" class="content-section">
             <h2>Perizinan Pusat</h2>
             <div class="loading">Memuat data...</div>
@@ -276,6 +266,16 @@
                 <canvas id="chart-perizinan-pusat"></canvas>
             </div>
             <div class="data-table" id="table-perizinan-pusat"></div>
+        </div>
+        
+        <div id="perizinan-daerah" class="content-section">
+            <h2>Perizinan Daerah</h2>
+            <div class="loading">Memuat data...</div>
+            <div class="stats-grid" id="stats-perizinan-daerah"></div>
+            <div class="chart-container">
+                <canvas id="chart-perizinan-daerah"></canvas>
+            </div>
+            <div class="data-table" id="table-perizinan-daerah"></div>
         </div>
         
         <div id="pkl" class="content-section">
@@ -290,15 +290,13 @@
     </div>
     
     <script>
-        // GANTI URL INI DENGAN CSV EXPORT URL DARI GOOGLE SHEETS ANDA
-        // Cara: File → Share → Publish to web → pilih sheet → format CSV
         const sheetUrls = {
             'stblkk': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=1397215787',
             'spb': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=698992828',
             'skkp': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=1309011826',
             'shti': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=566117585',
-            'perizinan-pusat': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=264793408',
-            'perizinan-daerah': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=583377591',
+            'perizinan-pusat': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=583377591',
+            'perizinan-daerah': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=264793408',
             'pkl': 'https://docs.google.com/spreadsheets/d/1eqJs6dkRA_kKwDzpWxLlZ83lNh1qhi5zA19gw9c6254/export?format=csv&gid=2099648587'
         };
         
@@ -306,23 +304,17 @@
         const loadedData = {};
         
         function showTab(tabName) {
-            // Hide all sections
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
             
-            // Remove active class from all buttons
             document.querySelectorAll('.tab-button').forEach(button => {
                 button.classList.remove('active');
             });
             
-            // Show selected section
             document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked button
             event.target.classList.add('active');
             
-            // Load data if not already loaded
             if (!loadedData[tabName]) {
                 loadData(tabName);
             }
@@ -362,13 +354,8 @@
                 return;
             }
             
-            // Create statistics
             createStats(sheetName, data);
-            
-            // Create chart
             createChart(sheetName, data);
-            
-            // Create table
             createTable(sheetName, data);
         }
         
@@ -376,11 +363,9 @@
             const statsContainer = document.getElementById(`stats-${sheetName}`);
             const totalRecords = data.length;
             
-            // Get column names
             const columns = Object.keys(data[0]);
             const numColumns = columns.length;
             
-            // Count non-empty values
             let filledCells = 0;
             data.forEach(row => {
                 Object.values(row).forEach(value => {
@@ -406,113 +391,153 @@
             `;
         }
         
+        // Fungsi parsing tanggal yang lebih robust
+        function parseDate(dateStr) {
+            if (!dateStr || dateStr.trim() === '') return null;
+            
+            const cleanDate = dateStr.trim();
+            let day, month, year;
+            
+            // Format: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
+            let match = cleanDate.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+            if (match) {
+                day = parseInt(match[1]);
+                month = parseInt(match[2]);
+                year = parseInt(match[3]);
+                
+                // Validasi: jika day > 12 dan month <= 12, kemungkinan format DD/MM/YYYY
+                if (day > 12 && month <= 12) {
+                    return new Date(year, month - 1, day);
+                }
+                // Jika month > 12 dan day <= 12, kemungkinan format MM/DD/YYYY
+                else if (month > 12 && day <= 12) {
+                    return new Date(year, day - 1, month);
+                }
+                // Asumsikan DD/MM/YYYY untuk format Indonesia
+                else if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                    return new Date(year, month - 1, day);
+                }
+            }
+            
+            // Format: YYYY-MM-DD, YYYY/MM/DD
+            match = cleanDate.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+            if (match) {
+                year = parseInt(match[1]);
+                month = parseInt(match[2]);
+                day = parseInt(match[3]);
+                if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                    return new Date(year, month - 1, day);
+                }
+            }
+            
+            // Coba parse dengan Date constructor
+            try {
+                const parsed = new Date(cleanDate);
+                if (!isNaN(parsed.getTime()) && parsed.getFullYear() > 1900) {
+                    return parsed;
+                }
+            } catch (e) {
+                // Ignore
+            }
+            
+            return null;
+        }
+        
+        // Fungsi untuk menemukan kolom tanggal
+        function findDateColumn(columns, sheetName) {
+            const lower = columns.map(c => c.toLowerCase());
+            
+            // Prioritas pencarian berdasarkan sheet
+            const patterns = {
+                'stblkk': ['tgl stblkk', 'tanggal stblkk', 'tgl', 'tanggal'],
+                'spb': ['tgl spb', 'tanggal spb', 'tgl', 'tanggal'],
+                'skkp': ['tgl skkp', 'tanggal skkp', 'tgl', 'tanggal'],
+                'shti': ['tgl shti', 'tanggal shti', 'tgl', 'tanggal'],
+                'perizinan-pusat': ['tanggal akhir', 'tgl akhir', 'akhir', 'tanggal', 'tgl'],
+                'perizinan-daerah': ['tanggal akhir', 'tgl akhir', 'akhir', 'tanggal', 'tgl'],
+                'pkl': ['tanggal', 'tgl']
+            };
+            
+            const searchPatterns = patterns[sheetName] || ['tanggal', 'tgl', 'date'];
+            
+            for (const pattern of searchPatterns) {
+                const idx = lower.findIndex(col => col.includes(pattern));
+                if (idx !== -1) return columns[idx];
+            }
+            
+            return null;
+        }
+        
         function createChart(sheetName, data) {
             const canvas = document.getElementById(`chart-${sheetName}`);
             const ctx = canvas.getContext('2d');
             
-            // Destroy existing chart if exists
             if (charts[sheetName]) {
                 charts[sheetName].destroy();
             }
             
-            // Get column names
             const columns = Object.keys(data[0]);
-            
-            console.log('Columns available:', columns); // Debug
-            
-            // Find date column based on sheet type
-            let dateColumn = null;
-            
-            if (sheetName === 'stblkk') {
-                dateColumn = columns.find(col => col.toLowerCase().includes('tgl') && col.toLowerCase().includes('stblkk'));
-            } else if (sheetName === 'spb') {
-                dateColumn = columns.find(col => col.toLowerCase().includes('tgl') && col.toLowerCase().includes('spb'));
-            } else if (sheetName === 'skkp') {
-                dateColumn = columns.find(col => col.toLowerCase().includes('tgl') && col.toLowerCase().includes('skkp'));
-            } else if (sheetName === 'shti') {
-                dateColumn = columns.find(col => col.toLowerCase().includes('tgl') && col.toLowerCase().includes('shti'));
-            } else if (sheetName === 'perizinan-pusat' || sheetName === 'perizinan-daerah') {
-                dateColumn = columns.find(col => 
-                    col.toLowerCase().includes('tanggal') && col.toLowerCase().includes('akhir')
-                ) || columns.find(col => col.toLowerCase().includes('akhir'));
-            } else if (sheetName === 'pkl') {
-                dateColumn = columns.find(col => col.toLowerCase().includes('tanggal'));
-            }
-            
-            // Fallback: find any column with 'tgl' or 'tanggal'
-            if (!dateColumn) {
-                dateColumn = columns.find(col => 
-                    col.toLowerCase().includes('tgl') || 
-                    col.toLowerCase().includes('tanggal')
-                );
-            }
-            
-            console.log('Date column found:', dateColumn); // Debug
+            const dateColumn = findDateColumn(columns, sheetName);
             
             if (!dateColumn) {
                 canvas.parentElement.innerHTML = '<div class="error">Kolom tanggal tidak ditemukan. Kolom tersedia: ' + columns.join(', ') + '</div>';
                 return;
             }
             
-            // Group data by month
-            const monthlyData = {};
+            // Gunakan Map untuk menghitung per bulan dengan Date object sebagai key
+            const monthlyMap = new Map();
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            
+            let validCount = 0;
+            let invalidCount = 0;
             
             data.forEach(row => {
                 const dateValue = row[dateColumn];
-                if (dateValue && dateValue.trim() !== '') {
-                    // Try to extract month from various date formats
-                    let month = 'Unknown';
+                const parsedDate = parseDate(dateValue);
+                
+                if (parsedDate) {
+                    validCount++;
+                    const year = parsedDate.getFullYear();
+                    const month = parsedDate.getMonth();
                     
-                    // Format: DD/MM/YYYY or DD-MM-YYYY
-                    let dateMatch = dateValue.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-                    if (dateMatch) {
-                        const monthNum = parseInt(dateMatch[2]);
-                        const year = dateMatch[3];
-                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                        if (monthNum >= 1 && monthNum <= 12) {
-                            month = `${monthNames[monthNum - 1]} ${year}`;
-                        }
-                    } else {
-                        // Format: YYYY-MM-DD
-                        dateMatch = dateValue.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-                        if (dateMatch) {
-                            const year = dateMatch[1];
-                            const monthNum = parseInt(dateMatch[2]);
-                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                            if (monthNum >= 1 && monthNum <= 12) {
-                                month = `${monthNames[monthNum - 1]} ${year}`;
-                            }
-                        }
-                    }
+                    // Buat key unik untuk sorting: YYYY-MM
+                    const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+                    const label = `${monthNames[month]} ${year}`;
                     
-                    if (!monthlyData[month]) {
-                        monthlyData[month] = 0;
+                    if (!monthlyMap.has(key)) {
+                        monthlyMap.set(key, { label: label, count: 0, date: new Date(year, month, 1) });
                     }
-                    monthlyData[month]++;
+                    monthlyMap.get(key).count++;
+                } else if (dateValue && dateValue.trim() !== '') {
+                    invalidCount++;
                 }
             });
             
-            console.log('Monthly data:', monthlyData); // Debug
+            // Sort berdasarkan key (YYYY-MM) untuk urutan kronologis
+            const sortedEntries = Array.from(monthlyMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
             
-            // Sort months
-            const sortedMonths = Object.keys(monthlyData).sort();
-            const counts = sortedMonths.map(month => monthlyData[month]);
+            const labels = sortedEntries.map(entry => entry[1].label);
+            const counts = sortedEntries.map(entry => entry[1].count);
             
-            if (sortedMonths.length === 0) {
-                canvas.parentElement.innerHTML = '<div class="error">Tidak ada data tanggal yang valid ditemukan.</div>';
+            if (sortedEntries.length === 0) {
+                canvas.parentElement.innerHTML = `<div class="error">Tidak ada data tanggal yang valid ditemukan. 
+                    <br>Valid: ${validCount}, Invalid: ${invalidCount}, Total: ${data.length}
+                    <br>Kolom yang digunakan: ${dateColumn}
+                    <br>Contoh data: ${data.slice(0, 3).map(r => r[dateColumn]).join(', ')}</div>`;
                 return;
             }
             
             charts[sheetName] = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: sortedMonths,
+                    labels: labels,
                     datasets: [{
-                        label: 'Jumlah Data',
+                        label: 'Jumlah Data per Bulan',
                         data: counts,
                         backgroundColor: 'rgba(102, 126, 234, 0.8)',
                         borderColor: 'rgba(102, 126, 234, 1)',
-                        borderWidth: 2
+                        borderWidth: 2,
+                        borderRadius: 5
                     }]
                 },
                 options: {
@@ -525,20 +550,40 @@
                         },
                         title: {
                             display: true,
-                            text: `Grafik Jumlah per Bulan - ${sheetName.toUpperCase()}`
+                            text: `Grafik Distribusi per Bulan - ${sheetName.toUpperCase()}`,
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    return `${validCount} data valid dari ${data.length} total`;
+                                }
+                            }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1
+                                stepSize: 1,
+                                precision: 0
+                            },
+                            title: {
+                                display: true,
+                                text: 'Jumlah Data'
                             }
                         },
                         x: {
                             ticks: {
                                 maxRotation: 45,
                                 minRotation: 45
+                            },
+                            title: {
+                                display: true,
+                                text: 'Bulan'
                             }
                         }
                     }
@@ -568,7 +613,6 @@
             tableContainer.innerHTML = tableHTML;
         }
         
-        // Load first tab data on page load
         window.onload = function() {
             loadData('stblkk');
         };
